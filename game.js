@@ -809,9 +809,6 @@ function draw() {
     noStroke();
     plane(CONFIG.WORLD_RADIUS * 2, CONFIG.WORLD_RADIUS * 2);
 
-    // Show waves
-    waves.forEach(wave => wave.show());
-
     // Add grid pattern
     stroke(45, 150, 45);
     strokeWeight(1);
@@ -819,9 +816,21 @@ function draw() {
     for (let x = -CONFIG.WORLD_RADIUS; x <= CONFIG.WORLD_RADIUS; x += gridSize) {
         line(x, -CONFIG.WORLD_RADIUS, x, CONFIG.WORLD_RADIUS);
     }
+    pop();
+
+    // Draw ground grid
+    push();
+    translate(0, 50, 0);
+    rotateX(HALF_PI);
+    stroke(45, 150, 45);
+    strokeWeight(1);
     for (let z = -CONFIG.WORLD_RADIUS; z <= CONFIG.WORLD_RADIUS; z += gridSize) {
         line(-CONFIG.WORLD_RADIUS, z, CONFIG.WORLD_RADIUS, z);
     }
+    pop();
+
+    // Show waves
+    waves.forEach(wave => wave.show());
     pop();
 
     // Draw pillar
