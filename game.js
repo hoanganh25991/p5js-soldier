@@ -255,23 +255,36 @@ class Bullet {
         this.angle = angle;
         
         // Set bullet properties based on source
-        const bulletType = source instanceof Turret ? CONFIG.BULLET.TURRET : CONFIG.BULLET.PLAYER;
-        this.speed = source instanceof Turret ? CONFIG.TURRET.BULLET_SPEED : bulletType.SPEED;
-        this.size = bulletType.SIZE;
-        this.damage = source ? source.damage : bulletType.DAMAGE;
-        this.color = bulletType.COLOR;
+        if (source instanceof Airstrike) {
+            this.speed = CONFIG.AIRSTRIKE.SPEED;
+            this.size = 8;
+            this.damage = source.damage;
+            this.color = [200, 0, 0];
+            // Velocity set by airstrike update
+            this.vx = 0;
+            this.vy = 0;
+            this.vz = 0;
+        } else {
+            const bulletType = source instanceof Turret ? CONFIG.BULLET.TURRET : CONFIG.BULLET.PLAYER;
+            this.speed = source instanceof Turret ? CONFIG.TURRET.BULLET_SPEED : bulletType.SPEED;
+            this.size = bulletType.SIZE;
+            this.damage = source ? source.damage : bulletType.DAMAGE;
+            this.color = bulletType.COLOR;
+            
+            if (target) {
+                // Calculate direction vector to target
+                let targetY = target.y + target.height / 2; // Aim at enemy top half
+                let dx = target.x - x;
+                let dy = targetY - y;
+                let dz = target.z - z;
+                let dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-        // Calculate direction vector to target
-        let targetY = target.y + target.height / 2; // Aim at enemy top half
-        let dx = target.x - x;
-        let dy = targetY - y;
-        let dz = target.z - z;
-        let dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-
-        // Normalize direction vector and multiply by speed
-        this.vx = (dx / dist) * this.speed;
-        this.vy = (dy / dist) * this.speed;
-        this.vz = (dz / dist) * this.speed;
+                // Normalize direction vector and multiply by speed
+                this.vx = (dx / dist) * this.speed;
+                this.vy = (dy / dist) * this.speed;
+                this.vz = (dz / dist) * this.speed;
+            }
+        }
     }
 
     update() {
@@ -538,21 +551,40 @@ class Turret {
 
 class Airstrike {
     constructor() {
-        this.x = -50;
-        this.y = 100;
-        this.speed = 5;
+        this.x = -CONFIG.WORLD_RADIUS;
+        this.y = -100; // High in the sky
+        this.z = 0;
+        this.speed = CONFIG.AIRSTRIKE.SPEED;
+        this.damage = CONFIG.AIRSTRIKE.DAMAGE;
     }
 
     update() {
         this.x += this.speed;
-        if (frameCount % 5 === 0) {
-            bullets.push(new Bullet(this.x, this.y, HALF_PI));
+
+        // Drop bombs periodically
+        if (frameCount % CONFIG.AIRSTRIKE.BOMB_RATE === 0) {
+            // Create bullet with no target, just straight down
+            let bullet = new Bullet(this.x, this.y, this.z, 0, null, this);
+            bullet.vy = 2; // Move downward
+            bullet.vx = this.speed * 0.5; // Keep some forward momentum
+            bullets.push(bullet);
+        }
+
+        // Remove when past the world
+        if (this.x > CONFIG.WORLD_RADIUS) {
+            let index = airstrikes.indexOf(this);
+            if (index > -1) airstrikes.splice(index, 1);
         }
     }
 
     show() {
+        push();
+        translate(this.x, this.y, this.z);
         fill(150);
-        triangle(this.x, this.y, this.x - 20, this.y - 10, this.x - 20, this.y + 10);
+        // Draw airplane shape
+        rotateY(HALF_PI);
+        cone(10, 30);
+        pop();
     }
 }
 
