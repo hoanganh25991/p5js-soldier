@@ -45,7 +45,7 @@ class Player {
     }
 
     show() {
-        this.showAimLine();
+        this.showAimLines(3); // Show aim lines for 3 nearest enemies
         
         push();
         translate(this.x, this.y, this.z);
@@ -66,20 +66,19 @@ class Player {
         pop();
     }
 
-    findNearestEnemy() {
-        let nearestEnemy = null;
-        let minDist = Infinity;
+    findNearestEnemy(count = 1) {
         let bulletStartX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
         let bulletStartZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
         
-        for (let enemy of enemies) {
+        // Create array of enemies with their distances and hit prediction
+        let enemyData = enemies.map(enemy => {
             let d = dist(bulletStartX, bulletStartZ, enemy.x, enemy.z);
             let angle = atan2(enemy.z - bulletStartZ, enemy.x - bulletStartX);
+            let willHit = false;
             
             // Calculate if bullet would hit enemy
             let hitX = bulletStartX;
             let hitZ = bulletStartZ;
-            let willHit = false;
             
             for (let t = 0; t < CONFIG.WORLD_RADIUS; t += CONFIG.BULLET_SPEED) {
                 hitX += cos(angle) * CONFIG.BULLET_SPEED;
@@ -92,29 +91,39 @@ class Player {
                 }
             }
             
-            if (willHit && d < minDist) {
-                minDist = d;
-                nearestEnemy = enemy;
-            }
-        }
+            return {
+                enemy,
+                distance: d,
+                willHit
+            };
+        });
         
-        return nearestEnemy;
+        // Filter hittable enemies and sort by distance
+        let nearestEnemies = enemyData
+            .filter(data => data.willHit)
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, count)
+            .map(data => data.enemy);
+        
+        return count === 1 ? nearestEnemies[0] || null : nearestEnemies;
     }
 
     autoShoot() {
-        this.targetEnemy = this.findNearestEnemy();
+        this.targetEnemy = this.findNearestEnemy(1);
         
         if (this.targetEnemy && framesSinceLastShot >= CONFIG.FIRE_RATE) {
-            let bulletStartX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
-            let bulletStartZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
-            let angle = atan2(this.targetEnemy.z - bulletStartZ, this.targetEnemy.x - bulletStartX);
+            // Get gun position
+            let gunX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
+            let gunZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
+            
+            // Calculate direct angle to target
+            let angle = atan2(this.targetEnemy.z - gunZ, this.targetEnemy.x - gunX);
+            
+            // Update player rotation to face target
+            this.rotation = angle + HALF_PI;
             
             // Spawn bullet from gun position
-            let bulletX = bulletStartX;
-            let bulletY = this.y - this.height/4;
-            let bulletZ = bulletStartZ;
-            
-            bullets.push(new Bullet(bulletX, bulletY, bulletZ, angle));
+            bullets.push(new Bullet(gunX, this.y - this.height/4, gunZ, angle));
             shootSound.play();
             framesSinceLastShot = 0;
         }
@@ -134,36 +143,46 @@ class Player {
         }
     }
     
-    showAimLine() {
-        if (this.targetEnemy) {
-            push();
-            // Start from gun position
-            let startX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
-            let startZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
-            
-            // Calculate bullet trajectory
-            let angle = atan2(this.targetEnemy.z - startZ, this.targetEnemy.x - startX);
-            let hitX = startX;
-            let hitZ = startZ;
-            
-            beginShape();
-            stroke(255, 255, 0, 50);
-            strokeWeight(1);
-            noFill();
-            vertex(startX, this.y - this.height/4, startZ);
-            
-            for (let t = 0; t < CONFIG.WORLD_RADIUS; t += CONFIG.BULLET_SPEED * 2) {
-                hitX += cos(angle) * CONFIG.BULLET_SPEED * 2;
-                hitZ += sin(angle) * CONFIG.BULLET_SPEED * 2;
-                vertex(hitX, this.y - this.height/4, hitZ);
-                
-                let hitDist = dist(hitX, hitZ, this.targetEnemy.x, this.targetEnemy.z);
-                if (hitDist < this.targetEnemy.width/2) break;
-            }
-            
-            endShape();
-            pop();
+    showAimLines(count = 1) {
+        // Get multiple targets
+        let targets = this.findNearestEnemy(count);
+        if (!targets) return;
+        
+        // Convert single target to array for consistent processing
+        if (!Array.isArray(targets)) {
+            targets = [targets];
         }
+        
+        push();
+        
+        for (let target of targets) {
+            // Get gun position
+            let gunX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
+            let gunZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
+            let gunY = this.y - this.height/4;
+            
+            // Draw straight aim line
+            stroke(255, 255, 0);
+            strokeWeight(2);
+            line(gunX, gunY, gunZ, target.x, gunY, target.z);
+            
+            // Draw target box
+            push();
+            translate(target.x, gunY, target.z);
+            noFill();
+            stroke(255, 0, 0);
+            box(target.width * 2);
+            pop();
+            
+            // Draw vertical markers
+            stroke(255, 255, 0);
+            // At gun
+            line(gunX, gunY - 10, gunZ, gunX, gunY + 10, gunZ);
+            // At target
+            line(target.x, gunY - 10, target.z, target.x, gunY + 10, target.z);
+        }
+        
+        pop();
     }
 }
 
@@ -306,7 +325,7 @@ class Clone {
     }
 
     show() {
-        this.showAimLine();
+        this.showAimLines(3); // Show aim lines for 3 nearest enemies
         
         push();
         translate(this.x, this.y, this.z);
