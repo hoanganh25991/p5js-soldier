@@ -43,7 +43,8 @@ const CONFIG = {
 
     // Skill settings
     CLONE: {
-        COOLDOWN: 60,
+        // COOLDOWN: 60,
+        COOLDOWN: 0,
         DURATION: 8 * 60,
         FIRE_RATE: 30, // Shoot as fast as player
         DAMAGE: 15,
@@ -51,7 +52,8 @@ const CONFIG = {
     },
 
     TURRET: {
-        COOLDOWN: 5 * 60, // 5 seconds cooldown
+        // COOLDOWN: 5 * 60, // 5 seconds cooldown
+        COOLDOWN: 30, // 5 seconds cooldown
         DURATION: 3 * 60, // 3 seconds duration
         FIRE_RATE: 15,  // Twice as fast as clone
         DAMAGE: 15,
@@ -61,7 +63,8 @@ const CONFIG = {
     },
 
     AIRSTRIKE: {
-        COOLDOWN: 60,
+        // COOLDOWN: 60,
+        COOLDOWN: 30,
         SPEED: 3,
         BOMB_RATE: 200,
         DAMAGE: 50,
@@ -69,7 +72,8 @@ const CONFIG = {
     },
 
     LASER: {
-        COOLDOWN: 60,
+        // COOLDOWN: 60,
+        COOLDOWN: 30,
         DURATION: 5 * 60,
         DAMAGE: 8,
         WIDTH: 40

@@ -44,7 +44,7 @@ function autoShoot(source, targetCount = 1, fireRate = CONFIG.FIRE_RATE) {
     if (frameCount % fireRate !== 0) return;
 
     // Find targets
-    let targets = source.findNearestEnemy(targetCount);
+    let targets = source.findNearestEnemies(targetCount);
 
     // Debug: Log if we found any targets
     console.log(`${source.constructor.name} found ${targets.length} targets`);
@@ -63,7 +63,7 @@ function autoShoot(source, targetCount = 1, fireRate = CONFIG.FIRE_RATE) {
     }
 }
 
-function findNearestEnemy(source, count = 1) {
+function findNearestEnemies(source, count = 1) {
     if (enemies.length === 0) return [];
 
     // Sort enemies by distance to source
@@ -133,8 +133,8 @@ class Player {
         pop();
     }
 
-    findNearestEnemy(count = 1) {
-        return findNearestEnemy(this, count);
+    findNearestEnemies(count = 1) {
+        return findNearestEnemies(this, count);
     }
 
     showAimLine(target, aimColor = [255, 255, 0]) {
@@ -320,7 +320,7 @@ class Bullet {
         noStroke();
         translate(this.x, this.y, this.z);
         fill(...this.color);
-        sphere(this.size);
+        box(this.size);
         pop();
     }
 }
@@ -348,8 +348,8 @@ class Clone {
         this.opacity = 180; // Slightly transparent
     }
 
-    findNearestEnemy(count = 1) {
-        return findNearestEnemy(this, count);
+    findNearestEnemies(count = 1) {
+        return findNearestEnemies(this, count);
     }
 
     showAimLine(target, aimColor = [0, 255, 0]) {
@@ -384,7 +384,7 @@ class Clone {
         if (frameCount % CONFIG.CLONE.FIRE_RATE !== 0) return;
 
         // Find multiple targets
-        let targets = this.findNearestEnemy(targetCount);
+        let targets = this.findNearestEnemies(targetCount);
         if (!Array.isArray(targets)) targets = targets ? [targets] : [];
 
         // Draw aim lines for all targets
@@ -444,8 +444,8 @@ class Turret {
         this.legLength = 20;
     }
 
-    findNearestEnemy(count = 1) {
-        return findNearestEnemy(this, count);
+    findNearestEnemies(count = 1) {
+        return findNearestEnemies(this, count);
     }
 
     showAimLine(target, gunZ) {
