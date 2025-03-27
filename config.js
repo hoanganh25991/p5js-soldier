@@ -55,7 +55,6 @@ const CONFIG = {
         DURATION: 3 * 60, // 3 seconds duration
         FIRE_RATE: 15,  // Twice as fast as clone
         DAMAGE: 15,
-        RANGE: 400,
         BULLET_SIZE: 5,
         MAX_TARGETS: 5,  // Shoot 5 enemies at once
         BULLET_SPEED: 30 // 1.5x normal bullet speed

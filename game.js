@@ -11,6 +11,28 @@ let enemiesKilled = 0;
 let frameCount = 0;
 let totalEnemiesSpawned = 0;
 
+// Shared utility functions
+function updateHeight(entity) {
+    // Adjust height based on pillar height
+    entity.y = -20 - pillarHeight * 5 + entity.height/2;
+}
+
+function findNearestEnemy(count = 1) {
+    if (enemies.length === 0) return null;
+
+    // Sort enemies by distance to clone
+    let sortedEnemies = enemies
+        .map(enemy => ({
+            enemy,
+            distance: dist(this.x, this.z, enemy.x, enemy.z)
+        }))
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, count)
+        .map(data => data.enemy);
+
+    return count === 1 ? sortedEnemies[0] : sortedEnemies;
+}
+
 let skillCooldowns = {
     clone: 0,
     turret: 0,
@@ -68,19 +90,7 @@ class Player {
     }
 
     findNearestEnemy(count = 1) {
-        if (enemies.length === 0) return null;
-
-        // Sort enemies by distance to player
-        let sortedEnemies = enemies
-            .map(enemy => ({
-                enemy,
-                distance: dist(this.x, this.z, enemy.x, enemy.z)
-            }))
-            .sort((a, b) => a.distance - b.distance)
-            .slice(0, count)
-            .map(data => data.enemy);
-
-        return count === 1 ? sortedEnemies[0] : sortedEnemies;
+        return findNearestEnemy(this, count);
     }
 
     showAimLine(target, aimColor = [255, 255, 0]) {
@@ -138,11 +148,10 @@ class Player {
     }
 
     updateHeight() {
-        // Update height based on pillar
-        this.y = -pillarHeight * 5;
+        updateHeight(this);
         // Update clones height too
         for (let clone of clones) {
-            clone.y = this.y;
+            updateHeight(clone);
         }
     }
 }
@@ -337,19 +346,7 @@ class Clone {
     }
 
     findNearestEnemy(count = 1) {
-        if (enemies.length === 0) return null;
-
-        // Sort enemies by distance to clone
-        let sortedEnemies = enemies
-            .map(enemy => ({
-                enemy,
-                distance: dist(this.x, this.z, enemy.x, enemy.z)
-            }))
-            .sort((a, b) => a.distance - b.distance)
-            .slice(0, count)
-            .map(data => data.enemy);
-
-        return count === 1 ? sortedEnemies[0] : sortedEnemies;
+        return findNearestEnemy(this, count);
     }
 
     showAimLine(target, aimColor = [0, 255, 0]) {
@@ -445,20 +442,7 @@ class Turret {
     }
 
     findNearestEnemy(count = 1) {
-        if (enemies.length === 0) return null;
-
-        // Sort enemies by distance to turret
-        let sortedEnemies = enemies
-            .map(enemy => ({
-                enemy,
-                distance: dist(this.x, this.z, enemy.x, enemy.z)
-            }))
-            .filter(data => data.distance < CONFIG.TURRET.RANGE)
-            .sort((a, b) => a.distance - b.distance)
-            .slice(0, count)
-            .map(data => data.enemy);
-
-        return count === 1 ? sortedEnemies[0] : sortedEnemies;
+        return findNearestEnemy(this, count);
     }
 
     showAimLine(target, gunZ) {
@@ -516,8 +500,7 @@ class Turret {
     }
 
     updateHeight() {
-        // Adjust height based on pillar height like player
-        this.y = 50 - pillarHeight * 5 + this.height/2;
+        updateHeight(this);
     }
 
     show() {
