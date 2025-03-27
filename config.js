@@ -1,19 +1,28 @@
 const CONFIG = {
+    // World settings
+    WORLD_RADIUS: 1500,
+    MAX_ENEMIES: 100,
+    SPAWN_INTERVAL: 60, // frames between spawns
     // Game settings
     PILLAR_HEIGHT: 100,
     PLAYER_HEALTH: 100,
     VICTORY_KILLS: 1000,
     
     // Player settings
-    PLAYER_SIZE: 20,
-    AUTO_FIRE_RATE: 500, // milliseconds between shots
+    PLAYER_WIDTH: 20,
+    PLAYER_HEIGHT: 40,
+    PLAYER_DEPTH: 20,
+    FIRE_RATE: 30, // frames between shots
     BULLET_SPEED: 15,
-    BULLET_DAMAGE: 20,
+    BULLET_DAMAGE: 35,
+    BULLET_SIZE: 5,
     
     // Enemy settings
-    ENEMY_COUNT: 50,
+    ENEMY_COUNT: 100,
     ENEMY_SPEED: 0.5,
-    ENEMY_SIZE: 15,
+    ENEMY_WIDTH: 20,
+    ENEMY_HEIGHT: 40,
+    ENEMY_DEPTH: 20,
     ENEMY_HEALTH: 100,
     ENEMY_DAMAGE_TO_PILLAR: 0.02,
     ENEMY_DAMAGE_TO_PLAYER: 0.2,

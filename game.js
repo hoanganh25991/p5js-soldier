@@ -8,7 +8,8 @@ let lasers = [];
 let pillarHeight = CONFIG.PILLAR_HEIGHT;
 let playerHealth = CONFIG.PLAYER_HEALTH;
 let enemiesKilled = 0;
-let lastAutoFire = 0;
+let framesSinceLastShot = 0;
+let totalEnemiesSpawned = 0;
 
 let skillCooldowns = {
     clone: 0,
@@ -18,15 +19,29 @@ let skillCooldowns = {
 };
 
 let camera;
+let gameFont;
+let shootSound;
+
+// Camera control variables
+let cameraRotationX = -0.8; // Initial camera tilt
+let cameraRotationY = 0;
+let zoomLevel = 2.0; // 1.0 is normal zoom, smaller is zoomed in, larger is zoomed out
+let isDragging = false;
+let lastMouseX = 0;
+let lastMouseY = 0;
+let baseCameraDistance = 300; // Base distance that will be multiplied by zoomLevel
 
 class Player {
     constructor() {
         this.x = 0;
-        this.y = -pillarHeight * 5; // Will be updated as pillar changes
+        this.y = 0; // Will be calculated based on pillar height
         this.z = 0;
-        this.size = CONFIG.PLAYER_SIZE;
+        this.width = CONFIG.PLAYER_WIDTH;
+        this.height = CONFIG.PLAYER_HEIGHT;
+        this.depth = CONFIG.PLAYER_DEPTH;
         this.rotation = 0;
         this.targetEnemy = null;
+        this.updateHeight(); // Initialize height
     }
 
     show() {
@@ -38,11 +53,11 @@ class Player {
         
         // Player body
         fill(0, 255, 0);
-        box(this.size);
+        box(this.width, this.height, this.depth);
         
         // Gun
         push();
-        translate(this.size/2, 0, 0);
+        translate(this.width/2, -this.height/4, 0);
         fill(100);
         rotateZ(HALF_PI);
         cylinder(2, 20);
@@ -51,65 +66,133 @@ class Player {
         pop();
     }
 
-    autoShoot() {
-        // Find nearest enemy
+    findNearestEnemy() {
         let nearestEnemy = null;
         let minDist = Infinity;
+        let bulletStartX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
+        let bulletStartZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
         
         for (let enemy of enemies) {
-            let d = dist(this.x, this.z, enemy.x, enemy.z);
-            if (d < minDist) {
+            let d = dist(bulletStartX, bulletStartZ, enemy.x, enemy.z);
+            let angle = atan2(enemy.z - bulletStartZ, enemy.x - bulletStartX);
+            
+            // Calculate if bullet would hit enemy
+            let hitX = bulletStartX;
+            let hitZ = bulletStartZ;
+            let willHit = false;
+            
+            for (let t = 0; t < CONFIG.WORLD_RADIUS; t += CONFIG.BULLET_SPEED) {
+                hitX += cos(angle) * CONFIG.BULLET_SPEED;
+                hitZ += sin(angle) * CONFIG.BULLET_SPEED;
+                
+                let hitDist = dist(hitX, hitZ, enemy.x, enemy.z);
+                if (hitDist < enemy.width/2) {
+                    willHit = true;
+                    break;
+                }
+            }
+            
+            if (willHit && d < minDist) {
                 minDist = d;
                 nearestEnemy = enemy;
             }
         }
         
-        this.targetEnemy = nearestEnemy;
+        return nearestEnemy;
+    }
+
+    autoShoot() {
+        this.targetEnemy = this.findNearestEnemy();
         
-        if (nearestEnemy && millis() - lastAutoFire > CONFIG.AUTO_FIRE_RATE) {
-            let angle = atan2(nearestEnemy.z - this.z, nearestEnemy.x - this.x);
-            this.rotation = angle + HALF_PI;
-            bullets.push(new Bullet(this.x, this.y, this.z, angle));
-            lastAutoFire = millis();
+        if (this.targetEnemy && framesSinceLastShot >= CONFIG.FIRE_RATE) {
+            let bulletStartX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
+            let bulletStartZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
+            let angle = atan2(this.targetEnemy.z - bulletStartZ, this.targetEnemy.x - bulletStartX);
+            
+            // Spawn bullet from gun position
+            let bulletX = bulletStartX;
+            let bulletY = this.y - this.height/4;
+            let bulletZ = bulletStartZ;
+            
+            bullets.push(new Bullet(bulletX, bulletY, bulletZ, angle));
+            shootSound.play();
+            framesSinceLastShot = 0;
         }
     }
     
     update() {
+        this.updateHeight();
+        this.autoShoot();
+    }
+
+    updateHeight() {
         // Update height based on pillar
         this.y = -pillarHeight * 5;
+        // Update clones height too
+        for (let clone of clones) {
+            clone.y = this.y;
+        }
     }
     
     showAimLine() {
         if (this.targetEnemy) {
             push();
-            stroke(255, 255, 0, 100);
-            strokeWeight(2);
-            line(this.x, this.y + 10, this.z, 
-                 this.targetEnemy.x, this.y + 10, this.targetEnemy.z);
+            // Start from gun position
+            let startX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
+            let startZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
+            
+            // Calculate bullet trajectory
+            let angle = atan2(this.targetEnemy.z - startZ, this.targetEnemy.x - startX);
+            let hitX = startX;
+            let hitZ = startZ;
+            
+            beginShape();
+            stroke(255, 255, 0, 50);
+            strokeWeight(1);
+            noFill();
+            vertex(startX, this.y - this.height/4, startZ);
+            
+            for (let t = 0; t < CONFIG.WORLD_RADIUS; t += CONFIG.BULLET_SPEED * 2) {
+                hitX += cos(angle) * CONFIG.BULLET_SPEED * 2;
+                hitZ += sin(angle) * CONFIG.BULLET_SPEED * 2;
+                vertex(hitX, this.y - this.height/4, hitZ);
+                
+                let hitDist = dist(hitX, hitZ, this.targetEnemy.x, this.targetEnemy.z);
+                if (hitDist < this.targetEnemy.width/2) break;
+            }
+            
+            endShape();
             pop();
         }
     }
 }
 
 class Enemy {
-    constructor() {
-        this.reset();
+    constructor(x, z) {
+        this.x = x;
+        this.z = z;
+        this.y = 0;
+        this.width = CONFIG.ENEMY_WIDTH;
+        this.height = CONFIG.ENEMY_HEIGHT;
+        this.depth = CONFIG.ENEMY_DEPTH;
         this.health = CONFIG.ENEMY_HEALTH;
+        this.speed = CONFIG.ENEMY_SPEED;
+        this.rotation = 0;
     }
 
-    reset() {
+    static spawnRandom() {
         let angle = random(TWO_PI);
-        let radius = 500;
-        this.x = cos(angle) * radius;
-        this.z = sin(angle) * radius;
-        this.y = 0;
-        this.speed = CONFIG.ENEMY_SPEED;
+        let radius = CONFIG.WORLD_RADIUS;
+        let x = cos(angle) * radius;
+        let z = sin(angle) * radius;
+        return new Enemy(x, z);
     }
 
     update() {
         let angle = atan2(0 - this.z, 0 - this.x);
         this.x += cos(angle) * this.speed;
         this.z += sin(angle) * this.speed;
+        this.rotation = angle + HALF_PI; // Make enemy face the pillar
 
         if (dist(this.x, this.z, 0, 0) < 50) {
             pillarHeight = max(0, pillarHeight - CONFIG.ENEMY_DAMAGE_TO_PILLAR);
@@ -122,8 +205,9 @@ class Enemy {
     show() {
         push();
         translate(this.x, this.y, this.z);
+        rotateY(this.rotation);
         fill(255, 0, 0);
-        sphere(CONFIG.ENEMY_SIZE);
+        box(this.width, this.height, this.depth);
         pop();
     }
 }
@@ -135,18 +219,40 @@ class Bullet {
         this.z = z;
         this.angle = angle;
         this.speed = CONFIG.BULLET_SPEED;
+        this.size = CONFIG.BULLET_SIZE;
     }
 
     update() {
         this.x += cos(this.angle) * this.speed;
         this.z += sin(this.angle) * this.speed;
+        
+        // Check collision with enemies
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            let enemy = enemies[i];
+            let d = dist(this.x, this.z, enemy.x, enemy.z);
+            if (d < enemy.width) {
+                enemy.health -= CONFIG.BULLET_DAMAGE;
+                if (enemy.health <= 0) {
+                    enemies.splice(i, 1);
+                    enemiesKilled++;
+                }
+                return true; // Bullet hit something
+            }
+        }
+        
+        // Check if bullet is too far
+        if (dist(0, 0, this.x, this.z) > CONFIG.WORLD_RADIUS) {
+            return true; // Bullet out of range
+        }
+        
+        return false; // Bullet still active
     }
 
     show() {
         push();
         translate(this.x, this.y, this.z);
         fill(255, 255, 0);
-        sphere(5);
+        sphere(this.size);
         pop();
     }
 }
@@ -298,24 +404,89 @@ class Laser {
     }
 }
 
+function spawnEnemies() {
+    if (enemies.length < CONFIG.MAX_ENEMIES && frameCount % CONFIG.SPAWN_INTERVAL === 0) {
+        enemies.push(Enemy.spawnRandom());
+        totalEnemiesSpawned++;
+    }
+}
+
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+}
+
+function mouseWheel(event) {
+    // Zoom with mouse wheel - rolling forward (negative delta) decreases zoom level (zooms in)
+    // rolling backward (positive delta) increases zoom level (zooms out)
+    zoomLevel = constrain(zoomLevel + (event.delta * 0.001), 0.2, 10.0);
+    return false; // Prevent default scrolling
+}
+
+function mousePressed() {
+    // Start dragging with middle mouse button (button 1)
+    if (mouseButton === CENTER) {
+        isDragging = true;
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+    }
+}
+
+function mouseReleased() {
+    if (mouseButton === CENTER) {
+        isDragging = false;
+    }
+}
+
+function updateCamera() {
+    // Update camera rotation when dragging
+    if (isDragging) {
+        let deltaX = (mouseX - lastMouseX) * 0.01;
+        let deltaY = (mouseY - lastMouseY) * 0.01;
+        
+        cameraRotationY += deltaX;
+        cameraRotationX = constrain(cameraRotationX + deltaY, -PI/2, 0);
+        
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+    }
+    
+    // Calculate camera position based on rotation and zoom level
+    let currentDistance = baseCameraDistance * zoomLevel;
+    let camX = sin(cameraRotationY) * currentDistance;
+    let camY = -sin(cameraRotationX) * currentDistance;
+    let camZ = cos(cameraRotationY) * currentDistance;
+    
+    camera.setPosition(camX, player.y + camY - 100, camZ);
+    camera.lookAt(0, player.y + 50, 0);
+}
+
 function setup() {
-    createCanvas(800, 600, WEBGL);
+    createCanvas(windowWidth, windowHeight, WEBGL);
     camera = createCamera();
+    gameFont = loadFont('opensans-light.ttf');
+    shootSound = loadSound('single-shot.mp3');
     player = new Player();
+    
+    // Initial enemy spawn
     for (let i = 0; i < CONFIG.ENEMY_COUNT; i++) {
-        enemies.push(new Enemy());
+        enemies.push(Enemy.spawnRandom());
+        totalEnemiesSpawned++;
     }
 }
 
 
 
 function draw() {
-    background(50);
+    framesSinceLastShot++;
     
-    // Set up 3D camera from above player
-    let cameraY = -pillarHeight * 5 - 150; // Higher above the player
-    camera.setPosition(0, cameraY, 100);
-    camera.lookAt(0, -pillarHeight * 5, 0); // Look at player position
+    // Sky gradient
+    background(135, 206, 235); // Light blue sky
+    
+    // Update player first to get new height
+    player.update();
+    
+    // Update camera position and rotation
+    updateCamera();
     
     // Add some ambient light
     ambientLight(100);
@@ -325,9 +496,20 @@ function draw() {
     push();
     translate(0, 50, 0);
     rotateX(HALF_PI);
-    fill(100);
+    fill(34, 139, 34); // Forest green
     noStroke();
-    plane(1000, 1000);
+    plane(CONFIG.WORLD_RADIUS * 2, CONFIG.WORLD_RADIUS * 2);
+    
+    // Add grid pattern
+    stroke(45, 150, 45);
+    strokeWeight(1);
+    let gridSize = 100;
+    for(let x = -CONFIG.WORLD_RADIUS; x <= CONFIG.WORLD_RADIUS; x += gridSize) {
+        line(x, -CONFIG.WORLD_RADIUS, x, CONFIG.WORLD_RADIUS);
+    }
+    for(let z = -CONFIG.WORLD_RADIUS; z <= CONFIG.WORLD_RADIUS; z += gridSize) {
+        line(-CONFIG.WORLD_RADIUS, z, CONFIG.WORLD_RADIUS, z);
+    }
     pop();
 
     // Draw pillar
@@ -335,8 +517,19 @@ function draw() {
     translate(0, 25 - pillarHeight * 2.5, 0);
     fill(150);
     box(50, pillarHeight * 5, 50);
+    // Add visual markers on pillar
+    for (let i = 0; i < 5; i++) {
+        push();
+        translate(0, pillarHeight * 2.5 - i * pillarHeight, 0);
+        fill(100);
+        box(52, 2, 52);
+        pop();
+    }
     pop();
 
+    // Spawn new enemies
+    spawnEnemies();
+    
     player.show();
 
     // Update and show enemies
@@ -354,21 +547,10 @@ function draw() {
 
     // Update and show bullets
     for (let i = bullets.length - 1; i >= 0; i--) {
-        bullets[i].update();
-        bullets[i].show();
-        
-        // Check collision with enemies
-        for (let j = enemies.length - 1; j >= 0; j--) {
-            if (dist(bullets[i].x, bullets[i].y, enemies[j].x, enemies[j].y) < 15) {
-                enemies[j].health -= 25;
-                bullets.splice(i, 1);
-                break;
-            }
-        }
-        
-        // Remove bullets that are off screen
-        if (bullets[i] && (bullets[i].x < 0 || bullets[i].x > width || bullets[i].y < 0 || bullets[i].y > height)) {
+        if (bullets[i].update()) { // Returns true if bullet should be removed
             bullets.splice(i, 1);
+        } else {
+            bullets[i].show();
         }
     }
 
@@ -423,16 +605,24 @@ function draw() {
     // Check win/lose conditions
     if (playerHealth <= 0) {
         noLoop();
+        push();
+        translate(-100, 0, 0); // Center the text in 3D space
+        textFont(gameFont);
         textSize(32);
         fill(255, 0, 0);
         textAlign(CENTER);
-        text('Game Over!', width/2, height/2);
+        text('Game Over!', 0, 0);
+        pop();
     } else if (enemiesKilled >= 1000) {
         noLoop();
+        push();
+        translate(-100, 0, 0); // Center the text in 3D space
+        textFont(gameFont);
         textSize(32);
         fill(0, 255, 0);
         textAlign(CENTER);
-        text('Victory!', width/2, height/2);
+        text('Victory!', 0, 0);
+        pop();
     }
 }
 
