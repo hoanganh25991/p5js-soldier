@@ -66,7 +66,8 @@ const CONFIG = {
         // COOLDOWN: 60,
         COOLDOWN: 30,
         SPEED: 3,
-        BOMB_RATE: 200,
+        BOMB_RATE: 100,
+        BOMB_SIZE: 100,
         DAMAGE: 50,
         BLAST_RADIUS: 100
     },

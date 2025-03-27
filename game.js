@@ -257,9 +257,9 @@ class Bullet {
         // Set bullet properties based on source
         if (source instanceof Airstrike) {
             this.speed = CONFIG.AIRSTRIKE.SPEED;
-            this.size = 40; // Much bigger bombs
+            this.size = CONFIG.AIRSTRIKE.BOMB_SIZE; // Much bigger bombs
             this.damage = source.damage;
-            this.color = [200, 0, 0];
+            this.color = [255, 255, 255]; // White bombs
             // Velocity set by airstrike update
             this.vx = 0;
             this.vy = 0;
@@ -566,7 +566,7 @@ class Airstrike {
         if (frameCount % CONFIG.AIRSTRIKE.BOMB_RATE === 0) {
             // Create bullet with no target, just straight down
             let bullet = new Bullet(this.x, this.y, this.z, 0, null, this);
-            bullet.vy = 3; // Move downward faster
+            bullet.vy = 15; // Move downward much faster
             bullet.vx = this.speed * 0.5; // Keep some forward momentum
             bullets.push(bullet);
         }
@@ -583,37 +583,8 @@ class Airstrike {
         translate(this.x, this.y, this.z);
         fill(150);
         
-        // Rotate for horizontal flight
-        rotateZ(HALF_PI);
-        
-        // Main body (fuselage)
-        push();
-        rotateX(HALF_PI);
-        cylinder(15, 80);
-        pop();
-        
-        // Wings
-        push();
-        translate(0, 30, 0);
-        box(60, 5, 20);
-        pop();
-        
-        push();
-        translate(0, -30, 0);
-        box(60, 5, 20);
-        pop();
-        
-        // Tail vertical
-        push();
-        translate(0, -35, 0);
-        box(20, 30, 5);
-        pop();
-        
-        // Tail horizontal
-        push();
-        translate(0, -35, 15);
-        box(30, 5, 5);
-        pop();
+        // Simple box airplane
+        box(80, 20, 60);
         
         pop();
     }
