@@ -67,66 +67,44 @@ class Player {
     }
 
     findNearestEnemy(count = 1) {
-        let bulletStartX = this.x + cos(this.rotation - HALF_PI) * this.width / 2;
-        let bulletStartZ = this.z + sin(this.rotation - HALF_PI) * this.width / 2;
+        if (enemies.length === 0) return null;
 
-        // Create array of enemies with their distances and hit prediction
-        let enemyData = enemies.map(enemy => {
-            let d = dist(bulletStartX, bulletStartZ, enemy.x, enemy.z);
-            let angle = atan2(enemy.z - bulletStartZ, enemy.x - bulletStartX);
-            let willHit = false;
-
-            // Calculate if bullet would hit enemy
-            let hitX = bulletStartX;
-            let hitZ = bulletStartZ;
-
-            for (let t = 0; t < CONFIG.WORLD_RADIUS; t += CONFIG.BULLET_SPEED) {
-                hitX += cos(angle) * CONFIG.BULLET_SPEED;
-                hitZ += sin(angle) * CONFIG.BULLET_SPEED;
-
-                let hitDist = dist(hitX, hitZ, enemy.x, enemy.z);
-                if (hitDist < enemy.width / 2) {
-                    willHit = true;
-                    break;
-                }
-            }
-
-            return {
+        // Sort enemies by distance to player
+        let sortedEnemies = enemies
+            .map(enemy => ({
                 enemy,
-                distance: d,
-                willHit
-            };
-        });
-
-        // Filter hittable enemies and sort by distance
-        let nearestEnemies = enemyData
-            .filter(data => data.willHit)
+                distance: dist(this.x, this.z, enemy.x, enemy.z)
+            }))
             .sort((a, b) => a.distance - b.distance)
             .slice(0, count)
             .map(data => data.enemy);
 
-        return count === 1 ? nearestEnemies[0] || null : nearestEnemies;
+        return count === 1 ? sortedEnemies[0] : sortedEnemies;
     }
 
     showAimLine(target, aimColor = [255, 255, 0]) {
-        // Get gun position
-        let gunX = this.x + cos(this.rotation - HALF_PI) * this.width / 2;
-        let gunZ = this.z + sin(this.rotation - HALF_PI) * this.width / 2;
-        let gunY = this.y - this.height / 4;
+        // Get gun position (slightly above player center)
+        let gunX = this.x;
+        let gunZ = this.z;
+        let gunY = this.y - this.height/3; // Gun position above center
 
         // Calculate angle to target
         let angle = atan2(target.z - gunZ, target.x - gunX);
 
-        // Draw aim line
+        // Draw aim line from gun to enemy
         stroke(...aimColor);
         strokeWeight(2);
-        line(gunX, gunY, gunZ, target.x, gunY, target.z);
+        beginShape();
+        vertex(gunX, gunY, gunZ); // Start at gun
+        vertex(target.x, target.y + target.height/2, target.z); // End at enemy top
+        endShape();
 
         // Draw target marker
         push();
-        translate(target.x, gunY, target.z);
+        translate(target.x, target.y + target.height/2, target.z);
         stroke(255, 0, 0);
         strokeWeight(4);
+        point(0, 0, 0); // Target point
         pop();
 
         return { gunX, gunY, gunZ, angle };
@@ -143,12 +121,7 @@ class Player {
         push();
         for (let target of targets) {
             let { gunX, gunY, gunZ, angle } = this.showAimLine(target);
-
-            // Shoot if ready (every FIRE_RATE frames)
-
-            console.log('Shooting');
-            // // Update player rotation to face target
-            // this.rotation = angle + HALF_PI;
+            this.rotation = angle + HALF_PI;
 
             // Spawn bullet
             bullets.push(new Bullet(gunX, gunY, gunZ, angle));
@@ -220,35 +193,49 @@ class Enemy {
 
 class Bullet {
     constructor(x, y, z, angle) {
+        this.startX = x;
+        this.startY = y;
+        this.startZ = z;
         this.x = x;
         this.y = y;
         this.z = z;
         this.angle = angle;
         this.speed = CONFIG.BULLET_SPEED;
         this.size = CONFIG.BULLET_SIZE;
+        this.distanceTraveled = 0;
     }
 
     update() {
-        this.x += cos(this.angle) * this.speed;
-        this.z += sin(this.angle) * this.speed;
-
+        // Update position
+        let dx = cos(this.angle) * this.speed;
+        let dz = sin(this.angle) * this.speed;
+        this.x += dx;
+        this.z += dz;
+        
+        // Calculate y position (bullet drops over distance)
+        this.distanceTraveled += dist(0, 0, dx, dz);
+        let dropFactor = 0.0005; // How fast bullet drops
+        this.y = this.startY - (this.distanceTraveled * this.distanceTraveled * dropFactor);
+        
         // Check collision with enemies
         for (let i = enemies.length - 1; i >= 0; i--) {
             let enemy = enemies[i];
             let d = dist(this.x, this.z, enemy.x, enemy.z);
-            if (d < enemy.width) {
-                enemy.health -= CONFIG.BULLET_DAMAGE;
-                if (enemy.health <= 0) {
-                    enemies.splice(i, 1);
-                    enemiesKilled++;
-                }
+            
+            // Check if bullet is at right height to hit enemy
+            if (d < enemy.width && 
+                this.y < enemy.y + enemy.height && 
+                this.y > enemy.y) {
+                // Remove both bullet and enemy
+                enemies.splice(i, 1);
+                enemiesKilled++;
                 return true; // Bullet hit something
             }
         }
 
-        // Check if bullet is too far
-        if (dist(0, 0, this.x, this.z) > CONFIG.WORLD_RADIUS) {
-            return true; // Bullet out of range
+        // Check if bullet is too far or too low
+        if (dist(0, 0, this.x, this.z) > CONFIG.WORLD_RADIUS || this.y < 0) {
+            return true; // Bullet out of range or hit ground
         }
 
         return false; // Bullet still active
@@ -258,7 +245,85 @@ class Bullet {
         push();
         translate(this.x, this.y, this.z);
         fill(255, 255, 0);
+        noStroke();
         sphere(this.size);
+        pop();
+    }
+}
+
+class Clone {
+    constructor(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.width = CONFIG.PLAYER_WIDTH;
+        this.height = CONFIG.PLAYER_HEIGHT;
+        this.depth = CONFIG.PLAYER_DEPTH;
+        this.lifespan = CONFIG.CLONE.DURATION;
+        this.rotation = 0;
+    }
+
+    findNearestEnemy(count = 1) {
+        if (enemies.length === 0) return null;
+
+        // Sort enemies by distance to clone
+        let sortedEnemies = enemies
+            .map(enemy => ({
+                enemy,
+                distance: dist(this.x, this.z, enemy.x, enemy.z)
+            }))
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, count)
+            .map(data => data.enemy);
+
+        return count === 1 ? sortedEnemies[0] : sortedEnemies;
+    }
+
+    autoShoot(targetCount = 1) {
+        if (frameCount % CONFIG.CLONE.FIRE_RATE !== 0) return;
+
+        // Find multiple targets
+        let targets = this.findNearestEnemy(targetCount);
+        if (!Array.isArray(targets)) targets = targets ? [targets] : [];
+
+        // Draw aim lines for all targets
+        push();
+        for (let target of targets) {
+            let { gunY, angle } = this.showAimLine(target, [0, 255, 0]);
+
+            // Update rotation to face target
+            this.rotation = angle + HALF_PI;
+
+            // Spawn bullet
+            bullets.push(new Bullet(this.x, gunY, this.z, angle));
+            break; // Only shoot at first target
+        }
+        pop();
+    }
+
+    update() {
+        this.lifespan--;
+    }
+
+    show() {
+        this.autoShoot(3); // Auto-target and show aim lines for 3 nearest enemies
+
+        push();
+        translate(this.x, this.y, this.z);
+        rotateY(this.rotation);
+
+        // Clone body
+        fill(0, 200, 0, map(this.lifespan, 0, CONFIG.CLONE.DURATION, 0, 255));
+        box(CONFIG.PLAYER_SIZE * 0.8);
+
+        // Gun
+        push();
+        translate(CONFIG.PLAYER_SIZE/2, 0, 0);
+        fill(100, map(this.lifespan, 0, CONFIG.CLONE.DURATION, 0, 255));
+        rotateZ(HALF_PI);
+        cylinder(1.5, 15);
+        pop();
+
         pop();
     }
 }
