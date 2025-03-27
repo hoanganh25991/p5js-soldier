@@ -257,7 +257,7 @@ class Bullet {
         // Set bullet properties based on source
         if (source instanceof Airstrike) {
             this.speed = CONFIG.AIRSTRIKE.SPEED;
-            this.size = 8;
+            this.size = 15; // Bigger bombs
             this.damage = source.damage;
             this.color = [200, 0, 0];
             // Velocity set by airstrike update
@@ -552,7 +552,7 @@ class Turret {
 class Airstrike {
     constructor() {
         this.x = -CONFIG.WORLD_RADIUS;
-        this.y = -100; // High in the sky
+        this.y = -200; // Much higher in the sky
         this.z = 0;
         this.speed = CONFIG.AIRSTRIKE.SPEED;
         this.damage = CONFIG.AIRSTRIKE.DAMAGE;
@@ -565,7 +565,7 @@ class Airstrike {
         if (frameCount % CONFIG.AIRSTRIKE.BOMB_RATE === 0) {
             // Create bullet with no target, just straight down
             let bullet = new Bullet(this.x, this.y, this.z, 0, null, this);
-            bullet.vy = 2; // Move downward
+            bullet.vy = 3; // Move downward faster
             bullet.vx = this.speed * 0.5; // Keep some forward momentum
             bullets.push(bullet);
         }
@@ -583,7 +583,32 @@ class Airstrike {
         fill(150);
         // Draw airplane shape
         rotateY(HALF_PI);
-        cone(10, 30);
+        
+        // Main body (fuselage)
+        push();
+        cylinder(10, 60);
+        pop();
+        
+        // Wings
+        push();
+        translate(0, 0, 20);
+        rotateX(HALF_PI);
+        box(40, 5, 20);
+        pop();
+        
+        push();
+        translate(0, 0, -20);
+        rotateX(HALF_PI);
+        box(40, 5, 20);
+        pop();
+        
+        // Tail
+        push();
+        translate(-25, 0, 0);
+        rotateX(HALF_PI);
+        box(20, 5, 15);
+        pop();
+        
         pop();
     }
 }
