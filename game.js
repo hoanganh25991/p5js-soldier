@@ -23,9 +23,9 @@ let gameFont;
 let shootSound;
 
 // Camera control variables
-let cameraRotationX = -0.8; // Initial camera tilt
+let cameraRotationX = -1.3; // Looking down from player height
 let cameraRotationY = 0;
-let zoomLevel = 2.0; // 1.0 is normal zoom, smaller is zoomed in, larger is zoomed out
+let zoomLevel = 1.5; // Closer view to see enemies better
 let isDragging = false;
 let lastMouseX = 0;
 let lastMouseY = 0;
@@ -450,14 +450,16 @@ function updateCamera() {
         lastMouseY = mouseY;
     }
     
-    // Calculate camera position based on rotation and zoom level
+    // Position camera at player height looking down
     let currentDistance = baseCameraDistance * zoomLevel;
     let camX = sin(cameraRotationY) * currentDistance;
-    let camY = -sin(cameraRotationX) * currentDistance;
+    let camY = 0; // No vertical offset from player height
     let camZ = cos(cameraRotationY) * currentDistance;
     
-    camera.setPosition(camX, player.y + camY - 100, camZ);
-    camera.lookAt(0, player.y + 50, 0);
+    // Position camera at player height
+    camera.setPosition(camX, player.y - 50, camZ);
+    // Look down at ground level
+    camera.lookAt(0, 50, 0);
 }
 
 function setup() {
