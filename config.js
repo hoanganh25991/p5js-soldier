@@ -32,8 +32,9 @@ const CONFIG = {
     CLONE: {
         COOLDOWN: 500,
         DURATION: 8000,
-        FIRE_RATE: 800,
-        DAMAGE: 15
+        FIRE_RATE: 30, // Shoot as fast as player
+        DAMAGE: 15,
+        MAX_CLONES: 10
     },
     
     TURRET: {

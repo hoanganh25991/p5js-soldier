@@ -728,14 +728,16 @@ function draw() {
 
 function keyPressed() {
     if (key === 'c' || key === 'C') {
-        if (skillCooldowns.clone <= 0) {
-            // Create clone at random position around the player
-            let angle = random(TWO_PI);
-            let radius = 30;
-            let cloneX = player.x + cos(angle) * radius;
-            let cloneZ = player.z + sin(angle) * radius;
-            clones.push(new Clone(cloneX, player.y, cloneZ));
-            skillCooldowns.clone = CONFIG.CLONE.COOLDOWN;
+        // Create clone at random position around the player
+        let angle = random(TWO_PI);
+        let radius = 30;
+        let cloneX = player.x + cos(angle) * radius;
+        let cloneZ = player.z + sin(angle) * radius;
+        clones.push(new Clone(cloneX, player.y, cloneZ));
+        
+        // Optional: Limit max number of clones to avoid overwhelming
+        if (clones.length > CONFIG.CLONE.MAX_CLONES) {
+            clones.shift(); // Remove oldest clone if too many
         }
     } else if (key === 't' || key === 'T') {
         if (skillCooldowns.turret <= 0) {
