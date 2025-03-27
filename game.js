@@ -21,6 +21,7 @@ let skillCooldowns = {
 let camera;
 let gameFont;
 let shootSound;
+let cloneSound;
 
 // Camera control variables
 let cameraRotationX = -0.4; // Less steep angle for better perspective
@@ -240,9 +241,13 @@ class Bullet {
         this.y = y;
         this.z = z;
         this.angle = angle;
-        this.speed = CONFIG.BULLET_SPEED;
-        this.size = CONFIG.BULLET_SIZE;
-        this.damage = source ? source.damage : CONFIG.BULLET_DAMAGE;
+        
+        // Set bullet properties based on source
+        const bulletType = source instanceof Turret ? CONFIG.BULLET.TURRET : CONFIG.BULLET.PLAYER;
+        this.speed = bulletType.SPEED;
+        this.size = bulletType.SIZE;
+        this.damage = source ? source.damage : bulletType.DAMAGE;
+        this.color = bulletType.COLOR;
 
         // Calculate direction vector to target
         let targetY = target.y + target.height / 2; // Aim at enemy top half
@@ -292,7 +297,7 @@ class Bullet {
     show() {
         push();
         translate(this.x, this.y, this.z);
-        fill(255, 255, 0);
+        fill(...this.color);
         sphere(this.size);
         pop();
     }
@@ -415,34 +420,145 @@ class Clone {
 }
 
 class Turret {
-    constructor(x, y) {
+    constructor(x, y, z) {
         this.x = x;
         this.y = y;
-        this.lifespan = 300;
+        this.z = z;
+        this.width = 25;
+        this.height = 35;
+        this.depth = 25;
+        this.lifespan = CONFIG.TURRET.DURATION;
+        this.rotation = 0;
+        this.damage = CONFIG.TURRET.DAMAGE;
+        this.legLength = 20;
+    }
+
+    findNearestEnemy(count = 1) {
+        if (enemies.length === 0) return null;
+
+        // Sort enemies by distance to turret
+        let sortedEnemies = enemies
+            .map(enemy => ({
+                enemy,
+                distance: dist(this.x, this.z, enemy.x, enemy.z)
+            }))
+            .filter(data => data.distance < CONFIG.TURRET.RANGE)
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, count)
+            .map(data => data.enemy);
+
+        return count === 1 ? sortedEnemies[0] : sortedEnemies;
+    }
+
+    showAimLine(target, gunZ) {
+        let gunY = this.y - this.height/3;
+        
+        // Draw aim line
+        stroke(255, 100, 100, 150);
+        strokeWeight(1);
+        beginShape();
+        vertex(this.x, gunY, gunZ);
+        vertex(target.x, target.y + target.height/2, target.z);
+        endShape();
+    }
+
+    autoShoot(targetCount = CONFIG.TURRET.MAX_TARGETS) {
+        if (frameCount % CONFIG.TURRET.FIRE_RATE !== 0) return;
+
+        // Find multiple targets
+        let targets = this.findNearestEnemy(targetCount);
+        if (!Array.isArray(targets)) targets = targets ? [targets] : [];
+
+        // Draw aim lines and shoot at all targets
+        for (let target of targets) {
+            let gunY = this.y - this.height/3;
+            let angle = atan2(target.z - this.z, target.x - this.x);
+            this.rotation = angle + HALF_PI;
+
+            // Top barrel
+            let topGunZ = this.z + 3;
+            this.showAimLine(target, topGunZ);
+            bullets.push(new Bullet(this.x, gunY, topGunZ, angle, target, this));
+
+            // Bottom barrel
+            let bottomGunZ = this.z - 3;
+            this.showAimLine(target, bottomGunZ);
+            bullets.push(new Bullet(this.x, gunY, bottomGunZ, angle, target, this));
+        }
     }
 
     update() {
         this.lifespan--;
-        if (frameCount % 15 === 0) {
-            let closestEnemy = null;
-            let minDist = Infinity;
-            for (let enemy of enemies) {
-                let d = dist(this.x, this.y, enemy.x, enemy.y);
-                if (d < minDist) {
-                    minDist = d;
-                    closestEnemy = enemy;
-                }
-            }
-            if (closestEnemy) {
-                let angle = atan2(closestEnemy.y - this.y, closestEnemy.x - this.x);
-                bullets.push(new Bullet(this.x, this.y, angle));
-            }
-        }
+        this.autoShoot();
     }
 
     show() {
-        fill(100, 100, 255, this.lifespan);
-        rect(this.x - 10, this.y - 10, 20, 20);
+        push();
+        translate(this.x, this.y, this.z);
+        rotateY(this.rotation);
+
+        // Draw legs
+        push();
+        fill(80);
+        strokeWeight(2);
+        stroke(60);
+        
+        // Front legs
+        push();
+        translate(this.width/3, 0, this.depth/3);
+        box(3, this.legLength, 3);
+        pop();
+        
+        push();
+        translate(-this.width/3, 0, this.depth/3);
+        box(3, this.legLength, 3);
+        pop();
+
+        // Back legs
+        push();
+        translate(this.width/3, 0, -this.depth/3);
+        box(3, this.legLength, 3);
+        pop();
+        
+        push();
+        translate(-this.width/3, 0, -this.depth/3);
+        box(3, this.legLength, 3);
+        pop();
+        pop();
+
+        // Base - slightly above ground due to legs
+        translate(0, -this.legLength/2, 0);
+        fill(100, 100, 255, map(this.lifespan, 0, CONFIG.TURRET.DURATION, 0, 255));
+        box(this.width, this.height/2, this.depth);
+
+        // Upper part (gun mount)
+        push();
+        translate(0, -this.height/3, 0);
+        fill(80);
+        box(this.width/1.5, this.height/3, this.depth/1.5);
+        pop();
+
+        // Double gun barrels
+        push();
+        translate(this.width/2, -this.height/3, 0);
+        fill(40);
+        rotateZ(HALF_PI);
+        
+        // Top barrel
+        push();
+        translate(0, 0, 3);
+        cylinder(2, 20);
+        pop();
+        
+        // Bottom barrel
+        push();
+        translate(0, 0, -3);
+        cylinder(2, 20);
+        pop();
+        
+        pop();
+
+        pop();
     }
 }
 
@@ -563,6 +679,7 @@ function setup() {
     camera = createCamera();
     gameFont = loadFont('opensans-light.ttf');
     shootSound = loadSound('single-shot.mp3');
+    cloneSound = loadSound('woosh-effect-12-255591.mp3');
     player = new Player();
 
     // Initial enemy spawn
@@ -726,33 +843,62 @@ function draw() {
 
 // Auto-shooting is handled in player.autoShoot()
 
+function showCooldownMessage(skillName, cooldown) {
+    push();
+    translate(-100, -50, 0);
+    textFont(gameFont);
+    textSize(16);
+    fill(255, 0, 0);
+    text(`${skillName} on cooldown: ${Math.ceil(cooldown/60)}s`, 0, 0);
+    pop();
+}
+
 function keyPressed() {
     if (key === 'c' || key === 'C') {
-        // Create clone at random position around the player
-        let angle = random(TWO_PI);
-        let radius = 30;
-        let cloneX = player.x + cos(angle) * radius;
-        let cloneZ = player.z + sin(angle) * radius;
-        clones.push(new Clone(cloneX, player.y, cloneZ));
-        
-        // Optional: Limit max number of clones to avoid overwhelming
-        if (clones.length > CONFIG.CLONE.MAX_CLONES) {
-            clones.shift(); // Remove oldest clone if too many
+        if (skillCooldowns.clone <= 0) {
+            // Create clone at random position around the player
+            let angle = random(TWO_PI);
+            let radius = 30;
+            let cloneX = player.x + cos(angle) * radius;
+            let cloneZ = player.z + sin(angle) * radius;
+            clones.push(new Clone(cloneX, player.y, cloneZ));
+            
+            // Play woosh sound
+            cloneSound.play();
+            
+            // Optional: Limit max number of clones to avoid overwhelming
+            if (clones.length > CONFIG.CLONE.MAX_CLONES) {
+                clones.shift(); // Remove oldest clone if too many
+            }
+            skillCooldowns.clone = CONFIG.CLONE.COOLDOWN;
+        } else {
+            showCooldownMessage('Clone', skillCooldowns.clone);
         }
     } else if (key === 't' || key === 'T') {
         if (skillCooldowns.turret <= 0) {
-            turrets.push(new Turret(player.x + random(-50, 50), player.y));
-            skillCooldowns.turret = 300;
+            // Create turret at random position around the player
+            let angle = random(TWO_PI);
+            let radius = 40;
+            let turretX = player.x + cos(angle) * radius;
+            let turretZ = player.z + sin(angle) * radius;
+            turrets.push(new Turret(turretX, player.y, turretZ));
+            skillCooldowns.turret = CONFIG.TURRET.COOLDOWN;
+        } else {
+            showCooldownMessage('Turret', skillCooldowns.turret);
         }
     } else if (key === 'a' || key === 'A') {
         if (skillCooldowns.airstrike <= 0) {
             airstrikes.push(new Airstrike());
             skillCooldowns.airstrike = 600;
+        } else {
+            showCooldownMessage('Airstrike', skillCooldowns.airstrike);
         }
     } else if (key === 'l' || key === 'L') {
         if (skillCooldowns.laser <= 0) {
             lasers.push(new Laser());
             skillCooldowns.laser = 450;
+        } else {
+            showCooldownMessage('Laser', skillCooldowns.laser);
         }
     }
 }

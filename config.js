@@ -13,9 +13,22 @@ const CONFIG = {
     PLAYER_HEIGHT: 40,
     PLAYER_DEPTH: 20,
     FIRE_RATE: 30, // frames between shots
-    BULLET_SPEED: 20, // Doubled bullet speed to ensure hits
-    BULLET_DAMAGE: 35,
-    BULLET_SIZE: 5,
+
+    // Bullet settings
+    BULLET: {
+        PLAYER: {
+            SPEED: 20,
+            DAMAGE: 35,
+            SIZE: 5,
+            COLOR: [255, 255, 0] // Yellow
+        },
+        TURRET: {
+            SPEED: 20,
+            DAMAGE: 10,
+            SIZE: 5,
+            COLOR: [255, 100, 100] // Red
+        }
+    },
     
     // Enemy settings
     ENEMY_RADIUS: 1000,
@@ -38,11 +51,13 @@ const CONFIG = {
     },
     
     TURRET: {
-        COOLDOWN: 500,
-        DURATION: 12000,
-        FIRE_RATE: 500,
-        DAMAGE: 25,
-        RANGE: 300
+        COOLDOWN: 5000, // 5 seconds cooldown
+        DURATION: 3000, // 3 seconds duration
+        FIRE_RATE: 30,  // Same as clone
+        DAMAGE: 10,
+        RANGE: 300,
+        BULLET_SIZE: 5,
+        MAX_TARGETS: 3  // Shoot 3 enemies at once
     },
     
     AIRSTRIKE: {
