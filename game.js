@@ -17,20 +17,64 @@ function updateHeight(entity) {
     entity.y = -20 - pillarHeight * 5 + entity.height/2;
 }
 
-function findNearestEnemy(count = 1) {
-    if (enemies.length === 0) return null;
+function showAimLine(source, target, gunZ = null, aimColor = [255, 255, 0]) {
+    // Get gun position (slightly above source center)
+    let gunX = source.x;
+    let gunY = source.y - source.height/3;
+    if (gunZ === null) gunZ = source.z;
 
-    // Sort enemies by distance to clone
-    let sortedEnemies = enemies
+    // Calculate angle to target
+    let angle = atan2(target.z - gunZ, target.x - gunX);
+
+    // Draw aim line
+    push();
+    stroke(...aimColor);
+    strokeWeight(2);
+    noFill();
+    beginShape(LINES);
+    vertex(gunX, gunY, gunZ);
+    vertex(target.x, target.y + target.height/2, target.z);
+    endShape();
+    pop();
+
+    return { gunX, gunY, gunZ, angle };
+}
+
+function autoShoot(source, targetCount = 1, fireRate = CONFIG.FIRE_RATE) {
+    if (frameCount % fireRate !== 0) return;
+
+    // Find targets
+    let targets = source.findNearestEnemy(targetCount);
+
+    // Debug: Log if we found any targets
+    console.log(`${source.constructor.name} found ${targets.length} targets`);
+
+    // Draw aim lines and shoot at all targets
+    for (let target of targets) {
+        let { gunX, gunY, gunZ, angle } = showAimLine(source, target);
+        source.rotation = angle + HALF_PI;
+
+        // Debug: Log target position
+        console.log(`Shooting at target: ${target.x.toFixed(0)}, ${target.y.toFixed(0)}, ${target.z.toFixed(0)}`);
+
+        // Create bullet
+        bullets.push(new Bullet(gunX, gunY, gunZ, angle, target, source));
+        shootSound.play();
+    }
+}
+
+function findNearestEnemy(source, count = 1) {
+    if (enemies.length === 0) return [];
+
+    // Sort enemies by distance to source
+    return enemies
         .map(enemy => ({
             enemy,
-            distance: dist(this.x, this.z, enemy.x, enemy.z)
+            distance: dist(source.x, source.z, enemy.x, enemy.z)
         }))
         .sort((a, b) => a.distance - b.distance)
         .slice(0, count)
         .map(data => data.enemy);
-
-    return count === 1 ? sortedEnemies[0] : sortedEnemies;
 }
 
 let skillCooldowns = {
@@ -94,52 +138,11 @@ class Player {
     }
 
     showAimLine(target, aimColor = [255, 255, 0]) {
-        // Get gun position (slightly above player center)
-        let gunX = this.x;
-        let gunZ = this.z;
-        let gunY = this.y - this.height / 3; // Gun position above center
-
-        // Calculate angle to target
-        let angle = atan2(target.z - gunZ, target.x - gunX);
-
-        // Draw aim line from gun to enemy
-        stroke(...aimColor);
-        strokeWeight(2);
-        beginShape();
-        vertex(gunX, gunY, gunZ); // Start at gun
-        vertex(target.x, target.y + target.height / 2, target.z); // End at enemy top
-        endShape();
-
-        // Draw target marker
-        push();
-        translate(target.x, target.y + target.height / 2, target.z);
-        stroke(255, 0, 0);
-        strokeWeight(4);
-        point(0, 0, 0); // Target point
-        pop();
-
-        return { gunX, gunY, gunZ, angle };
+        return showAimLine(this, target, null, aimColor);
     }
 
     autoShoot(targetCount = 1) {
-        if (frameCount % CONFIG.FIRE_RATE !== 0) return;
-
-        // Find multiple targets
-        let targets = this.findNearestEnemy(targetCount);
-        if (!Array.isArray(targets)) targets = targets ? [targets] : [];
-
-        // Draw aim lines for all targets
-        push();
-        for (let target of targets) {
-            let { gunX, gunY, gunZ, angle } = this.showAimLine(target);
-            this.rotation = angle + HALF_PI;
-
-            // Spawn bullet with target info
-            bullets.push(new Bullet(gunX, gunY, gunZ, angle, target));
-            shootSound.play();
-            break; // Only shoot at first target
-        }
-        pop();
+        autoShoot(this, targetCount, CONFIG.FIRE_RATE);
     }
 
     update() {
@@ -446,51 +449,11 @@ class Turret {
     }
 
     showAimLine(target, gunZ) {
-        let gunY = this.y - this.height/3;
-        
-        // Draw aim line
-        push();
-        stroke(255, 0, 0);
-        strokeWeight(2);
-        noFill();
-        beginShape(LINES);
-        vertex(this.x, gunY, gunZ);
-        vertex(target.x, target.y + target.height/2, target.z);
-        endShape();
-        pop();
+        return showAimLine(this, target, gunZ, [255, 0, 0]);
     }
 
     autoShoot(targetCount = CONFIG.TURRET.MAX_TARGETS) {
-        if (frameCount % CONFIG.TURRET.FIRE_RATE !== 0) return;
-
-        // Find multiple targets
-        let targets = this.findNearestEnemy(targetCount);
-        if (!Array.isArray(targets)) targets = targets ? [targets] : [];
-
-        // Debug: Log if we found any targets
-        console.log(`Turret found ${targets.length} targets`);
-
-        // Draw aim lines and shoot at all targets
-        for (let target of targets) {
-            let gunY = this.y - this.height/3;
-            let angle = atan2(target.z - this.z, target.x - this.x);
-            this.rotation = angle + HALF_PI;
-
-            // Debug: Log target position
-            console.log(`Shooting at target: ${target.x.toFixed(0)}, ${target.y.toFixed(0)}, ${target.z.toFixed(0)}`);
-
-            push();
-            // Top barrel
-            let topGunZ = this.z + 3;
-            this.showAimLine(target, topGunZ);
-            bullets.push(new Bullet(this.x, gunY, topGunZ, angle, target, this));
-
-            // Bottom barrel
-            let bottomGunZ = this.z - 3;
-            this.showAimLine(target, bottomGunZ);
-            bullets.push(new Bullet(this.x, gunY, bottomGunZ, angle, target, this));
-            pop();
-        }
+        autoShoot(this, targetCount, CONFIG.TURRET.FIRE_RATE);
     }
 
     update() {
