@@ -76,7 +76,7 @@ const CONFIG = {
         // COOLDOWN: 60,
         COOLDOWN: 30,
         DURATION: 5 * 60,
-        DAMAGE: 8,
+        DAMAGE: 80,
         WIDTH: 40
     }
 };

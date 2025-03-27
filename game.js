@@ -664,7 +664,7 @@ class Laser {
     constructor() {
         this.y = -200; // Height of the laser beam
         this.lifespan = 60;
-        this.radius = CONFIG.WORLD_RADIUS; // Radius of the circular laser beam
+        this.radius = CONFIG.ENEMY_RADIUS * 0.6; // Radius of the circular laser beam
     }
 
     update() {
