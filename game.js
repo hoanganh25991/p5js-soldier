@@ -57,10 +57,10 @@ class Player {
 
         // Gun
         push();
-        translate(this.width / 2, -this.height / 4, 0);
+        translate(-this.width / 2, -this.height / 4, 0);
         fill(100);
         rotateZ(HALF_PI);
-        cylinder(2, 20);
+        cylinder(4, 20);
         pop();
 
         pop();
@@ -147,16 +147,33 @@ class Player {
 }
 
 class Enemy {
-    constructor(x, z) {
+    constructor(x, z, attributes) {
         this.x = x;
         this.z = z;
         this.y = 0;
-        this.width = CONFIG.ENEMY_WIDTH;
-        this.height = CONFIG.ENEMY_HEIGHT;
-        this.depth = CONFIG.ENEMY_DEPTH;
-        this.health = CONFIG.ENEMY_HEALTH;
-        this.speed = CONFIG.ENEMY_SPEED;
+        
+        // Random attributes with multipliers
+        let sizeMultiplier = attributes.sizeMultiplier || 1;
+        this.width = CONFIG.ENEMY_WIDTH * sizeMultiplier;
+        this.height = CONFIG.ENEMY_HEIGHT * sizeMultiplier;
+        this.depth = CONFIG.ENEMY_DEPTH * sizeMultiplier;
+        
+        // Health scales with size
+        this.maxHealth = CONFIG.ENEMY_HEALTH * (sizeMultiplier * 1.5);
+        this.health = this.maxHealth;
+        
+        // Bigger enemies are slower
+        this.speed = CONFIG.ENEMY_SPEED / sizeMultiplier;
+        
+        // Damage scales with size
+        this.damageMultiplier = sizeMultiplier;
+        
         this.rotation = 0;
+        
+        // Store color attributes
+        this.baseColor = attributes.baseColor || color(255, 0, 0);
+        this.damageColor = attributes.damageColor || color(255, 165, 0);
+        this.colorBlend = attributes.colorBlend || 0; // 0 = base color, 1 = damage color
     }
 
     static spawnRandom() {
@@ -164,7 +181,20 @@ class Enemy {
         let radius = CONFIG.ENEMY_RADIUS;
         let x = cos(angle) * radius;
         let z = sin(angle) * radius;
-        return new Enemy(x, z);
+        
+        // Random attributes
+        let sizeMultiplier = random(0.7, 1.5); // Size variation
+        let colorBlend = random(); // How much damage color to show
+        
+        // Different enemy types
+        let attributes = {
+            sizeMultiplier: sizeMultiplier,
+            baseColor: color(255, 0, 0), // Base red
+            damageColor: color(255, 165, 0), // Orange for damage
+            colorBlend: colorBlend
+        };
+        
+        return new Enemy(x, z, attributes);
     }
 
     update() {
@@ -185,7 +215,19 @@ class Enemy {
         push();
         translate(this.x, this.y, this.z);
         rotateY(this.rotation);
-        fill(255, 0, 0);
+        
+        // Calculate color based on health and damage type
+        let healthPercent = this.health / this.maxHealth;
+        let r = lerp(this.baseColor._getRed(), this.damageColor._getRed(), this.colorBlend);
+        let g = lerp(this.baseColor._getGreen(), this.damageColor._getGreen(), this.colorBlend);
+        let b = lerp(this.baseColor._getBlue(), this.damageColor._getBlue(), this.colorBlend);
+        
+        // Darken based on health
+        r *= healthPercent;
+        g *= healthPercent;
+        b *= healthPercent;
+        
+        fill(r, g, b);
         box(this.width, this.height, this.depth);
         pop();
     }
