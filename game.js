@@ -1,9 +1,11 @@
 let player;
+let pillar;
 let enemies = [];
 let bullets = [];
 let clones = [];
 let turrets = [];
 let airstrikes = [];
+let waves = [];
 let lasers = [];
 let pillarHeight = CONFIG.PILLAR_HEIGHT;
 let playerHealth = CONFIG.PLAYER_HEALTH;
@@ -14,13 +16,13 @@ let totalEnemiesSpawned = 0;
 // Shared utility functions
 function updateHeight(entity) {
     // Adjust height based on pillar height
-    entity.y = -20 - pillarHeight * 5 + entity.height/2;
+    entity.y = -20 - pillarHeight * 5 + entity.height / 2;
 }
 
 function showAimLine(source, target, gunZ = null, aimColor = [255, 255, 0]) {
     // Get gun position (slightly above source center)
     let gunX = source.x;
-    let gunY = source.y - source.height/3;
+    let gunY = source.y - source.height / 3;
     if (gunZ === null) gunZ = source.z;
 
     // Calculate angle to target
@@ -33,7 +35,7 @@ function showAimLine(source, target, gunZ = null, aimColor = [255, 255, 0]) {
     noFill();
     beginShape(LINES);
     vertex(gunX, gunY, gunZ);
-    vertex(target.x, target.y + target.height/2, target.z);
+    vertex(target.x, target.y + target.height / 2, target.z);
     endShape();
     pop();
 
@@ -164,25 +166,25 @@ class Enemy {
         this.x = x;
         this.z = z;
         this.y = 0;
-        
+
         // Random attributes with multipliers
         let sizeMultiplier = attributes.sizeMultiplier || 1;
         this.width = CONFIG.ENEMY_WIDTH * sizeMultiplier;
         this.height = CONFIG.ENEMY_HEIGHT * sizeMultiplier;
         this.depth = CONFIG.ENEMY_DEPTH * sizeMultiplier;
-        
+
         // Health scales with size
         this.maxHealth = CONFIG.ENEMY_HEALTH * (sizeMultiplier * 1.5);
         this.health = this.maxHealth;
-        
+
         // Bigger enemies are slower
         this.speed = CONFIG.ENEMY_SPEED / sizeMultiplier;
-        
+
         // Damage scales with size
         this.damageMultiplier = sizeMultiplier;
-        
+
         this.rotation = 0;
-        
+
         // Store color attributes
         this.baseColor = attributes.baseColor || color(255, 0, 0);
         this.damageColor = attributes.damageColor || color(255, 165, 0);
@@ -194,11 +196,11 @@ class Enemy {
         let radius = CONFIG.ENEMY_RADIUS;
         let x = cos(angle) * radius;
         let z = sin(angle) * radius;
-        
+
         // Random attributes
         let sizeMultiplier = random(0.7, 1.5); // Size variation
         let colorBlend = random(); // How much damage color to show
-        
+
         // Different enemy types
         let attributes = {
             sizeMultiplier: sizeMultiplier,
@@ -206,7 +208,7 @@ class Enemy {
             damageColor: color(255, 165, 0), // Orange for damage
             colorBlend: colorBlend
         };
-        
+
         return new Enemy(x, z, attributes);
     }
 
@@ -228,18 +230,18 @@ class Enemy {
         push();
         translate(this.x, this.y, this.z);
         rotateY(this.rotation);
-        
+
         // Calculate color based on health and damage type
         let healthPercent = this.health / this.maxHealth;
         let r = lerp(this.baseColor._getRed(), this.damageColor._getRed(), this.colorBlend);
         let g = lerp(this.baseColor._getGreen(), this.damageColor._getGreen(), this.colorBlend);
         let b = lerp(this.baseColor._getBlue(), this.damageColor._getBlue(), this.colorBlend);
-        
+
         // Darken based on health
         r *= healthPercent;
         g *= healthPercent;
         b *= healthPercent;
-        
+
         fill(r, g, b);
         box(this.width, this.height, this.depth);
         pop();
@@ -253,7 +255,7 @@ class Bullet {
         this.y = y;
         this.z = z;
         this.angle = angle;
-        
+
         // Set bullet properties based on source
         if (source instanceof Airstrike) {
             this.speed = CONFIG.AIRSTRIKE.SPEED;
@@ -270,14 +272,14 @@ class Bullet {
             this.size = bulletType.SIZE;
             this.damage = source ? source.damage : bulletType.DAMAGE;
             this.color = bulletType.COLOR;
-            
+
             if (target) {
                 // Calculate direction vector to target
                 let targetY = target.y + target.height / 2; // Aim at enemy top half
                 let dx = target.x - x;
                 let dy = targetY - y;
                 let dz = target.z - z;
-                let dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                let dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
                 // Normalize direction vector and multiply by speed
                 this.vx = (dx / dist) * this.speed;
@@ -303,10 +305,10 @@ class Bullet {
         for (let i = enemies.length - 1; i >= 0; i--) {
             let enemy = enemies[i];
             let d = dist(this.x, this.z, enemy.x, enemy.z);
-            
+
             // Check if bullet is at right height to hit enemy
-            if (d < enemy.width * 1.5 && 
-                this.y < enemy.y + enemy.height && 
+            if (d < enemy.width * 1.5 &&
+                this.y < enemy.y + enemy.height &&
                 this.y > enemy.y) {
                 console.log('Bullet hit enemy!');
                 enemy.health -= this.damage;
@@ -321,6 +323,10 @@ class Bullet {
         // Check if bullet is too far or hit ground
         let distance = dist(0, 0, this.x, this.z);
         if (distance > CONFIG.WORLD_RADIUS || this.y > 50) {
+            // Create wave effect if it's an airstrike bomb hitting the ground
+            if (source instanceof Airstrike && this.y > 50) {
+                waves.push(new Wave(this.x, this.z));
+            }
             console.log(`Bullet removed at distance: ${distance.toFixed(0)}, height: ${this.y.toFixed(0)}`);
             return true; // Bullet out of range or hit ground
         }
@@ -334,7 +340,7 @@ class Bullet {
         translate(this.x, this.y, this.z);
         fill(...this.color);
         rotateX(HALF_PI);
-        cylinder(this.size/3, this.size);
+        cylinder(this.size / 3, this.size);
         pop();
     }
 }
@@ -345,17 +351,17 @@ class Clone {
         this.x = x;
         this.y = y;
         this.z = z;
-        
+
         // Scale everything down to 70%
         const scale = 0.7;
         this.width = CONFIG.PLAYER_WIDTH * scale;
         this.height = CONFIG.PLAYER_HEIGHT * scale;
         this.depth = CONFIG.PLAYER_DEPTH * scale;
-        
+
         // Combat stats
         this.health = CONFIG.PLAYER_HEALTH * scale;
         this.damage = CONFIG.BULLET_DAMAGE * scale;
-        
+
         // Clone specific
         this.lifespan = CONFIG.CLONE.DURATION;
         this.rotation = 0;
@@ -490,60 +496,60 @@ class Turret {
         fill(80);
         strokeWeight(2);
         stroke(60);
-        
+
         // Front legs
         push();
-        translate(this.width/3, 0, this.depth/3);
+        translate(this.width / 3, 0, this.depth / 3);
         box(3, this.legLength, 3);
         pop();
-        
+
         push();
-        translate(-this.width/3, 0, this.depth/3);
+        translate(-this.width / 3, 0, this.depth / 3);
         box(3, this.legLength, 3);
         pop();
 
         // Back legs
         push();
-        translate(this.width/3, 0, -this.depth/3);
+        translate(this.width / 3, 0, -this.depth / 3);
         box(3, this.legLength, 3);
         pop();
-        
+
         push();
-        translate(-this.width/3, 0, -this.depth/3);
+        translate(-this.width / 3, 0, -this.depth / 3);
         box(3, this.legLength, 3);
         pop();
         pop();
 
         // Base - slightly above ground due to legs
-        translate(0, -this.legLength/2, 0);
+        translate(0, -this.legLength / 2, 0);
         fill(100, 100, 255, map(this.lifespan, 0, CONFIG.TURRET.DURATION, 0, 255));
-        box(this.width, this.height/2, this.depth);
+        box(this.width, this.height / 2, this.depth);
 
         // Upper part (gun mount)
         push();
-        translate(0, -this.height/3, 0);
+        translate(0, -this.height / 3, 0);
         fill(80);
-        box(this.width/1.5, this.height/3, this.depth/1.5);
+        box(this.width / 1.5, this.height / 3, this.depth / 1.5);
         pop();
 
         // Double gun barrels
         push();
-        translate(this.width/2, -this.height/3, 0);
+        translate(this.width / 2, -this.height / 3, 0);
         fill(40);
         rotateZ(HALF_PI);
-        
+
         // Top barrel
         push();
         translate(0, 0, 3);
         cylinder(2, 20);
         pop();
-        
+
         // Bottom barrel
         push();
         translate(0, 0, -3);
         cylinder(2, 20);
         pop();
-        
+
         pop();
 
         pop();
@@ -582,10 +588,62 @@ class Airstrike {
         push();
         translate(this.x, this.y, this.z);
         fill(150);
-        
+
         // Simple box airplane
         box(80, 20, 60);
-        
+
+        pop();
+    }
+}
+
+class Wave {
+    constructor(x, z) {
+        this.x = x;
+        this.z = z;
+        this.radius = 0;
+        this.maxRadius = CONFIG.AIRSTRIKE.BLAST_RADIUS;
+        this.lifespan = 30; // Duration in frames
+        this.expandSpeed = this.maxRadius / 15; // Reach max size in half the lifespan
+    }
+
+    update() {
+        this.lifespan--;
+        if (this.radius < this.maxRadius) {
+            this.radius += this.expandSpeed;
+        }
+        return this.lifespan <= 0;
+    }
+
+    show() {
+        push();
+        translate(this.x, 50, this.z); // At ground level
+        rotateX(HALF_PI);
+        noFill();
+        stroke(255, 255, 255, map(this.lifespan, 30, 0, 255, 0));
+        strokeWeight(3);
+        circle(0, 0, this.radius * 2);
+        pop();
+    }
+}
+
+class Pillar {
+    constructor() {
+        this.height = CONFIG.PILLAR_HEIGHT;
+    }
+
+    show() {
+        push();
+        translate(0, 25 - this.height * 2.5, 0);
+        fill(150);
+        box(80, this.height * 5, 80); // Wider pillar
+        // Add visual markers on pillar
+        for (let i = 0; i < 5; i++) {
+            push();
+            translate(0, this.height * 2.5 - i * this.height, 0);
+            fill(100);
+            box(82, 2, 82); // Match pillar width
+            pop();
+        }
         pop();
     }
 }
@@ -689,6 +747,7 @@ function setup() {
     shootSound = loadSound('single-shot.mp3');
     cloneSound = loadSound('woosh-effect-12-255591.mp3');
     player = new Player();
+    pillar = new Pillar();
 
     // Initial enemy spawn
     for (let i = 0; i < CONFIG.ENEMY_COUNT; i++) {
@@ -711,6 +770,13 @@ function draw() {
     // Update camera position and rotation
     updateCamera();
 
+    // Update and remove finished waves
+    for (let i = waves.length - 1; i >= 0; i--) {
+        if (waves[i].update()) {
+            waves.splice(i, 1);
+        }
+    }
+
     // Add some ambient light
     ambientLight(100);
     pointLight(255, 255, 255, 0, -500, 0);
@@ -722,6 +788,9 @@ function draw() {
     fill(34, 139, 34); // Forest green
     noStroke();
     plane(CONFIG.WORLD_RADIUS * 2, CONFIG.WORLD_RADIUS * 2);
+
+    // Show waves
+    waves.forEach(wave => wave.show());
 
     // Add grid pattern
     stroke(45, 150, 45);
@@ -736,19 +805,7 @@ function draw() {
     pop();
 
     // Draw pillar
-    push();
-    translate(0, 25 - pillarHeight * 2.5, 0);
-    fill(150);
-    box(80, pillarHeight * 5, 80); // Wider pillar
-    // Add visual markers on pillar
-    for (let i = 0; i < 5; i++) {
-        push();
-        translate(0, pillarHeight * 2.5 - i * pillarHeight, 0);
-        fill(100);
-        box(82, 2, 82); // Match pillar width
-        pop();
-    }
-    pop();
+    pillar.show();
 
     // Spawn new enemies
     spawnEnemies();
@@ -856,12 +913,12 @@ let popupTimer = null;
 
 function showCooldownMessage(skillName, cooldown) {
     const popup = document.getElementById('cooldown-popup');
-    popup.textContent = `${skillName} on cooldown: ${Math.ceil(cooldown/60)}s`;
+    popup.textContent = `${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`;
     popup.style.opacity = '1';
-    
+
     // Clear existing timer
     if (popupTimer) clearTimeout(popupTimer);
-    
+
     // Hide popup after 2 seconds
     popupTimer = setTimeout(() => {
         popup.style.opacity = '0';
@@ -877,10 +934,10 @@ function keyPressed() {
             let cloneX = player.x + cos(angle) * radius;
             let cloneZ = player.z + sin(angle) * radius;
             clones.push(new Clone(cloneX, player.y, cloneZ));
-            
+
             // Play woosh sound
             cloneSound.play();
-            
+
             // Optional: Limit max number of clones to avoid overwhelming
             if (clones.length > CONFIG.CLONE.MAX_CLONES) {
                 clones.shift(); // Remove oldest clone if too many
