@@ -641,35 +641,22 @@ class Wave {
 
 class Pillar {
     constructor() {
-        this.height = CONFIG.PILLAR_HEIGHT;
     }
 
     show() {
         push();
-        translate(0, 25 - this.height * 2.5, 0);
+        translate(0, 25 - pillarHeight * 2.5, 0);
         fill(150);
-        box(80, this.height * 5, 80); // Wider pillar
+        box(80, pillarHeight * 5, 80); // Wider pillar
         // Add visual markers on pillar
         for (let i = 0; i < 5; i++) {
             push();
-            translate(0, this.height * 2.5 - i * this.height, 0);
+            translate(0, pillarHeight * 2.5 - i * pillarHeight, 0);
             fill(100);
             box(82, 2, 82); // Match pillar width
             pop();
         }
         pop();
-    }
-
-    update() {
-        this.updateHeight();
-    }
-
-    updateHeight() {
-        updateHeight(this);
-        // Update clones height too
-        for (let clone of clones) {
-            updateHeight(clone);
-        }
     }
 }
 
@@ -791,8 +778,6 @@ function draw() {
 
     // Update player first to get new height
     player.update();
-
-    pillar.update();
 
     // Update camera position and rotation
     updateCamera();
