@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pillar Defense Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #2c3e50;
+        }
+        canvas {
+            margin-top: 20px;
+        }
+        #status-board {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="status-board">
+        <div>Pillar Height: <span id="pillar-height">100</span></div>
+        <div>Health: <span id="health">100</span></div>
+        <div>Enemies Killed: <span id="kills">0</span></div>
+        <div>Skills (Cooldown):</div>
+        <div>1: Clone (C) - <span id="clone-cd">Ready</span></div>
+        <div>2: Turret (T) - <span id="turret-cd">Ready</span></div>
+        <div>3: Airstrike (A) - <span id="airstrike-cd">Ready</span></div>
+        <div>4: Laser (L) - <span id="laser-cd">Ready</span></div>
+    </div>
+    <div id="config">
+        <script src="config.js"></script>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
