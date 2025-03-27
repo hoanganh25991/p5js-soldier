@@ -662,25 +662,37 @@ class Pillar {
 
 class Laser {
     constructor() {
-        this.y = height / 2;
+        this.y = -200; // Height of the laser beam
         this.lifespan = 60;
+        this.radius = CONFIG.WORLD_RADIUS; // Radius of the circular laser beam
     }
 
     update() {
         this.lifespan--;
         for (let enemy of enemies) {
             if (abs(enemy.y - this.y) < 20) {
-                enemy.health -= 5;
+                enemy.health -= CONFIG.LASER.DAMAGE;
             }
         }
     }
 
     show() {
+        push();
+        translate(0, this.y, 0);
+        noFill();
         stroke(255, 0, 0, this.lifespan * 4);
         strokeWeight(4);
-        line(0, this.y, width, this.y);
-        strokeWeight(1);
-        stroke(0);
+        
+        // Draw circular laser beam
+        beginShape();
+        for (let angle = 0; angle <= TWO_PI; angle += 0.1) {
+            let x = cos(angle) * this.radius;
+            let z = sin(angle) * this.radius;
+            vertex(x, 0, z);
+        }
+        endShape(CLOSE);
+        
+        pop();
     }
 }
 
