@@ -53,11 +53,12 @@ const CONFIG = {
     TURRET: {
         COOLDOWN: 5 * 60, // 5 seconds cooldown
         DURATION: 3 * 60, // 3 seconds duration
-        FIRE_RATE: 30,  // Same as clone
-        DAMAGE: 10,
-        RANGE: 300,
+        FIRE_RATE: 15,  // Twice as fast as clone
+        DAMAGE: 15,
+        RANGE: 400,
         BULLET_SIZE: 5,
-        MAX_TARGETS: 3  // Shoot 3 enemies at once
+        MAX_TARGETS: 5,  // Shoot 5 enemies at once
+        BULLET_SPEED: 30 // 1.5x normal bullet speed
     },
 
     AIRSTRIKE: {

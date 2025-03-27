@@ -244,7 +244,7 @@ class Bullet {
         
         // Set bullet properties based on source
         const bulletType = source instanceof Turret ? CONFIG.BULLET.TURRET : CONFIG.BULLET.PLAYER;
-        this.speed = bulletType.SPEED;
+        this.speed = source instanceof Turret ? CONFIG.TURRET.BULLET_SPEED : bulletType.SPEED;
         this.size = bulletType.SIZE;
         this.damage = source ? source.damage : bulletType.DAMAGE;
         this.color = bulletType.COLOR;
@@ -440,6 +440,7 @@ class Turret {
         this.lifespan = CONFIG.TURRET.DURATION;
         this.rotation = 0;
         this.damage = CONFIG.TURRET.DAMAGE;
+        this.updateHeight(); // Initialize height
         this.legLength = 20;
     }
 
@@ -510,7 +511,13 @@ class Turret {
 
     update() {
         this.lifespan--;
+        this.updateHeight();
         this.autoShoot();
+    }
+
+    updateHeight() {
+        // Adjust height based on pillar height like player
+        this.y = 50 - pillarHeight * 5 + this.height/2;
     }
 
     show() {
