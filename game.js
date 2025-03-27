@@ -255,6 +255,7 @@ class Bullet {
         this.y = y;
         this.z = z;
         this.angle = angle;
+        this.source = source;
 
         // Set bullet properties based on source
         if (source instanceof Airstrike) {
@@ -324,7 +325,7 @@ class Bullet {
         let distance = dist(0, 0, this.x, this.z);
         if (distance > CONFIG.WORLD_RADIUS || this.y > 50) {
             // Create wave effect if it's an airstrike bomb hitting the ground
-            if (source instanceof Airstrike && this.y > 50) {
+            if (this.source instanceof Airstrike && this.y > 50) {
                 waves.push(new Wave(this.x, this.z));
             }
             console.log(`Bullet removed at distance: ${distance.toFixed(0)}, height: ${this.y.toFixed(0)}`);
@@ -600,28 +601,47 @@ class Wave {
     constructor(x, z) {
         this.x = x;
         this.z = z;
-        this.radius = 0;
+        this.rings = [
+            { radius: 0, speed: CONFIG.AIRSTRIKE.BLAST_RADIUS / 10 },
+            { radius: 0, speed: CONFIG.AIRSTRIKE.BLAST_RADIUS / 15 },
+            { radius: 0, speed: CONFIG.AIRSTRIKE.BLAST_RADIUS / 20 }
+        ];
         this.maxRadius = CONFIG.AIRSTRIKE.BLAST_RADIUS;
         this.lifespan = 30; // Duration in frames
-        this.expandSpeed = this.maxRadius / 15; // Reach max size in half the lifespan
     }
 
     update() {
         this.lifespan--;
-        if (this.radius < this.maxRadius) {
-            this.radius += this.expandSpeed;
+        for (let ring of this.rings) {
+            if (ring.radius < this.maxRadius) {
+                ring.radius += ring.speed;
+            }
         }
         return this.lifespan <= 0;
     }
 
     show() {
         push();
-        translate(this.x, 50, this.z); // At ground level
+        translate(this.x, 49, this.z); // Just above ground level
         rotateX(HALF_PI);
         noFill();
-        stroke(255, 255, 255, map(this.lifespan, 30, 0, 255, 0));
-        strokeWeight(3);
-        circle(0, 0, this.radius * 2);
+        
+        // Draw multiple expanding rings
+        for (let i = 0; i < this.rings.length; i++) {
+            let alpha = map(this.lifespan, 30, 0, 255, 0);
+            stroke(255, 255, 255, alpha * (1 - i * 0.2)); // Fade out outer rings
+            strokeWeight(3 - i); // Thinner outer rings
+            
+            // Draw continuous ring
+            beginShape();
+            for (let angle = 0; angle <= TWO_PI; angle += 0.1) {
+                let r = this.rings[i].radius;
+                let x = cos(angle) * r;
+                let z = sin(angle) * r;
+                vertex(x, 0, z);
+            }
+            endShape(CLOSE);
+        }
         pop();
     }
 }
