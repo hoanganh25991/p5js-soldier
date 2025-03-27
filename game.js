@@ -623,7 +623,6 @@ class Wave {
     show() {
         push();
         translate(this.x, 49, this.z); // Just above ground level
-        rotateX(HALF_PI);
         noFill();
         
         // Draw multiple expanding rings
@@ -831,7 +830,6 @@ function draw() {
 
     // Show waves
     waves.forEach(wave => wave.show());
-    pop();
 
     // Draw pillar
     pillar.show();
