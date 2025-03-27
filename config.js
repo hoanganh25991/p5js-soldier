@@ -13,14 +13,14 @@ const CONFIG = {
     PLAYER_HEIGHT: 40,
     PLAYER_DEPTH: 20,
     FIRE_RATE: 30, // frames between shots
-    BULLET_SPEED: 15,
+    BULLET_SPEED: 30, // Doubled bullet speed to ensure hits
     BULLET_DAMAGE: 35,
     BULLET_SIZE: 5,
     
     // Enemy settings
     ENEMY_RADIUS: 1000,
-    ENEMY_COUNT: 100,
-    ENEMY_SPEED: 1,
+    ENEMY_COUNT: 50,
+    ENEMY_SPEED: 2, // Increased enemy speed but still slower than bullets
     ENEMY_WIDTH: 20,
     ENEMY_HEIGHT: 40,
     ENEMY_DEPTH: 20,
