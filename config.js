@@ -7,7 +7,7 @@ const CONFIG = {
     PILLAR_HEIGHT: 100,
     PLAYER_HEALTH: 100,
     VICTORY_KILLS: 1000,
-    
+
     // Player settings
     PLAYER_WIDTH: 20,
     PLAYER_HEIGHT: 40,
@@ -29,7 +29,7 @@ const CONFIG = {
             COLOR: [255, 100, 100] // Red
         }
     },
-    
+
     // Enemy settings
     ENEMY_RADIUS: 1000,
     ENEMY_COUNT: 50,
@@ -40,37 +40,37 @@ const CONFIG = {
     ENEMY_HEALTH: 100,
     ENEMY_DAMAGE_TO_PILLAR: 0.02,
     ENEMY_DAMAGE_TO_PLAYER: 0.2,
-    
+
     // Skill settings
     CLONE: {
-        COOLDOWN: 500,
-        DURATION: 8000,
+        COOLDOWN: 60,
+        DURATION: 8 * 60,
         FIRE_RATE: 30, // Shoot as fast as player
         DAMAGE: 15,
         MAX_CLONES: 10
     },
-    
+
     TURRET: {
-        COOLDOWN: 5000, // 5 seconds cooldown
-        DURATION: 3000, // 3 seconds duration
+        COOLDOWN: 5 * 60, // 5 seconds cooldown
+        DURATION: 3 * 60, // 3 seconds duration
         FIRE_RATE: 30,  // Same as clone
         DAMAGE: 10,
         RANGE: 300,
         BULLET_SIZE: 5,
         MAX_TARGETS: 3  // Shoot 3 enemies at once
     },
-    
+
     AIRSTRIKE: {
-        COOLDOWN: 500,
+        COOLDOWN: 60,
         SPEED: 3,
         BOMB_RATE: 200,
         DAMAGE: 50,
         BLAST_RADIUS: 100
     },
-    
+
     LASER: {
-        COOLDOWN: 500,
-        DURATION: 3000,
+        COOLDOWN: 60,
+        DURATION: 5 * 60,
         DAMAGE: 8,
         WIDTH: 40
     }

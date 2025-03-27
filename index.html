@@ -27,6 +27,22 @@
             border-radius: 5px;
             font-family: Arial, sans-serif;
         }
+        #cooldown-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
     </style>
 </head>
 <body>
@@ -40,6 +56,7 @@
         <div>3: Airstrike (A) - <span id="airstrike-cd">Ready</span></div>
         <div>4: Laser (L) - <span id="laser-cd">Ready</span></div>
     </div>
+    <div id="cooldown-popup"></div>
     <div id="config">
         <script src="config.js"></script>
     </div>

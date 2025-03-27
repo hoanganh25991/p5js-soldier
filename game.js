@@ -843,14 +843,21 @@ function draw() {
 
 // Auto-shooting is handled in player.autoShoot()
 
+// Global popup timer
+let popupTimer = null;
+
 function showCooldownMessage(skillName, cooldown) {
-    push();
-    translate(-100, -50, 0);
-    textFont(gameFont);
-    textSize(16);
-    fill(255, 0, 0);
-    text(`${skillName} on cooldown: ${Math.ceil(cooldown/60)}s`, 0, 0);
-    pop();
+    const popup = document.getElementById('cooldown-popup');
+    popup.textContent = `${skillName} on cooldown: ${Math.ceil(cooldown/60)}s`;
+    popup.style.opacity = '1';
+    
+    // Clear existing timer
+    if (popupTimer) clearTimeout(popupTimer);
+    
+    // Hide popup after 2 seconds
+    popupTimer = setTimeout(() => {
+        popup.style.opacity = '0';
+    }, 2000);
 }
 
 function keyPressed() {
