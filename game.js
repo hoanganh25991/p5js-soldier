@@ -8,7 +8,7 @@ let lasers = [];
 let pillarHeight = CONFIG.PILLAR_HEIGHT;
 let playerHealth = CONFIG.PLAYER_HEALTH;
 let enemiesKilled = 0;
-let framesSinceLastShot = 0;
+let frameCount = 0;
 let totalEnemiesSpawned = 0;
 
 let skillCooldowns = {
@@ -45,7 +45,7 @@ class Player {
     }
 
     show() {
-        this.autoShoot(3); // Auto-target and show aim lines for 3 nearest enemies
+        // this.autoShoot(1); // Auto-target and show aim lines for 3 nearest enemies
         
         push();
         translate(this.x, this.y, this.z);
@@ -142,15 +142,16 @@ class Player {
         for (let target of targets) {
             let { gunX, gunY, gunZ, angle } = this.showAimLine(target);
             
-            // Shoot if ready
-            if (framesSinceLastShot >= CONFIG.FIRE_RATE) {
-                // Update player rotation to face target
-                this.rotation = angle + HALF_PI;
+            // Shoot if ready (every FIRE_RATE frames)
+            console.log({frameCount});
+            if (frameCount % CONFIG.FIRE_RATE === 0) {
+                console.log('Shooting');
+                // // Update player rotation to face target
+                // this.rotation = angle + HALF_PI;
                 
                 // Spawn bullet
                 bullets.push(new Bullet(gunX, gunY, gunZ, angle));
                 shootSound.play();
-                framesSinceLastShot = 0;
                 break; // Only shoot at first target
             }
         }
@@ -258,88 +259,6 @@ class Bullet {
         translate(this.x, this.y, this.z);
         fill(255, 255, 0);
         sphere(this.size);
-        pop();
-    }
-}
-
-class Clone {
-    constructor(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.width = CONFIG.PLAYER_WIDTH;
-        this.height = CONFIG.PLAYER_HEIGHT;
-        this.depth = CONFIG.PLAYER_DEPTH;
-        this.lifespan = CONFIG.CLONE.DURATION;
-        this.lastShot = 0;
-        this.rotation = 0;
-        this.targetEnemy = null;
-    }
-
-    findNearestEnemy(count = 1) {
-        // Only target actual enemies
-        if (enemies.length === 0) return null;
-        
-        // Sort enemies by distance
-        let sortedEnemies = enemies
-            .map(enemy => ({
-                enemy,
-                distance: dist(this.x, this.z, enemy.x, enemy.z)
-            }))
-            .sort((a, b) => a.distance - b.distance)
-            .slice(0, count)
-            .map(data => data.enemy);
-        
-        return count === 1 ? sortedEnemies[0] || null : sortedEnemies;
-    }
-
-    autoShoot(targetCount = 1) {
-        // Find multiple targets
-        let targets = this.findNearestEnemy(targetCount);
-        if (!Array.isArray(targets)) targets = targets ? [targets] : [];
-        
-        // Draw aim lines for all targets
-        push();
-        for (let target of targets) {
-            let { gunY, angle } = this.showAimLine(target, [0, 255, 0]);
-            
-            // Shoot if ready
-            if (millis() - this.lastShot > CONFIG.CLONE.FIRE_RATE) {
-                // Update rotation to face target
-                this.rotation = angle + HALF_PI;
-                
-                // Spawn bullet
-                bullets.push(new Bullet(this.x, gunY, this.z, angle));
-                this.lastShot = millis();
-                break; // Only shoot at first target
-            }
-        }
-        pop();
-    }
-
-    update() {
-        this.lifespan--;
-    }
-
-     show() {
-        this.autoShoot(3); // Auto-target and show aim lines for 3 nearest enemies
-        
-        push();
-        translate(this.x, this.y, this.z);
-        rotateY(this.rotation);
-        
-        // Clone body
-        fill(0, 200, 0, map(this.lifespan, 0, CONFIG.CLONE.DURATION, 0, 255));
-        box(CONFIG.PLAYER_SIZE * 0.8);
-        
-        // Gun
-        push();
-        translate(CONFIG.PLAYER_SIZE/2, 0, 0);
-        fill(100, map(this.lifespan, 0, CONFIG.CLONE.DURATION, 0, 255));
-        rotateZ(HALF_PI);
-        cylinder(1.5, 15);
-        pop();
-        
         pop();
     }
 }
@@ -505,7 +424,7 @@ function setup() {
 
 
 function draw() {
-    framesSinceLastShot++;
+    frameCount++;
     
     // Sky gradient
     background(135, 206, 235); // Light blue sky
