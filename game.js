@@ -86,7 +86,7 @@ class Player {
         // Get gun position (slightly above player center)
         let gunX = this.x;
         let gunZ = this.z;
-        let gunY = this.y - this.height/3; // Gun position above center
+        let gunY = this.y - this.height / 3; // Gun position above center
 
         // Calculate angle to target
         let angle = atan2(target.z - gunZ, target.x - gunX);
@@ -96,12 +96,12 @@ class Player {
         strokeWeight(2);
         beginShape();
         vertex(gunX, gunY, gunZ); // Start at gun
-        vertex(target.x, target.y + target.height/2, target.z); // End at enemy top
+        vertex(target.x, target.y + target.height / 2, target.z); // End at enemy top
         endShape();
 
         // Draw target marker
         push();
-        translate(target.x, target.y + target.height/2, target.z);
+        translate(target.x, target.y + target.height / 2, target.z);
         stroke(255, 0, 0);
         strokeWeight(4);
         point(0, 0, 0); // Target point
@@ -193,49 +193,35 @@ class Enemy {
 
 class Bullet {
     constructor(x, y, z, angle) {
-        this.startX = x;
-        this.startY = y;
-        this.startZ = z;
         this.x = x;
         this.y = y;
         this.z = z;
         this.angle = angle;
         this.speed = CONFIG.BULLET_SPEED;
         this.size = CONFIG.BULLET_SIZE;
-        this.distanceTraveled = 0;
     }
 
     update() {
-        // Update position
-        let dx = cos(this.angle) * this.speed;
-        let dz = sin(this.angle) * this.speed;
-        this.x += dx;
-        this.z += dz;
-        
-        // Calculate y position (bullet drops over distance)
-        this.distanceTraveled += dist(0, 0, dx, dz);
-        let dropFactor = 0.0005; // How fast bullet drops
-        this.y = this.startY - (this.distanceTraveled * this.distanceTraveled * dropFactor);
-        
+        this.x += cos(this.angle) * this.speed;
+        this.z += sin(this.angle) * this.speed;
+
         // Check collision with enemies
         for (let i = enemies.length - 1; i >= 0; i--) {
             let enemy = enemies[i];
             let d = dist(this.x, this.z, enemy.x, enemy.z);
-            
-            // Check if bullet is at right height to hit enemy
-            if (d < enemy.width && 
-                this.y < enemy.y + enemy.height && 
-                this.y > enemy.y) {
-                // Remove both bullet and enemy
-                enemies.splice(i, 1);
-                enemiesKilled++;
+            if (d < enemy.width) {
+                enemy.health -= CONFIG.BULLET_DAMAGE;
+                if (enemy.health <= 0) {
+                    enemies.splice(i, 1);
+                    enemiesKilled++;
+                }
                 return true; // Bullet hit something
             }
         }
 
-        // Check if bullet is too far or too low
-        if (dist(0, 0, this.x, this.z) > CONFIG.WORLD_RADIUS || this.y < 0) {
-            return true; // Bullet out of range or hit ground
+        // Check if bullet is too far
+        if (dist(0, 0, this.x, this.z) > CONFIG.WORLD_RADIUS) {
+            return true; // Bullet out of range
         }
 
         return false; // Bullet still active
@@ -245,7 +231,6 @@ class Bullet {
         push();
         translate(this.x, this.y, this.z);
         fill(255, 255, 0);
-        noStroke();
         sphere(this.size);
         pop();
     }
@@ -318,7 +303,7 @@ class Clone {
 
         // Gun
         push();
-        translate(CONFIG.PLAYER_SIZE/2, 0, 0);
+        translate(CONFIG.PLAYER_SIZE / 2, 0, 0);
         fill(100, map(this.lifespan, 0, CONFIG.CLONE.DURATION, 0, 255));
         rotateZ(HALF_PI);
         cylinder(1.5, 15);
