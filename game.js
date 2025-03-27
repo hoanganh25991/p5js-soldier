@@ -45,7 +45,7 @@ class Player {
     }
 
     show() {
-        this.showAimLines(3); // Show aim lines for 3 nearest enemies
+        this.autoShoot(3); // Auto-target and show aim lines for 3 nearest enemies
         
         push();
         translate(this.x, this.y, this.z);
@@ -108,25 +108,53 @@ class Player {
         return count === 1 ? nearestEnemies[0] || null : nearestEnemies;
     }
 
-    autoShoot() {
-        this.targetEnemy = this.findNearestEnemy(1);
+    showAimLine(target, aimColor = [255, 255, 0]) {
+        // Get gun position
+        let gunX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
+        let gunZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
+        let gunY = this.y - this.height/4;
         
-        if (this.targetEnemy && framesSinceLastShot >= CONFIG.FIRE_RATE) {
-            // Get gun position
-            let gunX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
-            let gunZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
+        // Calculate angle to target
+        let angle = atan2(target.z - gunZ, target.x - gunX);
+        
+        // Draw aim line
+        stroke(...aimColor);
+        strokeWeight(2);
+        line(gunX, gunY, gunZ, target.x, gunY, target.z);
+        
+        // Draw target marker
+        push();
+        translate(target.x, gunY, target.z);
+        stroke(255, 0, 0);
+        strokeWeight(4);
+        pop();
+        
+        return { gunX, gunY, gunZ, angle };
+    }
+    
+    autoShoot(targetCount = 1) {
+        // Find multiple targets
+        let targets = this.findNearestEnemy(targetCount);
+        if (!Array.isArray(targets)) targets = targets ? [targets] : [];
+        
+        // Draw aim lines for all targets
+        push();
+        for (let target of targets) {
+            let { gunX, gunY, gunZ, angle } = this.showAimLine(target);
             
-            // Calculate direct angle to target
-            let angle = atan2(this.targetEnemy.z - gunZ, this.targetEnemy.x - gunX);
-            
-            // Update player rotation to face target
-            this.rotation = angle + HALF_PI;
-            
-            // Spawn bullet from gun position
-            bullets.push(new Bullet(gunX, this.y - this.height/4, gunZ, angle));
-            shootSound.play();
-            framesSinceLastShot = 0;
+            // Shoot if ready
+            if (framesSinceLastShot >= CONFIG.FIRE_RATE) {
+                // Update player rotation to face target
+                this.rotation = angle + HALF_PI;
+                
+                // Spawn bullet
+                bullets.push(new Bullet(gunX, gunY, gunZ, angle));
+                shootSound.play();
+                framesSinceLastShot = 0;
+                break; // Only shoot at first target
+            }
         }
+        pop();
     }
     
     update() {
@@ -141,48 +169,6 @@ class Player {
         for (let clone of clones) {
             clone.y = this.y;
         }
-    }
-    
-    showAimLines(count = 1) {
-        // Get multiple targets
-        let targets = this.findNearestEnemy(count);
-        if (!targets) return;
-        
-        // Convert single target to array for consistent processing
-        if (!Array.isArray(targets)) {
-            targets = [targets];
-        }
-        
-        push();
-        
-        for (let target of targets) {
-            // Get gun position
-            let gunX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
-            let gunZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
-            let gunY = this.y - this.height/4;
-            
-            // Draw straight aim line
-            stroke(255, 255, 0);
-            strokeWeight(2);
-            line(gunX, gunY, gunZ, target.x, gunY, target.z);
-            
-            // Draw target box
-            push();
-            translate(target.x, gunY, target.z);
-            noFill();
-            stroke(255, 0, 0);
-            box(target.width * 2);
-            pop();
-            
-            // Draw vertical markers
-            stroke(255, 255, 0);
-            // At gun
-            line(gunX, gunY - 10, gunZ, gunX, gunY + 10, gunZ);
-            // At target
-            line(target.x, gunY - 10, target.z, target.x, gunY + 10, target.z);
-        }
-        
-        pop();
     }
 }
 
@@ -281,51 +267,62 @@ class Clone {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.width = CONFIG.PLAYER_WIDTH;
+        this.height = CONFIG.PLAYER_HEIGHT;
+        this.depth = CONFIG.PLAYER_DEPTH;
         this.lifespan = CONFIG.CLONE.DURATION;
         this.lastShot = 0;
         this.rotation = 0;
         this.targetEnemy = null;
     }
 
+    findNearestEnemy(count = 1) {
+        // Only target actual enemies
+        if (enemies.length === 0) return null;
+        
+        // Sort enemies by distance
+        let sortedEnemies = enemies
+            .map(enemy => ({
+                enemy,
+                distance: dist(this.x, this.z, enemy.x, enemy.z)
+            }))
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, count)
+            .map(data => data.enemy);
+        
+        return count === 1 ? sortedEnemies[0] || null : sortedEnemies;
+    }
+
+    autoShoot(targetCount = 1) {
+        // Find multiple targets
+        let targets = this.findNearestEnemy(targetCount);
+        if (!Array.isArray(targets)) targets = targets ? [targets] : [];
+        
+        // Draw aim lines for all targets
+        push();
+        for (let target of targets) {
+            let { gunY, angle } = this.showAimLine(target, [0, 255, 0]);
+            
+            // Shoot if ready
+            if (millis() - this.lastShot > CONFIG.CLONE.FIRE_RATE) {
+                // Update rotation to face target
+                this.rotation = angle + HALF_PI;
+                
+                // Spawn bullet
+                bullets.push(new Bullet(this.x, gunY, this.z, angle));
+                this.lastShot = millis();
+                break; // Only shoot at first target
+            }
+        }
+        pop();
+    }
+
     update() {
         this.lifespan--;
-        
-        // Find and shoot at nearest enemy
-        if (millis() - this.lastShot > CONFIG.CLONE.FIRE_RATE) {
-            let nearestEnemy = null;
-            let minDist = Infinity;
-            
-            for (let enemy of enemies) {
-                let d = dist(this.x, this.z, enemy.x, enemy.z);
-                if (d < minDist) {
-                    minDist = d;
-                    nearestEnemy = enemy;
-                }
-            }
-            
-            if (nearestEnemy) {
-                this.targetEnemy = nearestEnemy;
-                let angle = atan2(nearestEnemy.z - this.z, nearestEnemy.x - this.x);
-                this.rotation = angle + HALF_PI;
-                bullets.push(new Bullet(this.x, this.y, this.z, angle));
-                this.lastShot = millis();
-            }
-        }
     }
 
-    showAimLine() {
-        if (this.targetEnemy) {
-            push();
-            stroke(0, 255, 0, 50);
-            strokeWeight(1);
-            line(this.x, this.y + 10, this.z, 
-                 this.targetEnemy.x, this.y + 10, this.targetEnemy.z);
-            pop();
-        }
-    }
-
-    show() {
-        this.showAimLines(3); // Show aim lines for 3 nearest enemies
+     show() {
+        this.autoShoot(3); // Auto-target and show aim lines for 3 nearest enemies
         
         push();
         translate(this.x, this.y, this.z);
