@@ -23,9 +23,9 @@ let gameFont;
 let shootSound;
 
 // Camera control variables
-let cameraRotationX = -1.3; // Looking down from player height
+let cameraRotationX = -0.4; // Less steep angle for better perspective
 let cameraRotationY = 0;
-let zoomLevel = 1.5; // Closer view to see enemies better
+let zoomLevel = 2.0; // Wider view of battlefield
 let isDragging = false;
 let lastMouseX = 0;
 let lastMouseY = 0;
@@ -182,7 +182,7 @@ class Enemy {
 
     static spawnRandom() {
         let angle = random(TWO_PI);
-        let radius = CONFIG.WORLD_RADIUS;
+        let radius = CONFIG.ENEMY_RADIUS;
         let x = cos(angle) * radius;
         let z = sin(angle) * radius;
         return new Enemy(x, z);
@@ -450,16 +450,26 @@ function updateCamera() {
         lastMouseY = mouseY;
     }
     
-    // Position camera at player height looking down
+    // Position camera behind player at 1/3 screen height
     let currentDistance = baseCameraDistance * zoomLevel;
+    
+    // Calculate camera position
     let camX = sin(cameraRotationY) * currentDistance;
-    let camY = 0; // No vertical offset from player height
     let camZ = cos(cameraRotationY) * currentDistance;
     
-    // Position camera at player height
-    camera.setPosition(camX, player.y - 50, camZ);
-    // Look down at ground level
-    camera.lookAt(0, 50, 0);
+    // Position camera behind player
+    camera.setPosition(
+        camX, // Keep player centered horizontally
+        player.y - 600, // Camera slightly above player
+        camZ + 100 // Camera behind player
+    );
+    
+    // Look at point in front of player at 1/3 screen height
+    camera.lookAt(
+        0, // Keep centered horizontally
+        player.y + 700, // Look slightly down
+        -400 // Look ahead of player
+    );
 }
 
 function setup() {

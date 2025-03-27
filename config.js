@@ -18,8 +18,9 @@ const CONFIG = {
     BULLET_SIZE: 5,
     
     // Enemy settings
+    ENEMY_RADIUS: 1000,
     ENEMY_COUNT: 100,
-    ENEMY_SPEED: 0.5,
+    ENEMY_SPEED: 1,
     ENEMY_WIDTH: 20,
     ENEMY_HEIGHT: 40,
     ENEMY_DEPTH: 20,
@@ -29,14 +30,14 @@ const CONFIG = {
     
     // Skill settings
     CLONE: {
-        COOLDOWN: 10000,
+        COOLDOWN: 500,
         DURATION: 8000,
         FIRE_RATE: 800,
         DAMAGE: 15
     },
     
     TURRET: {
-        COOLDOWN: 15000,
+        COOLDOWN: 500,
         DURATION: 12000,
         FIRE_RATE: 500,
         DAMAGE: 25,
@@ -44,7 +45,7 @@ const CONFIG = {
     },
     
     AIRSTRIKE: {
-        COOLDOWN: 20000,
+        COOLDOWN: 500,
         SPEED: 3,
         BOMB_RATE: 200,
         DAMAGE: 50,
@@ -52,7 +53,7 @@ const CONFIG = {
     },
     
     LASER: {
-        COOLDOWN: 25000,
+        COOLDOWN: 500,
         DURATION: 3000,
         DAMAGE: 8,
         WIDTH: 40
