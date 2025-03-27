@@ -68,8 +68,8 @@ const CONFIG = {
         SPEED: 3,
         BOMB_RATE: 100,
         BOMB_SIZE: 100,
-        DAMAGE: 50,
-        BLAST_RADIUS: 100
+        DAMAGE: 500,
+        BLAST_RADIUS: 150
     },
 
     LASER: {

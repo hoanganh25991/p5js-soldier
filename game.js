@@ -560,7 +560,7 @@ class Turret {
 class Airstrike {
     constructor() {
         this.x = -CONFIG.ENEMY_RADIUS;
-        this.y = -650; // Even higher above pillars
+        this.y = -700; // Even higher above pillars
         this.z = 0;
         this.speed = CONFIG.AIRSTRIKE.SPEED;
         this.damage = CONFIG.AIRSTRIKE.DAMAGE;
@@ -576,12 +576,6 @@ class Airstrike {
             bullet.vy = 15; // Move downward much faster
             bullet.vx = this.speed * 0.5; // Keep some forward momentum
             bullets.push(bullet);
-        }
-
-        // Remove when past the world
-        if (this.x > CONFIG.WORLD_RADIUS) {
-            let index = airstrikes.indexOf(this);
-            if (index > -1) airstrikes.splice(index, 1);
         }
     }
 
@@ -624,13 +618,13 @@ class Wave {
         push();
         translate(this.x, 49, this.z); // Just above ground level
         noFill();
-        
+
         // Draw multiple expanding rings
         for (let i = 0; i < this.rings.length; i++) {
             let alpha = map(this.lifespan, 30, 0, 255, 0);
             stroke(255, 255, 255, alpha * (1 - i * 0.2)); // Fade out outer rings
             strokeWeight(3 - i); // Thinner outer rings
-            
+
             // Draw continuous ring
             beginShape();
             for (let angle = 0; angle <= TWO_PI; angle += 0.1) {
@@ -664,6 +658,18 @@ class Pillar {
             pop();
         }
         pop();
+    }
+
+    update() {
+        this.updateHeight();
+    }
+
+    updateHeight() {
+        updateHeight(this);
+        // Update clones height too
+        for (let clone of clones) {
+            updateHeight(clone);
+        }
     }
 }
 
@@ -786,6 +792,8 @@ function draw() {
     // Update player first to get new height
     player.update();
 
+    pillar.update();
+
     // Update camera position and rotation
     updateCamera();
 
@@ -881,11 +889,13 @@ function draw() {
 
     // Update and show airstrikes
     for (let i = airstrikes.length - 1; i >= 0; i--) {
-        airstrikes[i].update();
-        airstrikes[i].show();
+        // Remove airstrike when it flies off screen
         if (airstrikes[i].x > width + 50) {
             airstrikes.splice(i, 1);
+            continue; // Skip to next iteration after removing
         }
+        airstrikes[i].update();
+        airstrikes[i].show();
     }
 
     // Update and show lasers
