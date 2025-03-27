@@ -123,8 +123,8 @@ class Player {
             let { gunX, gunY, gunZ, angle } = this.showAimLine(target);
             this.rotation = angle + HALF_PI;
 
-            // Spawn bullet
-            bullets.push(new Bullet(gunX, gunY, gunZ, angle));
+            // Spawn bullet with target info
+            bullets.push(new Bullet(gunX, gunY, gunZ, angle, target));
             shootSound.play();
             break; // Only shoot at first target
         }
@@ -192,36 +192,52 @@ class Enemy {
 }
 
 class Bullet {
-    constructor(x, y, z, angle) {
+    constructor(x, y, z, angle, target) {
+        // Starting position (gun)
         this.x = x;
         this.y = y;
         this.z = z;
         this.angle = angle;
         this.speed = CONFIG.BULLET_SPEED;
         this.size = CONFIG.BULLET_SIZE;
+
+        // Calculate direction vector to target
+        let targetY = target.y + target.height / 2; // Aim at enemy top half
+        let dx = target.x - x;
+        let dy = targetY - y;
+        let dz = target.z - z;
+        let dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+        // Normalize direction vector and multiply by speed
+        this.vx = (dx / dist) * this.speed;
+        this.vy = (dy / dist) * this.speed;
+        this.vz = (dz / dist) * this.speed;
     }
 
     update() {
-        this.x += cos(this.angle) * this.speed;
-        this.z += sin(this.angle) * this.speed;
+        // Move bullet along direction vector
+        this.x += this.vx;
+        this.y += this.vy;
+        this.z += this.vz;
 
         // Check collision with enemies
         for (let i = enemies.length - 1; i >= 0; i--) {
             let enemy = enemies[i];
             let d = dist(this.x, this.z, enemy.x, enemy.z);
-            if (d < enemy.width) {
-                enemy.health -= CONFIG.BULLET_DAMAGE;
-                if (enemy.health <= 0) {
-                    enemies.splice(i, 1);
-                    enemiesKilled++;
-                }
+            
+            // Check if bullet is at right height to hit enemy
+            if (d < enemy.width * 1.5 && 
+                this.y < enemy.y + enemy.height && 
+                this.y > enemy.y) {
+                enemies.splice(i, 1);
+                enemiesKilled++;
                 return true; // Bullet hit something
             }
         }
 
-        // Check if bullet is too far
-        if (dist(0, 0, this.x, this.z) > CONFIG.WORLD_RADIUS) {
-            return true; // Bullet out of range
+        // Check if bullet is too far or hit ground
+        if (dist(0, 0, this.x, this.z) > CONFIG.WORLD_RADIUS || this.y > 50) {
+            return true; // Bullet out of range or hit ground
         }
 
         return false; // Bullet still active
