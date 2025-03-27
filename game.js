@@ -268,6 +268,12 @@ class Bullet {
         this.y += this.vy;
         this.z += this.vz;
 
+        // Debug: Log bullet position every second
+        if (frameCount % 60 === 0) {
+            console.log(`Bullet at: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
+            console.log(`Bullet velocity: ${this.vx.toFixed(2)}, ${this.vy.toFixed(2)}, ${this.vz.toFixed(2)}`);
+        }
+
         // Check collision with enemies
         for (let i = enemies.length - 1; i >= 0; i--) {
             let enemy = enemies[i];
@@ -277,6 +283,7 @@ class Bullet {
             if (d < enemy.width * 1.5 && 
                 this.y < enemy.y + enemy.height && 
                 this.y > enemy.y) {
+                console.log('Bullet hit enemy!');
                 enemy.health -= this.damage;
                 if (enemy.health <= 0) {
                     enemies.splice(i, 1);
@@ -287,7 +294,9 @@ class Bullet {
         }
 
         // Check if bullet is too far or hit ground
-        if (dist(0, 0, this.x, this.z) > CONFIG.WORLD_RADIUS || this.y > 50) {
+        let distance = dist(0, 0, this.x, this.z);
+        if (distance > CONFIG.WORLD_RADIUS || this.y > 50) {
+            console.log(`Bullet removed at distance: ${distance.toFixed(0)}, height: ${this.y.toFixed(0)}`);
             return true; // Bullet out of range or hit ground
         }
 
@@ -296,6 +305,7 @@ class Bullet {
 
     show() {
         push();
+        noStroke();
         translate(this.x, this.y, this.z);
         fill(...this.color);
         sphere(this.size);
@@ -454,12 +464,15 @@ class Turret {
         let gunY = this.y - this.height/3;
         
         // Draw aim line
-        stroke(255, 100, 100, 150);
-        strokeWeight(1);
-        beginShape();
+        push();
+        stroke(255, 0, 0);
+        strokeWeight(2);
+        noFill();
+        beginShape(LINES);
         vertex(this.x, gunY, gunZ);
         vertex(target.x, target.y + target.height/2, target.z);
         endShape();
+        pop();
     }
 
     autoShoot(targetCount = CONFIG.TURRET.MAX_TARGETS) {
@@ -469,12 +482,19 @@ class Turret {
         let targets = this.findNearestEnemy(targetCount);
         if (!Array.isArray(targets)) targets = targets ? [targets] : [];
 
+        // Debug: Log if we found any targets
+        console.log(`Turret found ${targets.length} targets`);
+
         // Draw aim lines and shoot at all targets
         for (let target of targets) {
             let gunY = this.y - this.height/3;
             let angle = atan2(target.z - this.z, target.x - this.x);
             this.rotation = angle + HALF_PI;
 
+            // Debug: Log target position
+            console.log(`Shooting at target: ${target.x.toFixed(0)}, ${target.y.toFixed(0)}, ${target.z.toFixed(0)}`);
+
+            push();
             // Top barrel
             let topGunZ = this.z + 3;
             this.showAimLine(target, topGunZ);
@@ -484,6 +504,7 @@ class Turret {
             let bottomGunZ = this.z - 3;
             this.showAimLine(target, bottomGunZ);
             bullets.push(new Bullet(this.x, gunY, bottomGunZ, angle, target, this));
+            pop();
         }
     }
 
