@@ -234,7 +234,7 @@ class Enemy {
 }
 
 class Bullet {
-    constructor(x, y, z, angle, target) {
+    constructor(x, y, z, angle, target, source = null) {
         // Starting position (gun)
         this.x = x;
         this.y = y;
@@ -242,6 +242,7 @@ class Bullet {
         this.angle = angle;
         this.speed = CONFIG.BULLET_SPEED;
         this.size = CONFIG.BULLET_SIZE;
+        this.damage = source ? source.damage : CONFIG.BULLET_DAMAGE;
 
         // Calculate direction vector to target
         let targetY = target.y + target.height / 2; // Aim at enemy top half
@@ -271,8 +272,11 @@ class Bullet {
             if (d < enemy.width * 1.5 && 
                 this.y < enemy.y + enemy.height && 
                 this.y > enemy.y) {
-                enemies.splice(i, 1);
-                enemiesKilled++;
+                enemy.health -= this.damage;
+                if (enemy.health <= 0) {
+                    enemies.splice(i, 1);
+                    enemiesKilled++;
+                }
                 return true; // Bullet hit something
             }
         }
@@ -296,14 +300,25 @@ class Bullet {
 
 class Clone {
     constructor(x, y, z) {
+        // Position
         this.x = x;
         this.y = y;
         this.z = z;
-        this.width = CONFIG.PLAYER_WIDTH;
-        this.height = CONFIG.PLAYER_HEIGHT;
-        this.depth = CONFIG.PLAYER_DEPTH;
+        
+        // Scale everything down to 70%
+        const scale = 0.7;
+        this.width = CONFIG.PLAYER_WIDTH * scale;
+        this.height = CONFIG.PLAYER_HEIGHT * scale;
+        this.depth = CONFIG.PLAYER_DEPTH * scale;
+        
+        // Combat stats
+        this.health = CONFIG.PLAYER_HEALTH * scale;
+        this.damage = CONFIG.BULLET_DAMAGE * scale;
+        
+        // Clone specific
         this.lifespan = CONFIG.CLONE.DURATION;
         this.rotation = 0;
+        this.opacity = 180; // Slightly transparent
     }
 
     findNearestEnemy(count = 1) {
@@ -322,6 +337,34 @@ class Clone {
         return count === 1 ? sortedEnemies[0] : sortedEnemies;
     }
 
+    showAimLine(target, aimColor = [0, 255, 0]) {
+        // Get gun position (slightly above clone center)
+        let gunX = this.x;
+        let gunZ = this.z;
+        let gunY = this.y - this.height / 3; // Gun position above center
+
+        // Calculate angle to target
+        let angle = atan2(target.z - gunZ, target.x - gunX);
+
+        // Draw aim line from gun to enemy
+        stroke(...aimColor);
+        strokeWeight(2);
+        beginShape();
+        vertex(gunX, gunY, gunZ); // Start at gun
+        vertex(target.x, target.y + target.height / 2, target.z); // End at enemy top
+        endShape();
+
+        // Draw target marker
+        push();
+        translate(target.x, target.y + target.height / 2, target.z);
+        stroke(255, 0, 0);
+        strokeWeight(4);
+        point(0, 0, 0); // Target point
+        pop();
+
+        return { gunX, gunY, gunZ, angle };
+    }
+
     autoShoot(targetCount = 1) {
         if (frameCount % CONFIG.CLONE.FIRE_RATE !== 0) return;
 
@@ -332,13 +375,13 @@ class Clone {
         // Draw aim lines for all targets
         push();
         for (let target of targets) {
-            let { gunY, angle } = this.showAimLine(target, [0, 255, 0]);
+            let { gunX, gunY, gunZ, angle } = this.showAimLine(target, [0, 255, 0]);
 
             // Update rotation to face target
             this.rotation = angle + HALF_PI;
 
-            // Spawn bullet
-            bullets.push(new Bullet(this.x, gunY, this.z, angle));
+            // Spawn bullet with target info and clone as source
+            bullets.push(new Bullet(gunX, gunY, gunZ, angle, target, this));
             break; // Only shoot at first target
         }
         pop();
@@ -355,16 +398,16 @@ class Clone {
         translate(this.x, this.y, this.z);
         rotateY(this.rotation);
 
-        // Clone body
-        fill(0, 200, 0, map(this.lifespan, 0, CONFIG.CLONE.DURATION, 0, 255));
-        box(CONFIG.PLAYER_SIZE * 0.8);
+        // Clone body - lighter green and slightly transparent
+        fill(100, 255, 100, map(this.lifespan, 0, CONFIG.CLONE.DURATION, 0, this.opacity));
+        box(this.width, this.height, this.depth);
 
         // Gun
         push();
-        translate(CONFIG.PLAYER_SIZE / 2, 0, 0);
-        fill(100, map(this.lifespan, 0, CONFIG.CLONE.DURATION, 0, 255));
+        translate(-this.width / 2, -this.height / 4, 0);
+        fill(150, 150, 150, map(this.lifespan, 0, CONFIG.CLONE.DURATION, 0, this.opacity));
         rotateZ(HALF_PI);
-        cylinder(1.5, 15);
+        cylinder(3, 15); // Slightly smaller gun
         pop();
 
         pop();
@@ -571,13 +614,13 @@ function draw() {
     push();
     translate(0, 25 - pillarHeight * 2.5, 0);
     fill(150);
-    box(50, pillarHeight * 5, 50);
+    box(80, pillarHeight * 5, 80); // Wider pillar
     // Add visual markers on pillar
     for (let i = 0; i < 5; i++) {
         push();
         translate(0, pillarHeight * 2.5 - i * pillarHeight, 0);
         fill(100);
-        box(52, 2, 52);
+        box(82, 2, 82); // Match pillar width
         pop();
     }
     pop();
