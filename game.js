@@ -257,7 +257,7 @@ class Bullet {
         // Set bullet properties based on source
         if (source instanceof Airstrike) {
             this.speed = CONFIG.AIRSTRIKE.SPEED;
-            this.size = 15; // Bigger bombs
+            this.size = 40; // Much bigger bombs
             this.damage = source.damage;
             this.color = [200, 0, 0];
             // Velocity set by airstrike update
@@ -333,7 +333,8 @@ class Bullet {
         noStroke();
         translate(this.x, this.y, this.z);
         fill(...this.color);
-        box(this.size);
+        rotateX(HALF_PI);
+        cylinder(this.size/3, this.size);
         pop();
     }
 }
@@ -551,8 +552,8 @@ class Turret {
 
 class Airstrike {
     constructor() {
-        this.x = -CONFIG.WORLD_RADIUS;
-        this.y = -200; // Much higher in the sky
+        this.x = -CONFIG.ENEMY_RADIUS;
+        this.y = -650; // Even higher above pillars
         this.z = 0;
         this.speed = CONFIG.AIRSTRIKE.SPEED;
         this.damage = CONFIG.AIRSTRIKE.DAMAGE;
@@ -581,32 +582,37 @@ class Airstrike {
         push();
         translate(this.x, this.y, this.z);
         fill(150);
-        // Draw airplane shape
-        rotateY(HALF_PI);
+        
+        // Rotate for horizontal flight
+        rotateZ(HALF_PI);
         
         // Main body (fuselage)
         push();
-        cylinder(10, 60);
+        rotateX(HALF_PI);
+        cylinder(15, 80);
         pop();
         
         // Wings
         push();
-        translate(0, 0, 20);
-        rotateX(HALF_PI);
-        box(40, 5, 20);
+        translate(0, 30, 0);
+        box(60, 5, 20);
         pop();
         
         push();
-        translate(0, 0, -20);
-        rotateX(HALF_PI);
-        box(40, 5, 20);
+        translate(0, -30, 0);
+        box(60, 5, 20);
         pop();
         
-        // Tail
+        // Tail vertical
         push();
-        translate(-25, 0, 0);
-        rotateX(HALF_PI);
-        box(20, 5, 15);
+        translate(0, -35, 0);
+        box(20, 30, 5);
+        pop();
+        
+        // Tail horizontal
+        push();
+        translate(0, -35, 15);
+        box(30, 5, 5);
         pop();
         
         pop();
