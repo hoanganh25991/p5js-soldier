@@ -46,118 +46,118 @@ class Player {
 
     show() {
         // this.autoShoot(1); // Auto-target and show aim lines for 3 nearest enemies
-        
+
         push();
         translate(this.x, this.y, this.z);
         rotateY(this.rotation);
-        
+
         // Player body
         fill(0, 255, 0);
         box(this.width, this.height, this.depth);
-        
+
         // Gun
         push();
-        translate(this.width/2, -this.height/4, 0);
+        translate(this.width / 2, -this.height / 4, 0);
         fill(100);
         rotateZ(HALF_PI);
         cylinder(2, 20);
         pop();
-        
+
         pop();
     }
 
     findNearestEnemy(count = 1) {
-        let bulletStartX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
-        let bulletStartZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
-        
+        let bulletStartX = this.x + cos(this.rotation - HALF_PI) * this.width / 2;
+        let bulletStartZ = this.z + sin(this.rotation - HALF_PI) * this.width / 2;
+
         // Create array of enemies with their distances and hit prediction
         let enemyData = enemies.map(enemy => {
             let d = dist(bulletStartX, bulletStartZ, enemy.x, enemy.z);
             let angle = atan2(enemy.z - bulletStartZ, enemy.x - bulletStartX);
             let willHit = false;
-            
+
             // Calculate if bullet would hit enemy
             let hitX = bulletStartX;
             let hitZ = bulletStartZ;
-            
+
             for (let t = 0; t < CONFIG.WORLD_RADIUS; t += CONFIG.BULLET_SPEED) {
                 hitX += cos(angle) * CONFIG.BULLET_SPEED;
                 hitZ += sin(angle) * CONFIG.BULLET_SPEED;
-                
+
                 let hitDist = dist(hitX, hitZ, enemy.x, enemy.z);
-                if (hitDist < enemy.width/2) {
+                if (hitDist < enemy.width / 2) {
                     willHit = true;
                     break;
                 }
             }
-            
+
             return {
                 enemy,
                 distance: d,
                 willHit
             };
         });
-        
+
         // Filter hittable enemies and sort by distance
         let nearestEnemies = enemyData
             .filter(data => data.willHit)
             .sort((a, b) => a.distance - b.distance)
             .slice(0, count)
             .map(data => data.enemy);
-        
+
         return count === 1 ? nearestEnemies[0] || null : nearestEnemies;
     }
 
     showAimLine(target, aimColor = [255, 255, 0]) {
         // Get gun position
-        let gunX = this.x + cos(this.rotation - HALF_PI) * this.width/2;
-        let gunZ = this.z + sin(this.rotation - HALF_PI) * this.width/2;
-        let gunY = this.y - this.height/4;
-        
+        let gunX = this.x + cos(this.rotation - HALF_PI) * this.width / 2;
+        let gunZ = this.z + sin(this.rotation - HALF_PI) * this.width / 2;
+        let gunY = this.y - this.height / 4;
+
         // Calculate angle to target
         let angle = atan2(target.z - gunZ, target.x - gunX);
-        
+
         // Draw aim line
         stroke(...aimColor);
         strokeWeight(2);
         line(gunX, gunY, gunZ, target.x, gunY, target.z);
-        
+
         // Draw target marker
         push();
         translate(target.x, gunY, target.z);
         stroke(255, 0, 0);
         strokeWeight(4);
         pop();
-        
+
         return { gunX, gunY, gunZ, angle };
     }
-    
+
     autoShoot(targetCount = 1) {
+        if (frameCount % CONFIG.FIRE_RATE !== 0) return;
+
         // Find multiple targets
         let targets = this.findNearestEnemy(targetCount);
         if (!Array.isArray(targets)) targets = targets ? [targets] : [];
-        
+
         // Draw aim lines for all targets
         push();
         for (let target of targets) {
             let { gunX, gunY, gunZ, angle } = this.showAimLine(target);
-            
+
             // Shoot if ready (every FIRE_RATE frames)
-            console.log({frameCount});
-            if (frameCount % CONFIG.FIRE_RATE === 0) {
-                console.log('Shooting');
-                // // Update player rotation to face target
-                // this.rotation = angle + HALF_PI;
-                
-                // Spawn bullet
-                bullets.push(new Bullet(gunX, gunY, gunZ, angle));
-                shootSound.play();
-                break; // Only shoot at first target
-            }
+
+            console.log('Shooting');
+            // // Update player rotation to face target
+            // this.rotation = angle + HALF_PI;
+
+            // Spawn bullet
+            bullets.push(new Bullet(gunX, gunY, gunZ, angle));
+            shootSound.play();
+            break; // Only shoot at first target
         }
         pop();
     }
-    
+
     update() {
         this.updateHeight();
         this.autoShoot();
@@ -231,7 +231,7 @@ class Bullet {
     update() {
         this.x += cos(this.angle) * this.speed;
         this.z += sin(this.angle) * this.speed;
-        
+
         // Check collision with enemies
         for (let i = enemies.length - 1; i >= 0; i--) {
             let enemy = enemies[i];
@@ -245,12 +245,12 @@ class Bullet {
                 return true; // Bullet hit something
             }
         }
-        
+
         // Check if bullet is too far
         if (dist(0, 0, this.x, this.z) > CONFIG.WORLD_RADIUS) {
             return true; // Bullet out of range
         }
-        
+
         return false; // Bullet still active
     }
 
@@ -317,7 +317,7 @@ class Airstrike {
 
 class Laser {
     constructor() {
-        this.y = height/2;
+        this.y = height / 2;
         this.lifespan = 60;
     }
 
@@ -377,28 +377,28 @@ function updateCamera() {
     if (isDragging) {
         let deltaX = (mouseX - lastMouseX) * 0.01;
         let deltaY = (mouseY - lastMouseY) * 0.01;
-        
+
         cameraRotationY += deltaX;
-        cameraRotationX = constrain(cameraRotationX + deltaY, -PI/2, 0);
-        
+        cameraRotationX = constrain(cameraRotationX + deltaY, -PI / 2, 0);
+
         lastMouseX = mouseX;
         lastMouseY = mouseY;
     }
-    
+
     // Position camera behind player at 1/3 screen height
     let currentDistance = baseCameraDistance * zoomLevel;
-    
+
     // Calculate camera position
     let camX = sin(cameraRotationY) * currentDistance;
     let camZ = cos(cameraRotationY) * currentDistance;
-    
+
     // Position camera behind player
     camera.setPosition(
         camX, // Keep player centered horizontally
         player.y - 600, // Camera slightly above player
         camZ + 100 // Camera behind player
     );
-    
+
     // Look at point in front of player at 1/3 screen height
     camera.lookAt(
         0, // Keep centered horizontally
@@ -413,7 +413,7 @@ function setup() {
     gameFont = loadFont('opensans-light.ttf');
     shootSound = loadSound('single-shot.mp3');
     player = new Player();
-    
+
     // Initial enemy spawn
     for (let i = 0; i < CONFIG.ENEMY_COUNT; i++) {
         enemies.push(Enemy.spawnRandom());
@@ -425,20 +425,20 @@ function setup() {
 
 function draw() {
     frameCount++;
-    
+
     // Sky gradient
     background(135, 206, 235); // Light blue sky
-    
+
     // Update player first to get new height
     player.update();
-    
+
     // Update camera position and rotation
     updateCamera();
-    
+
     // Add some ambient light
     ambientLight(100);
     pointLight(255, 255, 255, 0, -500, 0);
-    
+
     // Draw ground
     push();
     translate(0, 50, 0);
@@ -446,15 +446,15 @@ function draw() {
     fill(34, 139, 34); // Forest green
     noStroke();
     plane(CONFIG.WORLD_RADIUS * 2, CONFIG.WORLD_RADIUS * 2);
-    
+
     // Add grid pattern
     stroke(45, 150, 45);
     strokeWeight(1);
     let gridSize = 100;
-    for(let x = -CONFIG.WORLD_RADIUS; x <= CONFIG.WORLD_RADIUS; x += gridSize) {
+    for (let x = -CONFIG.WORLD_RADIUS; x <= CONFIG.WORLD_RADIUS; x += gridSize) {
         line(x, -CONFIG.WORLD_RADIUS, x, CONFIG.WORLD_RADIUS);
     }
-    for(let z = -CONFIG.WORLD_RADIUS; z <= CONFIG.WORLD_RADIUS; z += gridSize) {
+    for (let z = -CONFIG.WORLD_RADIUS; z <= CONFIG.WORLD_RADIUS; z += gridSize) {
         line(-CONFIG.WORLD_RADIUS, z, CONFIG.WORLD_RADIUS, z);
     }
     pop();
@@ -476,7 +476,7 @@ function draw() {
 
     // Spawn new enemies
     spawnEnemies();
-    
+
     player.show();
 
     // Update and show enemies

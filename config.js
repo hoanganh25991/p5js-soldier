@@ -12,7 +12,7 @@ const CONFIG = {
     PLAYER_WIDTH: 20,
     PLAYER_HEIGHT: 40,
     PLAYER_DEPTH: 20,
-    FIRE_RATE: 6000, // frames between shots
+    FIRE_RATE: 30, // frames between shots
     BULLET_SPEED: 30, // Doubled bullet speed to ensure hits
     BULLET_DAMAGE: 35,
     BULLET_SIZE: 5,
