@@ -24,36 +24,23 @@ export class Wave {
     this.damage = 0; // Damage caused by the wave
     this.damageRadius = 0; // Radius within which damage is applied
     
-    // Create fewer rings for better performance
-    // Reduced from 3 rings to 1-2 rings based on initial radius
-    if (initialRadius > 100) {
-      // For larger waves, use just one ring
-      this.rings = [
-        { radius: initialRadius, speed: this.growthRate }
-      ];
-    } else {
-      // For smaller waves, use two rings
-      this.rings = [
-        { radius: initialRadius, speed: this.growthRate },
-        { radius: initialRadius * 0.7, speed: this.growthRate * 0.7 }
-      ];
-    }
+    // Drastically simplified - always use just one ring for all wave effects
+    // This significantly reduces the number of objects and calculations
+    this.rings = [
+      { radius: initialRadius, speed: this.growthRate }
+    ];
   }
 
   update() {
     // Decrease lifespan
     this.lifespan--;
     
-    // Update main radius
+    // Update main radius and ring radius together
     if (this.radius < this.maxRadius) {
       this.radius += this.growthRate;
-    }
-    
-    // Update all rings
-    for (let ring of this.rings) {
-      if (ring.radius < this.maxRadius) {
-        ring.radius += ring.speed;
-      }
+      
+      // Update the single ring (we know it exists because we always create one)
+      this.rings[0].radius += this.rings[0].speed;
     }
     
     // Apply rising effect if specified
@@ -100,24 +87,24 @@ export class Wave {
   drawExpandingRings() {
     noFill();
     
-    // Draw multiple expanding rings
-    for (let i = 0; i < this.rings.length; i++) {
-      // Calculate alpha based on lifespan and ring index
+    // Draw only the first ring for better performance
+    // This significantly reduces the number of vertices being drawn
+    if (this.rings.length > 0) {
+      // Calculate alpha based on lifespan
       let alpha = map(this.lifespan, 30, 0, this.color[3] || 255, 0);
-      alpha *= (1 - i * 0.2); // Fade out outer rings
       
       // Set stroke color with calculated alpha
       stroke(this.color[0], this.color[1], this.color[2], alpha);
-      strokeWeight(3 - i); // Thinner outer rings
+      strokeWeight(2); // Consistent stroke weight
       
-      // Use fewer vertices for better performance
-      // Increase the angle step from 0.1 to 0.3 (reduces vertex count by 3x)
-      const angleStep = 0.3;
+      // Use even fewer vertices for better performance
+      // Increase the angle step from 0.3 to 0.5 (reduces vertex count further)
+      const angleStep = 0.5;
       
-      // Draw continuous ring
+      // Draw continuous ring with fewer segments
       beginShape();
       for (let angle = 0; angle <= TWO_PI; angle += angleStep) {
-        let r = this.rings[i].radius;
+        let r = this.rings[0].radius;
         let x = cos(angle) * r;
         let z = sin(angle) * r;
         vertex(x, 0, z);
@@ -127,20 +114,22 @@ export class Wave {
   }
   
   drawFlatWave() {
-    // Draw a flat wave (cylinder)
-    for (let i = 0; i < this.rings.length; i++) {
-      // Calculate alpha based on lifespan and ring index
+    // Draw only one flat wave (cylinder) for better performance
+    if (this.rings.length > 0) {
+      // Calculate alpha based on lifespan
       let alpha = map(this.lifespan, 30, 0, this.color[3] || 255, 0);
-      alpha *= (1 - i * 0.2); // Fade out outer rings
       
       // Set fill color with calculated alpha
       noStroke();
       fill(this.color[0], this.color[1], this.color[2], alpha);
       
-      // Draw cylinder
+      // Draw a single cylinder with fewer detail segments
       push();
       rotateX(HALF_PI); // Rotate to make cylinder vertical
-      cylinder(this.rings[i].radius, this.height);
+      
+      // Use a simpler shape with fewer segments
+      const detailLevel = 8; // Reduced from default (24)
+      cylinder(this.rings[0].radius, this.height, detailLevel);
       pop();
     }
   }

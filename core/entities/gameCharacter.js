@@ -610,13 +610,13 @@ export class GameCharacter {
         sphere(this.width * 0.12);
         pop();
         
-        // Jump effect
-        if (this.attackCooldown < 20) {
+        // Simplified jump effect - just a small dust puff
+        if (this.attackCooldown < 10) { // Reduced duration
           push();
           translate(0, this.height * 0.6, 0);
           noStroke();
-          fill(200, 200, 200, 150 - this.attackCooldown * 7.5);
-          ellipse(0, 0, this.width * 1.5, this.depth * 0.5);
+          fill(200, 200, 200, 100 - this.attackCooldown * 10); // Fades faster
+          ellipse(0, 0, this.width * 0.8, this.depth * 0.3); // Smaller size
           pop();
         }
         pop();
@@ -1318,14 +1318,19 @@ export class GameCharacter {
         if (dist(this.x, this.z, target.x, target.z) < this.width) {
           target.health -= this.damage;
           
-          // Create a small impact effect
-          this.gameState.waves.push(new Wave(
-            target.x, 
-            target.y, 
-            target.z, 
-            this.width, 
-            [255, 50, 50, 150]
-          ));
+          // Simplified impact effect - smaller and shorter-lived
+          if (frameCount % 2 === 0) { // Only create wave on every other frame
+            const simpleWave = new Wave(
+              target.x, 
+              target.y, 
+              target.z, 
+              this.width * 0.6, // Smaller radius
+              [255, 50, 50, 120] // More transparent
+            );
+            simpleWave.lifespan = 15; // Shorter lifespan (half of default)
+            simpleWave.growthRate = 5; // Slower growth
+            this.gameState.waves.push(simpleWave);
+          }
         }
         break;
         
@@ -1506,13 +1511,13 @@ export class GameCharacter {
         break;
         
       case 'MARIO':
-        // Mario throws fireballs in all directions
-        for (let i = 0; i < 8; i++) {
-          const angle = i * TWO_PI / 8;
+        // Mario throws fireballs in fewer directions (reduced from 8 to 4)
+        for (let i = 0; i < 4; i++) { // Reduced from 8 to 4 directions
+          const angle = i * TWO_PI / 4;
           // Set properties before creating the bullet
           const bulletSpeed = 15;
-          const bulletDamage = this.damage * 0.6;
-          const bulletSize = 5;
+          const bulletDamage = this.damage * 0.8; // Increased damage to compensate for fewer bullets
+          const bulletSize = 6; // Slightly larger to be more visible
           const bulletColor = [255, 100, 0];
           
           // Create the bullet with these properties
