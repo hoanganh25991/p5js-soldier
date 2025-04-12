@@ -1,7 +1,9 @@
-// Enemy class
+// Enemy Module
 // Represents an enemy entity with properties and rendering
 
-class Enemy {
+import CONFIG from '../config.js';
+
+export class Enemy {
   constructor(x, z, attributes, gameState) {
     this.gameState = gameState;
     this.x = x;

@@ -1,55 +1,30 @@
 // Main entry point for the game
 // Handles setup, draw, and main game loop
 
-// Game state
-let gameState = {
-  // Game state management
-  currentState: 'menu', // menu, playing, paused, gameOver
-  frameCount: 0,
-  pillarHeight: CONFIG.PILLAR_HEIGHT,
-  playerHealth: CONFIG.PLAYER_HEALTH,
-  skillCooldowns: {
-    clone: 0,
-    turret: 0,
-    airstrike: 0,
-    laser: 0
-  },
-  // Camera control variables
-  camera: null,
-  cameraRotationX: -0.4, // Less steep angle for better perspective
-  cameraRotationY: 0,
-  zoomLevel: 2.0, // Wider view of battlefield
-  isDragging: false,
-  lastMouseX: 0,
-  lastMouseY: 0,
-  baseCameraDistance: 300, // Base distance that will be multiplied by zoomLevel
-  // Game entities
-  player: null,
-  pillar: null,
-  bullets: [],
-  clones: [],
-  turrets: [],
-  airstrikes: [],
-  waves: [],
-  lasers: [],
-  // Controllers
-  enemyController: null,
-  // Assets
-  gameFont: null,
-  shootSound: null,
-  cloneSound: null,
-  // Global popup timer
-  popupTimer: null,
-  // UI elements
-  ui: {
-    statusBoard: null,
-    cooldownPopup: null,
-    menuScreen: null,
-    pauseMenu: null,
-    gameOverScreen: null
-  }
-};
+// Import modules
+import CONFIG from './config.js';
+import { gameState, resetGameState } from './gameState.js';
+import { setupMouseHandlers, handleMouseWheel, handleMousePressed, handleMouseReleased } from './controls/mouseControls.js';
+import { createStatusBoard, updateStatusBoard, createMenuUI, createPauseMenu, createGameOverScreen, showGameOverScreen, showCooldownMessage } from './ui.js';
+import { drawEnvironment } from './environment.js';
+import { updateHeight, showAimLine, autoShoot, findNearestEnemies } from './utils.js';
+import { Player } from './entities/player.js';
+import { Pillar } from './entities/pillar.js';
+import { EnemyController } from './controllers/enemyController.js';
+import { Bullet } from './entities/bullet.js';
+import { Clone } from './entities/clone.js';
+import { Turret } from './entities/turret.js';
+import { Airstrike } from './entities/airstrike.js';
+import { Wave } from './entities/wave.js';
+import { Laser } from './entities/laser.js';
 
+// Add camera-specific properties to gameState
+gameState.cameraRotationX = -0.4; // Less steep angle for better perspective
+gameState.cameraRotationY = 0;
+gameState.baseCameraDistance = 300; // Base distance that will be multiplied by zoomLevel
+gameState.zoomLevel = 2.0; // Wider view of battlefield
+
+// p5.js preload function - called before setup
 function preload() {
   // Load assets
   gameState.gameFont = loadFont('fonts/opensans-light.ttf');
@@ -57,6 +32,7 @@ function preload() {
   gameState.cloneSound = loadSound('sounds/woosh.mp3');
 }
 
+// p5.js setup function - called once at start
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   gameState.camera = createCamera();
@@ -67,8 +43,8 @@ function setup() {
   gameState.ui.pauseMenu = createPauseMenu();
   gameState.ui.gameOverScreen = createGameOverScreen();
   
-  // Initialize mouse controls
-  initMouseControls(gameState);
+  // Setup mouse handlers
+  setupMouseHandlers(window, gameState);
   
   // Initialize game objects
   resetGame();
@@ -77,28 +53,12 @@ function setup() {
 // Reset game to initial state
 function resetGame() {
   // Reset game state
-  gameState.frameCount = 0;
-  gameState.pillarHeight = CONFIG.PILLAR_HEIGHT;
-  gameState.playerHealth = CONFIG.PLAYER_HEALTH;
-  gameState.skillCooldowns = {
-    clone: 0,
-    turret: 0,
-    airstrike: 0,
-    laser: 0
-  };
+  resetGameState();
   
   // Reset camera
   gameState.cameraRotationX = -0.4;
   gameState.cameraRotationY = 0;
   gameState.zoomLevel = 2.0;
-  
-  // Clear all entities
-  gameState.bullets = [];
-  gameState.clones = [];
-  gameState.turrets = [];
-  gameState.airstrikes = [];
-  gameState.waves = [];
-  gameState.lasers = [];
   
   // Initialize player and pillar
   gameState.player = new Player(gameState);
@@ -112,6 +72,7 @@ function resetGame() {
   updateStatusBoard();
 }
 
+// p5.js draw function - called every frame
 function draw() {
   // Handle different game states
   switch (gameState.currentState) {
@@ -220,8 +181,6 @@ function updateCamera() {
   );
 }
 
-// Environment drawing is now handled in environment.js
-
 function updateAndShowEntities() {
   // Update and render enemies using the controller
   gameState.enemyController.update();
@@ -273,6 +232,15 @@ function updateAndShowEntities() {
       gameState.lasers.splice(i, 1);
     }
   }
+
+  // Update and show waves
+  for (let i = gameState.waves.length - 1; i >= 0; i--) {
+    if (gameState.waves[i].update()) {
+      gameState.waves.splice(i, 1);
+    } else {
+      gameState.waves[i].show();
+    }
+  }
 }
 
 function checkGameEndConditions() {
@@ -292,8 +260,7 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
 
-// Mouse control functions are defined in mouseControls.js
-// The global p5.js functions remain as wrappers that call those handlers
+// Mouse control functions - these are global p5.js functions that delegate to our handlers
 function mouseWheel(event) {
   return handleMouseWheel(event, gameState);
 }
@@ -372,3 +339,13 @@ function keyPressed() {
     }
   }
 }
+
+// Make p5.js functions available globally
+window.preload = preload;
+window.setup = setup;
+window.draw = draw;
+window.windowResized = windowResized;
+window.mouseWheel = mouseWheel;
+window.mousePressed = mousePressed;
+window.mouseReleased = mouseReleased;
+window.keyPressed = keyPressed;

@@ -1,6 +1,11 @@
-// Bullet class
+// Bullet Module
 
-class Bullet {
+import CONFIG from '../config.js';
+import { Airstrike } from './airstrike.js';
+import { Turret } from './turret.js';
+import { Wave } from './wave.js';
+
+export class Bullet {
   constructor(x, y, z, angle, target, source = null, gameState) {
     this.gameState = gameState;
     // Starting position (gun)

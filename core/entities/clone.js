@@ -1,6 +1,10 @@
-// Clone class
+// Clone Module
 
-class Clone {
+import CONFIG from '../config.js';
+import { findNearestEnemies } from '../utils.js';
+import { Bullet } from './bullet.js';
+
+export class Clone {
   constructor(x, y, z, gameState) {
     this.gameState = gameState;
     // Position

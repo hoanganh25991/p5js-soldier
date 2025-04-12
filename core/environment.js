@@ -1,10 +1,12 @@
-// Environment rendering functions
+// Environment Module
 // Handles drawing the ground, grid, and other environmental elements
+
+import CONFIG from './config.js';
 
 /**
  * Draws the ground plane with a grid pattern
  */
-function drawGround() {
+export function drawGround() {
   push();
   translate(0, 50, 0);
   rotateX(HALF_PI);
@@ -35,7 +37,7 @@ function drawGround() {
 /**
  * Main function to draw all environment elements
  */
-function drawEnvironment() {
+export function drawEnvironment() {
   // Draw the ground with grid
   drawGround();
   

@@ -1,13 +1,17 @@
+// Utility Module
 // Utility functions used across the game
 
+import CONFIG from './config.js';
+import { Bullet } from './entities/bullet.js';
+
 // Update entity height based on pillar height
-function updateHeight(entity, gameState) {
+export function updateHeight(entity, gameState) {
   // Adjust height based on pillar height
   entity.y = -20 - gameState.pillarHeight * 5 + entity.height / 2;
 }
 
 // Draw aim line from source to target
-function showAimLine(source, target, gunZ = null, aimColor = [255, 255, 0]) {
+export function showAimLine(source, target, gunZ = null, aimColor = [255, 255, 0]) {
   // Get gun position (slightly above source center)
   let gunX = source.x;
   let gunY = source.y - source.height / 3;
@@ -31,7 +35,7 @@ function showAimLine(source, target, gunZ = null, aimColor = [255, 255, 0]) {
 }
 
 // Auto-shoot at nearest enemies
-function autoShoot(source, targetCount = 1, fireRate = CONFIG.FIRE_RATE, gameState) {
+export function autoShoot(source, targetCount = 1, fireRate = CONFIG.FIRE_RATE, gameState) {
   if (gameState.frameCount % fireRate !== 0) return;
 
   // Find targets
@@ -55,7 +59,7 @@ function autoShoot(source, targetCount = 1, fireRate = CONFIG.FIRE_RATE, gameSta
 }
 
 // Find nearest enemies to a source
-function findNearestEnemies(source, count = 1, gameState) {
+export function findNearestEnemies(source, count = 1, gameState) {
   // Get enemies from the controller
   const enemies = gameState.enemyController ? gameState.enemyController.getEnemies() : [];
   

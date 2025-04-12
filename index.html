@@ -19,31 +19,7 @@
     </style>
 </head>
 <body>
-    <!-- Configuration and Utilities -->
-    <script src="core/config.js"></script>
-    <script src="core/utils.js"></script>
-    <script src="core/ui.js"></script>
-    <script src="core/controls.js"></script>
-    <script src="core/environment.js"></script>
-    
-    <!-- Entity Classes - Order matters for class references -->
-    <script src="core/entities/pillar.js"></script>
-    <script src="core/entities/wave.js"></script>
-    <script src="core/entities/airstrike.js"></script>
-    <script src="core/entities/turret.js"></script>
-    <script src="core/entities/bullet.js"></script>
-    <script src="core/entities/enemy.js"></script>
-    <script src="core/entities/clone.js"></script>
-    <script src="core/entities/laser.js"></script>
-    <script src="core/entities/player.js"></script>
-    
-    <!-- Controllers -->
-    <script src="core/controllers/enemyController.js"></script>
-    
-    <!-- Controls -->
-    <script src="core/controls/mouseControls.js"></script>
-    
-    <!-- Main Game -->
-    <script src="core/main.js"></script>
+    <!-- Main Game (as module) - This will import all other modules -->
+    <script type="module" src="core/main.js"></script>
 </body>
 </html>

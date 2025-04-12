@@ -1,6 +1,6 @@
-// Pillar class
+// Pillar Module
 
-class Pillar {
+export class Pillar {
   constructor(gameState) {
     this.gameState = gameState;
   }

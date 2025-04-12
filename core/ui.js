@@ -1,8 +1,11 @@
-// UI Management
+// UI Management Module
 // Handles creation and updating of UI elements
 
+import CONFIG from './config.js';
+import { gameState } from './gameState.js';
+
 // Create the status board and other UI elements
-function createStatusBoard() {
+export function createStatusBoard() {
   // Create main status board container
   const statusBoard = createElement('div');
   statusBoard.id('status-board');
@@ -83,7 +86,7 @@ function createStatusBoard() {
 }
 
 // Create menu UI
-function createMenuUI() {
+export function createMenuUI() {
   const menuContainer = createElement('div');
   menuContainer.id('menu-container');
   menuContainer.style('position', 'fixed');
@@ -148,7 +151,7 @@ function createMenuUI() {
 }
 
 // Create pause menu
-function createPauseMenu() {
+export function createPauseMenu() {
   const pauseMenu = createElement('div');
   pauseMenu.id('pause-menu');
   pauseMenu.style('position', 'fixed');
@@ -209,7 +212,7 @@ function createPauseMenu() {
 }
 
 // Create game over screen
-function createGameOverScreen() {
+export function createGameOverScreen() {
   const gameOverScreen = createElement('div');
   gameOverScreen.id('game-over-screen');
   gameOverScreen.style('position', 'fixed');
@@ -282,7 +285,7 @@ function createGameOverScreen() {
 }
 
 // Update the status board with current game state
-function updateStatusBoard() {
+export function updateStatusBoard() {
   if (gameState.currentState !== 'playing') return;
   
   // Update stats
@@ -314,7 +317,7 @@ function updateStatusBoard() {
 }
 
 // Show cooldown message in the popup
-function showCooldownMessage(skillName, cooldown) {
+export function showCooldownMessage(skillName, cooldown) {
   const popup = select('#cooldown-popup');
   popup.html(`${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`);
   popup.style('opacity', '1');
@@ -329,7 +332,7 @@ function showCooldownMessage(skillName, cooldown) {
 }
 
 // Show game over screen
-function showGameOverScreen(isVictory) {
+export function showGameOverScreen(isVictory) {
   const gameOverScreen = select('#game-over-screen');
   const title = select('#game-over-title');
   const stats = select('#game-over-stats');

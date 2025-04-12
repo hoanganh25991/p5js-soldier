@@ -1,6 +1,8 @@
-// Laser class
+// Laser Module
 
-class Laser {
+import CONFIG from '../config.js';
+
+export class Laser {
   constructor(gameState) {
     this.gameState = gameState;
     this.y = -200; // Height of the laser beam

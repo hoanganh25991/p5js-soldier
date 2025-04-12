@@ -1,6 +1,8 @@
-// Wave class
+// Wave Module
 
-class Wave {
+import CONFIG from '../config.js';
+
+export class Wave {
   constructor(x, z, gameState) {
     this.gameState = gameState;
     this.x = x;

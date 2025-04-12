@@ -1,6 +1,9 @@
-// Player class
+// Player Module
 
-class Player {
+import CONFIG from '../config.js';
+import { updateHeight, showAimLine, autoShoot, findNearestEnemies } from '../utils.js';
+
+export class Player {
   constructor(gameState) {
     this.gameState = gameState;
     this.x = 0;

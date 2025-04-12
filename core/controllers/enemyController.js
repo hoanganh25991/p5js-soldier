@@ -1,7 +1,10 @@
-// Enemy Controller
+// Enemy Controller Module
 // Handles enemy spawning, updating, and management
 
-class EnemyController {
+import CONFIG from '../config.js';
+import { Enemy } from '../entities/enemy.js';
+
+export class EnemyController {
   constructor(gameState) {
     this.gameState = gameState;
     this.enemies = [];

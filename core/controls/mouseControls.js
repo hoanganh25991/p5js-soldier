@@ -3,8 +3,6 @@
 
 // Initialize mouse controls
 function initMouseControls(gameState) {
-  // In p5.js, we don't need to register these handlers here
-  // as they're already defined in main.js as global functions
   // This function is kept for potential future enhancements
   console.log("Mouse controls initialized");
 }
@@ -40,5 +38,18 @@ function handleMouseReleased(gameState) {
   }
 }
 
-// These functions are now globally available
-// No export needed in non-module approach
+// Setup p5.js mouse event handlers
+function setupMouseHandlers(p5Instance, gameState) {
+  // Attach these handlers to the p5 instance
+  p5Instance.mouseWheel = (event) => handleMouseWheel(event, gameState);
+  p5Instance.mousePressed = () => handleMousePressed(gameState);
+  p5Instance.mouseReleased = () => handleMouseReleased(gameState);
+}
+
+export { 
+  initMouseControls, 
+  handleMouseWheel, 
+  handleMousePressed, 
+  handleMouseReleased,
+  setupMouseHandlers
+};

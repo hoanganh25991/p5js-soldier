@@ -1,6 +1,9 @@
-// Turret class
+// Turret Module
 
-class Turret {
+import CONFIG from '../config.js';
+import { findNearestEnemies, showAimLine, autoShoot, updateHeight } from '../utils.js';
+
+export class Turret {
   constructor(x, y, z, gameState) {
     this.gameState = gameState;
     this.x = x;

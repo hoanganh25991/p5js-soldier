@@ -1,6 +1,9 @@
-// Airstrike class
+// Airstrike Module
 
-class Airstrike {
+import CONFIG from '../config.js';
+import { Bullet } from './bullet.js';
+
+export class Airstrike {
   constructor(gameState) {
     this.gameState = gameState;
     this.x = -CONFIG.ENEMY_RADIUS;

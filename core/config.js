@@ -1,3 +1,5 @@
+// Game Configuration Module
+
 const CONFIG = {
     // World settings
     WORLD_RADIUS: 1500,
@@ -80,3 +82,5 @@ const CONFIG = {
         WIDTH: 40
     }
 };
+
+export default CONFIG;
