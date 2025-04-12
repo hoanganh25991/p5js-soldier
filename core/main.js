@@ -269,12 +269,14 @@ function updateAndShowEntities() {
   }
   
   // Update and show Game Characters
-  console.log(`Game characters count in update loop: ${gameState.gameCharacters.length}`);
+  // Remove console.log to improve performance
+  // console.log(`Game characters count in update loop: ${gameState.gameCharacters.length}`);
   for (let i = gameState.gameCharacters.length - 1; i >= 0; i--) {
     gameState.gameCharacters[i].update();
     gameState.gameCharacters[i].show();
     if (gameState.gameCharacters[i].health <= 0 || gameState.gameCharacters[i].lifespan <= 0) {
-      console.log(`Removing ${gameState.gameCharacters[i].type} character due to health: ${gameState.gameCharacters[i].health}, lifespan: ${gameState.gameCharacters[i].lifespan}`);
+      // Remove console.log to improve performance
+      // console.log(`Removing ${gameState.gameCharacters[i].type} character due to health: ${gameState.gameCharacters[i].health}, lifespan: ${gameState.gameCharacters[i].lifespan}`);
       gameState.gameCharacters.splice(i, 1);
     }
   }

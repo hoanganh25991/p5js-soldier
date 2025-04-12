@@ -18,6 +18,11 @@ export function createStatusBoard() {
   statusBoard.style('border-radius', '5px');
   statusBoard.style('font-family', 'Arial, sans-serif');
   statusBoard.style('z-index', '100');
+
+  // FPS
+  const fpsDiv = createElement('div', 'Pillar Height: ');
+  fpsDiv.id('fps');
+  statusBoard.child(fpsDiv);
   
   // Create pillar height display
   const pillarHeightDiv = createElement('div', 'Pillar Height: ');
@@ -290,6 +295,7 @@ export function updateStatusBoard() {
   if (gameState.currentState !== 'playing') return;
   
   // Update stats
+  select('#fps').html(Math.floor(frameRate()));
   select('#pillar-height').html(Math.ceil(gameState.pillarHeight));
   select('#health').html(Math.ceil(gameState.playerHealth));
   

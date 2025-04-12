@@ -119,15 +119,16 @@ export class GameCharacter {
   }
   
   show() {
-    console.log(`Showing ${this.type} character at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
+    // Remove console.log to improve performance
+    // console.log(`Showing ${this.type} character at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
     
     push();
     // Position the character on the ground with feet at ground level
     translate(this.x, this.y, this.z);
     
-    // Always face the camera instead of using rotation
-    // This ensures the character is visible from any angle
-    rotateY(frameCount * 0.02); // Slowly rotate to be visible from all angles
+    // Use the character's actual rotation instead of continuous rotation
+    // This makes the character face the direction they're moving/attacking
+    rotateY(this.rotation);
     
     // Base character body
     this.drawCharacter();

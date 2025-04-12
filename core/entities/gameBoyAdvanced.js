@@ -79,7 +79,8 @@ export class GameBoyAdvanced {
   }
   
   show() {
-    console.log(`Showing GBA at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
+    // Remove console.log to improve performance
+    // console.log(`Showing GBA at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
     
     push();
     translate(this.x, this.y, this.z);
@@ -122,7 +123,8 @@ export class GameBoyAdvanced {
     const characterTypes = ['TANK', 'HERO', 'MARIO', 'MEGAMAN', 'SONGOKU'];
     const randomType = characterTypes[Math.floor(random(characterTypes.length))];
     
-    console.log(`Spawning ${randomType} character at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
+    // Remove console.log to improve performance
+    // console.log(`Spawning ${randomType} character at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
     
     // Create the character at the GBA's landing position
     const character = new GameCharacter(
@@ -135,7 +137,8 @@ export class GameBoyAdvanced {
     
     // Add to game state
     this.gameState.gameCharacters.push(character);
-    console.log(`Game characters count: ${this.gameState.gameCharacters.length}`);
+    // Remove console.log to improve performance
+    // console.log(`Game characters count: ${this.gameState.gameCharacters.length}`);
     
     // Create an impressive visual effect for the spawn
     if (this.gameState.waves) {
@@ -185,8 +188,8 @@ export class GameBoyAdvanced {
       characterWave.maxRadius = 400;
       this.gameState.waves.push(characterWave);
       
-      // Add rising particles effect
-      for (let i = 0; i < 20; i++) {
+      // Add rising particles effect - reduced count for better performance
+      for (let i = 0; i < 8; i++) { // Reduced from 20 to 8 particles
         // Create particles that rise up from the spawn point
         const particleAngle = random(TWO_PI);
         const particleRadius = random(50, 200);
