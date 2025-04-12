@@ -14,6 +14,7 @@ Game Character
 - [x] character has distance when attach (mele: 100, range: 600), they have to move to next enemy to fight
 - [x] hero must come much closer to enemy to fight, nearly only 10 distance
 - [x] reduce character size by half, they now too big
+- [x] character move faster
 
 --------------------------------------------
 - [] add sound when throw GBA

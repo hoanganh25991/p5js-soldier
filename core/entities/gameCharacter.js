@@ -116,8 +116,10 @@ export class GameCharacter {
         
         if (distToTarget > this.attackRange) {
           // Move towards target if not in attack range
-          this.x += cos(angleToTarget) * this.speed;
-          this.z += sin(angleToTarget) * this.speed;
+          // Add acceleration when far from target for faster movement
+          const speedMultiplier = distToTarget > this.attackRange * 5 ? 1.5 : 1.0;
+          this.x += cos(angleToTarget) * this.speed * speedMultiplier;
+          this.z += sin(angleToTarget) * this.speed * speedMultiplier;
         } else {
           // Attack if in range and cooldown is ready
           if (this.attackCooldown <= 0) {
@@ -140,9 +142,9 @@ export class GameCharacter {
             // Calculate angle to next target
             const angleToNextTarget = atan2(nextTarget.z - this.z, nextTarget.x - this.x);
             
-            // Start moving toward the next target
-            this.x += cos(angleToNextTarget) * this.speed * 2; // Move faster initially
-            this.z += sin(angleToNextTarget) * this.speed * 2;
+            // Start moving toward the next target with a burst of speed
+            this.x += cos(angleToNextTarget) * this.speed * 3; // Move much faster initially
+            this.z += sin(angleToNextTarget) * this.speed * 3;
           }
         }
       }
