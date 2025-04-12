@@ -118,13 +118,21 @@ export class GameBoyAdvanced {
     const characterTypes = ['TANK', 'HERO', 'MARIO', 'MEGAMAN', 'SONGOKU'];
     const randomType = characterTypes[Math.floor(random(characterTypes.length))];
     
-    console.log(`Spawning ${randomType} character at position: ${this.x.toFixed(0)}, ${this.groundLevel.toFixed(0)}, ${this.z.toFixed(0)}`);
+    console.log(`Spawning ${randomType} character at CENTER position: 0, -50, 0`);
     
-    // Create the character
+    // Calculate a position directly in front of the player
+    const spawnDistance = 100; // Distance in front of player
+    const playerAngle = this.gameState.player.rotation;
+    const spawnX = this.gameState.player.x + Math.cos(playerAngle) * spawnDistance;
+    const spawnZ = this.gameState.player.z + Math.sin(playerAngle) * spawnDistance;
+    
+    console.log(`Player angle: ${playerAngle.toFixed(2)}, Spawn position: ${spawnX.toFixed(0)}, -50, ${spawnZ.toFixed(0)}`);
+    
+    // Create the character directly in front of the player
     const character = new GameCharacter(
-      this.x, 
-      this.groundLevel, // On the ground
-      this.z, 
+      spawnX, 
+      -50, // Fixed height
+      spawnZ, 
       randomType,
       this.gameState
     );
@@ -136,15 +144,27 @@ export class GameBoyAdvanced {
     // Create a visual effect for the spawn
     // Add a wave effect to make the spawn more noticeable
     if (this.gameState.waves) {
+      // Create a wave at the spawn position
       const spawnWave = new Wave(
-        this.x, 
-        this.groundLevel, 
-        this.z, 
-        100, // Large radius
-        [255, 255, 255, 200] // White, semi-transparent
+        spawnX, 
+        -50, // Fixed height
+        spawnZ, 
+        300, // MUCH larger radius
+        [255, 0, 0, 200] // Bright red, more opaque
       );
-      spawnWave.growthRate = 5; // Fast growth
+      spawnWave.growthRate = 10; // Faster growth
       this.gameState.waves.push(spawnWave);
+      
+      // Add a second wave with different color
+      const spawnWave2 = new Wave(
+        spawnX, 
+        -50, // Fixed height
+        spawnZ, 
+        200, // Smaller initial radius
+        [255, 255, 0, 200] // Yellow, more opaque
+      );
+      spawnWave2.growthRate = 15; // Even faster growth
+      this.gameState.waves.push(spawnWave2);
     }
     
     // Play spawn sound

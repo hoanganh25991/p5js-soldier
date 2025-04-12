@@ -25,13 +25,13 @@ export class GameCharacter {
     this.speed = this.typeConfig.SPEED;
     this.size = this.typeConfig.SIZE;
     
-    // Dimensions based on size (make them much larger for better visibility)
-    this.width = 50 * this.size;
-    this.height = 80 * this.size;
-    this.depth = 50 * this.size;
+    // Dimensions based on size (make them EXTREMELY large for better visibility)
+    this.width = 150 * this.size;
+    this.height = 200 * this.size;
+    this.depth = 150 * this.size;
     
     // Combat
-    this.attackRange = 200; // Larger attack range to match increased size
+    this.attackRange = 500; // Much larger attack range to match increased size
     this.attackCooldown = 0;
     this.attackRate = 60; // Frames between attacks
     
@@ -104,7 +104,10 @@ export class GameCharacter {
     push();
     // Position the character on the ground with feet at ground level
     translate(this.x, this.y, this.z);
-    rotateY(this.rotation);
+    
+    // Always face the camera instead of using rotation
+    // This ensures the character is visible from any angle
+    rotateY(frameCount * 0.02); // Slowly rotate to be visible from all angles
     
     // Base character body
     this.drawCharacter();
@@ -127,21 +130,26 @@ export class GameCharacter {
     // Make the indicator always face the camera
     rotateY(-this.rotation);
     
-    // Pulsing effect
-    const pulseSize = 15 + sin(frameCount * 0.1) * 5;
+    // Pulsing effect - MUCH larger
+    const pulseSize = 50 + sin(frameCount * 0.1) * 20;
     
     // Draw the indicator
     noStroke();
-    fill(255, 255, 0, 150); // Yellow, semi-transparent
+    fill(255, 0, 0, 200); // Bright red, more opaque
     sphere(pulseSize);
+    
+    // Add a second indicator with different color and timing
+    const pulseSize2 = 30 + cos(frameCount * 0.15) * 15;
+    fill(255, 255, 0, 200); // Yellow, more opaque
+    sphere(pulseSize2);
     
     pop();
   }
   
   drawCharacter() {
-    // Set stroke for all characters to make them more visible
+    // Set stroke for all characters to make them MUCH more visible
     stroke(0);
-    strokeWeight(3);
+    strokeWeight(10); // Much thicker outline
     
     // Different appearance based on character type
     switch (this.type) {

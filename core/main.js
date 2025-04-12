@@ -368,21 +368,60 @@ function keyPressed() {
           break;
           
         case SKILL_NAMES.GBA:
-          // Create GBA at player position with direction based on player rotation
-          let throwDirection = gameState.player.rotation;
-          let throwSpeed = 5; // Fixed speed for better visibility
-          let throwDistance = 100; // Shorter distance for better visibility
+          // Instead of throwing a GBA, spawn a character immediately
+          // Calculate a position directly in front of the player
+          const spawnDistance = 100; // Distance in front of player
+          const playerAngle = gameState.player.rotation;
+          const spawnX = gameState.player.x + Math.cos(playerAngle) * spawnDistance;
+          const spawnZ = gameState.player.z + Math.sin(playerAngle) * spawnDistance;
           
-          // Create the GBA object
-          gameState.gbas.push(new GameBoyAdvanced(
-            gameState.player.x, 
-            -50, // Fixed height for better visibility
-            gameState.player.z,
-            throwDirection,
-            throwSpeed,
-            throwDistance,
+          // Choose a random character type
+          const characterTypes = ['TANK', 'HERO', 'MARIO', 'MEGAMAN', 'SONGOKU'];
+          const randomType = characterTypes[Math.floor(random(characterTypes.length))];
+          
+          console.log(`Directly spawning ${randomType} character at position: ${spawnX.toFixed(0)}, -50, ${spawnZ.toFixed(0)}`);
+          
+          // Create the character
+          const character = new GameCharacter(
+            spawnX, 
+            -50, // Fixed height
+            spawnZ, 
+            randomType,
             gameState
-          ));
+          );
+          
+          // Add to game state
+          gameState.gameCharacters.push(character);
+          
+          // Create visual effects
+          if (gameState.waves) {
+            // Create a wave at the spawn position
+            const spawnWave = new Wave(
+              spawnX, 
+              -50, // Fixed height
+              spawnZ, 
+              300, // MUCH larger radius
+              [255, 0, 0, 200] // Bright red, more opaque
+            );
+            spawnWave.growthRate = 10; // Faster growth
+            gameState.waves.push(spawnWave);
+            
+            // Add a second wave with different color
+            const spawnWave2 = new Wave(
+              spawnX, 
+              -50, // Fixed height
+              spawnZ, 
+              200, // Smaller initial radius
+              [255, 255, 0, 200] // Yellow, more opaque
+            );
+            spawnWave2.growthRate = 15; // Even faster growth
+            gameState.waves.push(spawnWave2);
+          }
+          
+          // Play spawn sound
+          if (gameState.spawnSound) {
+            gameState.spawnSound.play();
+          }
           break;
       }
     } else {
