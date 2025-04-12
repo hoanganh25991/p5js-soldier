@@ -27,13 +27,20 @@ export class GameCharacter {
     this.speed = this.typeConfig.SPEED;
     this.size = this.typeConfig.SIZE;
     
-    // Dimensions based on size (make them EXTREMELY large for better visibility)
-    this.width = 150 * this.size;
-    this.height = 200 * this.size;
-    this.depth = 150 * this.size;
+    // Dimensions based on size (reduced by half for better gameplay)
+    this.width = 75 * this.size;
+    this.height = 100 * this.size;
+    this.depth = 75 * this.size;
     
     // Combat
-    this.attackRange = 500; // Much larger attack range to match increased size
+    // Different attack ranges based on character type
+    if (this.type === 'HERO') {
+      this.attackRange = 10; // Hero needs to be very close to attack
+    } else if (this.type === 'TANK' || this.type === 'MARIO') {
+      this.attackRange = 100; // Melee attack range
+    } else {
+      this.attackRange = 600; // Ranged attack range (MEGAMAN, SONGOKU)
+    }
     this.attackCooldown = 0;
     this.attackRate = 60; // Frames between attacks
     
@@ -125,9 +132,16 @@ export class GameCharacter {
         
         // If target was defeated, immediately look for the next closest enemy
         if (targetDefeated) {
-          // Move a bit away to create distance before engaging next enemy
-          this.x += cos(angleToTarget) * -20; // Move back slightly
-          this.z += sin(angleToTarget) * -20;
+          // Find the next target immediately
+          const nextTarget = this.findNearestEnemy();
+          if (nextTarget) {
+            // Calculate angle to next target
+            const angleToNextTarget = atan2(nextTarget.z - this.z, nextTarget.x - this.x);
+            
+            // Start moving toward the next target
+            this.x += cos(angleToNextTarget) * this.speed * 2; // Move faster initially
+            this.z += sin(angleToNextTarget) * this.speed * 2;
+          }
         }
       }
     }
