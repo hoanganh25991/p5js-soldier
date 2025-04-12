@@ -226,27 +226,7 @@ function updateCamera() {
   );
 }
 
-function drawEnvironment() {
-  // Draw ground
-  push();
-  translate(0, 50, 0);
-  rotateX(HALF_PI);
-  fill(34, 139, 34); // Forest green
-  noStroke();
-  plane(CONFIG.WORLD_RADIUS * 2, CONFIG.WORLD_RADIUS * 2);
-
-  // Add grid pattern
-  stroke(45, 150, 45);
-  strokeWeight(1);
-  let gridSize = 100;
-  for (let x = -CONFIG.WORLD_RADIUS; x <= CONFIG.WORLD_RADIUS; x += gridSize) {
-    line(x, -CONFIG.WORLD_RADIUS, x, CONFIG.WORLD_RADIUS);
-  }
-  for (let z = -CONFIG.WORLD_RADIUS; z <= CONFIG.WORLD_RADIUS; z += gridSize) {
-    line(-CONFIG.WORLD_RADIUS, z, CONFIG.WORLD_RADIUS, z);
-  }
-  pop();
-}
+// Environment drawing is now handled in environment.js
 
 function spawnEnemies() {
   if (gameState.enemies.length < CONFIG.MAX_ENEMIES && gameState.frameCount % CONFIG.SPAWN_INTERVAL === 0) {
