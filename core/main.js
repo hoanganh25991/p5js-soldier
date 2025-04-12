@@ -17,6 +17,8 @@ import { Turret } from './entities/turret.js';
 import { Airstrike } from './entities/airstrike.js';
 import { Wave } from './entities/wave.js';
 import { Laser } from './entities/laser.js';
+import { GameBoyAdvanced } from './entities/gameBoyAdvanced.js';
+import { GameCharacter } from './entities/gameCharacter.js';
 import { SKILL_NAMES, SKILL_KEYS, SKILLS, updateSkillStates, isSkillAvailable, activateSkill, getSkillByKey } from './skills.js';
 
 // Add camera-specific properties to gameState
@@ -245,6 +247,24 @@ function updateAndShowEntities() {
       gameState.waves[i].show();
     }
   }
+  
+  // Update and show Game Boy Advanced objects
+  for (let i = gameState.gbas.length - 1; i >= 0; i--) {
+    if (gameState.gbas[i].update()) { // Returns true when GBA hits the ground and spawns a character
+      gameState.gbas.splice(i, 1);
+    } else {
+      gameState.gbas[i].show();
+    }
+  }
+  
+  // Update and show Game Characters
+  for (let i = gameState.gameCharacters.length - 1; i >= 0; i--) {
+    gameState.gameCharacters[i].update();
+    gameState.gameCharacters[i].show();
+    if (gameState.gameCharacters[i].health <= 0 || gameState.gameCharacters[i].lifespan <= 0) {
+      gameState.gameCharacters.splice(i, 1);
+    }
+  }
 }
 
 function checkGameEndConditions() {
@@ -342,6 +362,24 @@ function keyPressed() {
           
         case SKILL_NAMES.LASER:
           gameState.lasers.push(new Laser(gameState));
+          break;
+          
+        case SKILL_NAMES.GBA:
+          // Create GBA at player position with direction based on player rotation
+          let throwDirection = gameState.player.rotation;
+          let throwSpeed = CONFIG.GBA.THROW_SPEED;
+          let throwDistance = CONFIG.GBA.THROW_DISTANCE;
+          
+          // Create the GBA object
+          gameState.gbas.push(new GameBoyAdvanced(
+            gameState.player.x, 
+            gameState.player.y - 10, // Slightly above player
+            gameState.player.z,
+            throwDirection,
+            throwSpeed,
+            throwDistance,
+            gameState
+          ));
           break;
       }
     } else {

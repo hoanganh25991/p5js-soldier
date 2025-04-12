@@ -17,7 +17,8 @@ const gameState = {
     clone: 0,
     turret: 0,
     airstrike: 0,
-    laser: 0
+    laser: 0,
+    'game-boy-advanced': 0
   },
   
   // New skill system
@@ -38,6 +39,8 @@ const gameState = {
   turrets: [],
   airstrikes: [],
   lasers: [],
+  gbas: [],
+  gameCharacters: [],
   waves: [],
   
   // Game stats
@@ -76,7 +79,8 @@ function resetGameState() {
     clone: 0,
     turret: 0,
     airstrike: 0,
-    laser: 0
+    laser: 0,
+    'game-boy-advanced': 0
   };
   
   // Clear game objects
@@ -86,6 +90,8 @@ function resetGameState() {
   gameState.turrets = [];
   gameState.airstrikes = [];
   gameState.lasers = [];
+  gameState.gbas = [];
+  gameState.gameCharacters = [];
   gameState.waves = [];
 }
 
