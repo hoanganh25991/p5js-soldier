@@ -297,7 +297,7 @@ export function updateStatusBoard() {
     select('#kills').html(gameState.enemyController.getEnemiesKilled());
   }
   
-  // Update cooldowns
+  // Update cooldowns using the new skill system
   const cooldownIds = {
     clone: 'clone-cd',
     turret: 'turret-cd',
@@ -305,13 +305,22 @@ export function updateStatusBoard() {
     laser: 'laser-cd'
   };
   
-  for (const skill in gameState.skillCooldowns) {
-    const element = select('#' + cooldownIds[skill]);
-    if (gameState.skillCooldowns[skill] > 0) {
-      const seconds = Math.ceil(gameState.skillCooldowns[skill] / 60);
+  // Use new skill system for cooldowns
+  for (const skillName in gameState.skills) {
+    const element = select('#' + cooldownIds[skillName]);
+    const skillState = gameState.skills[skillName];
+    
+    if (skillState.cooldownRemaining > 0) {
+      const seconds = Math.ceil(skillState.cooldownRemaining / 60);
       element.html(seconds + 's');
+    } else if (skillState.active) {
+      // Show active status for skills with duration
+      const remainingDuration = Math.ceil((skillState.endTime - gameState.frameCount) / 60);
+      element.html('Active (' + remainingDuration + 's)');
+      element.style('color', '#00ff00'); // Green for active
     } else {
       element.html('Ready');
+      element.style('color', 'white'); // Reset color
     }
   }
 }

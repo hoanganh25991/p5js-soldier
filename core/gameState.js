@@ -2,6 +2,7 @@
 // Centralizes game state management
 
 import CONFIG from './config.js';
+import { initializeSkillState } from './skills.js';
 
 // Create the game state object
 const gameState = {
@@ -10,12 +11,18 @@ const gameState = {
   frameCount: 0,
   pillarHeight: CONFIG.PILLAR_HEIGHT,
   playerHealth: CONFIG.PLAYER_HEALTH,
+  
+  // Legacy skill cooldowns (for backward compatibility)
   skillCooldowns: {
     clone: 0,
     turret: 0,
     airstrike: 0,
     laser: 0
   },
+  
+  // New skill system
+  skills: initializeSkillState(),
+  
   // Camera control variables
   zoomLevel: 1.0,
   isDragging: false,
@@ -61,7 +68,10 @@ function resetGameState() {
   gameState.isDragging = false;
   gameState.enemiesKilled = 0;
   
-  // Reset cooldowns
+  // Reset skills
+  gameState.skills = initializeSkillState();
+  
+  // Reset legacy cooldowns (for backward compatibility)
   gameState.skillCooldowns = {
     clone: 0,
     turret: 0,

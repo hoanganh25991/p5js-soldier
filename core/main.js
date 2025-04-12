@@ -17,6 +17,7 @@ import { Turret } from './entities/turret.js';
 import { Airstrike } from './entities/airstrike.js';
 import { Wave } from './entities/wave.js';
 import { Laser } from './entities/laser.js';
+import { SKILL_NAMES, SKILL_KEYS, SKILLS, updateSkillStates, isSkillAvailable, activateSkill, getSkillByKey } from './skills.js';
 
 // Add camera-specific properties to gameState
 gameState.cameraRotationX = -0.4; // Less steep angle for better perspective
@@ -120,7 +121,10 @@ function draw() {
       // Update and show all game entities
       updateAndShowEntities();
       
-      // Update cooldowns
+      // Update skill states
+      updateSkillStates(gameState.skills, gameState.frameCount);
+      
+      // Update legacy cooldowns for backward compatibility
       for (let skill in gameState.skillCooldowns) {
         if (gameState.skillCooldowns[skill] > 0) {
           gameState.skillCooldowns[skill]--;
@@ -291,51 +295,59 @@ function keyPressed() {
   // Only process skill keys in playing state
   if (gameState.currentState !== 'playing') return;
   
-  if (key === 'c' || key === 'C') {
-    if (gameState.skillCooldowns.clone <= 0) {
-      // Create clone at random position around the player
-      let angle = random(TWO_PI);
-      let radius = 30;
-      let cloneX = gameState.player.x + cos(angle) * radius;
-      let cloneZ = gameState.player.z + sin(angle) * radius;
-      gameState.clones.push(new Clone(cloneX, gameState.player.y, cloneZ, gameState));
-
-      // Play woosh sound
-      gameState.cloneSound.play();
-
-      // Optional: Limit max number of clones to avoid overwhelming
-      if (gameState.clones.length > CONFIG.CLONE.MAX_CLONES) {
-        gameState.clones.shift(); // Remove oldest clone if too many
+  // Get skill by key press
+  const skillName = getSkillByKey(key);
+  
+  // If a valid skill key was pressed
+  if (skillName) {
+    // Check if skill is available
+    if (isSkillAvailable(gameState.skills, skillName)) {
+      // Activate the skill
+      activateSkill(gameState.skills, skillName, gameState.frameCount);
+      
+      // Also update legacy cooldowns for backward compatibility
+      gameState.skillCooldowns[skillName] = SKILLS[skillName].cooldown;
+      
+      // Handle specific skill actions
+      switch (skillName) {
+        case SKILL_NAMES.CLONE:
+          // Create clone at random position around the player
+          let cloneAngle = random(TWO_PI);
+          let cloneRadius = 30;
+          let cloneX = gameState.player.x + cos(cloneAngle) * cloneRadius;
+          let cloneZ = gameState.player.z + sin(cloneAngle) * cloneRadius;
+          gameState.clones.push(new Clone(cloneX, gameState.player.y, cloneZ, gameState));
+          
+          // Play woosh sound
+          gameState.cloneSound.play();
+          
+          // Optional: Limit max number of clones to avoid overwhelming
+          if (gameState.clones.length > SKILLS[SKILL_NAMES.CLONE].maxCount) {
+            gameState.clones.shift(); // Remove oldest clone if too many
+          }
+          break;
+          
+        case SKILL_NAMES.TURRET:
+          // Create turret at random position around the player
+          let turretAngle = random(TWO_PI);
+          let turretRadius = 40;
+          let turretX = gameState.player.x + cos(turretAngle) * turretRadius;
+          let turretZ = gameState.player.z + sin(turretAngle) * turretRadius;
+          gameState.turrets.push(new Turret(turretX, gameState.player.y, turretZ, gameState));
+          break;
+          
+        case SKILL_NAMES.AIRSTRIKE:
+          gameState.airstrikes.push(new Airstrike(gameState));
+          break;
+          
+        case SKILL_NAMES.LASER:
+          gameState.lasers.push(new Laser(gameState));
+          break;
       }
-      gameState.skillCooldowns.clone = CONFIG.CLONE.COOLDOWN;
     } else {
-      showCooldownMessage('Clone', gameState.skillCooldowns.clone);
-    }
-  } else if (key === 't' || key === 'T') {
-    if (gameState.skillCooldowns.turret <= 0) {
-      // Create turret at random position around the player
-      let angle = random(TWO_PI);
-      let radius = 40;
-      let turretX = gameState.player.x + cos(angle) * radius;
-      let turretZ = gameState.player.z + sin(angle) * radius;
-      gameState.turrets.push(new Turret(turretX, gameState.player.y, turretZ, gameState));
-      gameState.skillCooldowns.turret = CONFIG.TURRET.COOLDOWN;
-    } else {
-      showCooldownMessage('Turret', gameState.skillCooldowns.turret);
-    }
-  } else if (key === 'a' || key === 'A') {
-    if (gameState.skillCooldowns.airstrike <= 0) {
-      gameState.airstrikes.push(new Airstrike(gameState));
-      gameState.skillCooldowns.airstrike = CONFIG.AIRSTRIKE.COOLDOWN;
-    } else {
-      showCooldownMessage('Airstrike', gameState.skillCooldowns.airstrike);
-    }
-  } else if (key === 'l' || key === 'L') {
-    if (gameState.skillCooldowns.laser <= 0) {
-      gameState.lasers.push(new Laser(gameState));
-      gameState.skillCooldowns.laser = CONFIG.LASER.COOLDOWN;
-    } else {
-      showCooldownMessage('Laser', gameState.skillCooldowns.laser);
+      // Show cooldown message
+      const cooldown = gameState.skills[skillName].cooldownRemaining;
+      showCooldownMessage(SKILLS[skillName].name, cooldown);
     }
   }
 }
