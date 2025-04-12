@@ -95,7 +95,7 @@ const CONFIG = {
                 HEALTH_MULTIPLIER: 2.0,
                 DAMAGE: 80, // Increased from 40
                 SPEED: 0.8,
-                SIZE: 1.5
+                SIZE: 0.75 // Reduced by half from 1.5
             },
             HERO: {
                 HEALTH_MULTIPLIER: 1.2,

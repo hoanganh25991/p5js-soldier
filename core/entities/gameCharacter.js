@@ -36,8 +36,10 @@ export class GameCharacter {
     // Different attack ranges based on character type
     if (this.type === 'HERO') {
       this.attackRange = 10; // Hero needs to be very close to attack
-    } else if (this.type === 'TANK' || this.type === 'MARIO') {
+    } else if (this.type === 'MARIO') {
       this.attackRange = 100; // Melee attack range
+    } else if (this.type === 'TANK') {
+      this.attackRange = 150; // Tank has slightly longer range due to its gun
     } else {
       this.attackRange = 600; // Ranged attack range (MEGAMAN, SONGOKU)
     }
