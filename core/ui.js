@@ -49,7 +49,8 @@ export function createStatusBoard() {
     { key: 'C', name: 'Clone', id: 'clone-cd' },
     { key: 'T', name: 'Turret', id: 'turret-cd' },
     { key: 'A', name: 'Airstrike', id: 'airstrike-cd' },
-    { key: 'L', name: 'Laser', id: 'laser-cd' }
+    { key: 'L', name: 'Laser', id: 'laser-cd' },
+    { key: 'G', name: 'Game Boy Advanced', id: 'gba-cd' }
   ];
   
   skills.forEach((skill, index) => {
@@ -302,12 +303,18 @@ export function updateStatusBoard() {
     clone: 'clone-cd',
     turret: 'turret-cd',
     airstrike: 'airstrike-cd',
-    laser: 'laser-cd'
+    laser: 'laser-cd',
+    'game-boy-advanced': 'gba-cd'
   };
   
   // Use new skill system for cooldowns
   for (const skillName in gameState.skills) {
-    const element = select('#' + cooldownIds[skillName]);
+    const elementId = cooldownIds[skillName];
+    if (!elementId) continue; // Skip if no UI element ID is defined
+    
+    const element = select('#' + elementId);
+    if (!element) continue; // Skip if element doesn't exist in the DOM
+    
     const skillState = gameState.skills[skillName];
     
     if (skillState.cooldownRemaining > 0) {
