@@ -140,7 +140,8 @@ export class GameBoyAdvanced {
     // Remove console.log to improve performance
     // console.log(`Game characters count: ${this.gameState.gameCharacters.length}`);
     
-    // Create a simplified visual effect for the spawn (optimized for performance)
+    // Create a minimal visual effect for the spawn (optimized for performance)
+    // Removed ground-level waves/auras to fix FPS drop issue
     if (this.gameState.waves) {
       // Create a colored wave based on character type
       let waveColor;
@@ -164,59 +165,23 @@ export class GameBoyAdvanced {
           waveColor = [200, 200, 0, 180]; // Default yellow
       }
       
-      // Create a single combined wave instead of multiple waves
-      // This combines the impact wave and character-specific wave into one
-      const combinedWave = new Wave(
-        this.x, 
-        this.y, 
-        this.z, 
-        200, // Initial radius
-        waveColor
+      // Create a single rising particle instead of ground-level waves
+      // This avoids the FPS drop caused by ground-level auras
+      const particleY = this.y - 100; // Position well above ground level
+      
+      // Create a small wave that rises up from the spawn point
+      const spawnEffect = new Wave(
+        this.x,
+        particleY, // Start above ground level
+        this.z,
+        50,
+        [...waveColor.slice(0, 3), 150]
       );
-      combinedWave.growthRate = 12; // Moderate growth
-      combinedWave.maxRadius = 450; // Large max radius
-      this.gameState.waves.push(combinedWave);
-      
-      // Add just 2-3 rising particles instead of 8
-      // Only create particles for certain character types to reduce overall effects
-      if (['MEGAMAN', 'SONGOKU', 'HERO'].includes(randomType)) {
-        const particleCount = 3; // Reduced from 8 to 3
-        for (let i = 0; i < particleCount; i++) {
-          // Create particles that rise up from the spawn point
-          const particleAngle = random(TWO_PI);
-          const particleX = this.x + cos(particleAngle) * random(30, 80);
-          const particleY = this.y;
-          const particleZ = this.z + sin(particleAngle) * random(30, 80);
-          
-          // Create a small wave for each particle
-          const particleWave = new Wave(
-            particleX,
-            particleY - random(10, 50), // Start below and rise up
-            particleZ,
-            random(20, 40),
-            [...waveColor.slice(0, 3), random(100, 180)] // Use character color with random alpha
-          );
-          particleWave.growthRate = random(3, 6);
-          particleWave.maxRadius = random(40, 100);
-          particleWave.riseSpeed = random(2, 4); // Make particles rise
-          this.gameState.waves.push(particleWave);
-        }
-      }
-      
-      // Only add a shockwave for certain character types
-      if (['TANK', 'SONGOKU'].includes(randomType)) {
-        const shockwave = new Wave(
-          this.x,
-          this.y,
-          this.z,
-          50,
-          [255, 255, 255, 180]
-        );
-        shockwave.growthRate = 25;
-        shockwave.maxRadius = 250;
-        shockwave.height = 8; // Flat wave
-        this.gameState.waves.push(shockwave);
-      }
+      spawnEffect.growthRate = 2;
+      spawnEffect.maxRadius = 100;
+      spawnEffect.riseSpeed = 2; // Make it rise
+      spawnEffect.lifespan = 20; // Shorter lifespan
+      this.gameState.waves.push(spawnEffect);
     }
     
     // Play spawn sound

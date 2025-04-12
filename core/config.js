@@ -89,7 +89,7 @@ const CONFIG = {
         THROW_SPEED: 8, // Slower speed to make the throw more visible
         THROW_DISTANCE: 150 * 5, // Maximum throw distance
         CHARACTER_DURATION: 200 * 60, // 20 seconds (increased from 10)
-        CHARACTER_HEALTH: 300 * 100, // Increased from 150
+        CHARACTER_HEALTH: 300 * 10, // Increased from 150
         CHARACTER_TYPES: {
             TANK: {
                 HEALTH_MULTIPLIER: 2.0,
@@ -104,7 +104,7 @@ const CONFIG = {
                 SIZE: 1.0
             },
             MARIO: {
-                HEALTH_MULTIPLIER: 0.8,
+                HEALTH_MULTIPLIER: 0.5,
                 DAMAGE: 60, // Increased from 30
                 SPEED: 2.0,
                 SIZE: 0.8

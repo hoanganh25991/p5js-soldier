@@ -42,9 +42,6 @@ export class GameCharacter {
     this.animationFrame = 0;
     this.animationSpeed = 0.1;
     
-    // Visual effects
-    this.damageIndicators = []; // Array to store floating damage numbers
-    
     // Lifespan
     this.lifespan = CONFIG.GBA.CHARACTER_DURATION;
     
@@ -177,7 +174,7 @@ export class GameCharacter {
     pop();
   }
   
-  // Draw a visual indicator above the character to make it more noticeable
+  // Draw a simple indicator above the character (removed complex effects)
   drawIndicator() {
     push();
     // Position above the character
@@ -186,18 +183,10 @@ export class GameCharacter {
     // Make the indicator always face the camera
     rotateY(-this.rotation);
     
-    // Pulsing effect - MUCH larger
-    const pulseSize = 50 + sin(frameCount * 0.1) * 20;
-    
-    // Draw the indicator
+    // Simple small indicator dot
     noStroke();
-    fill(255, 0, 0, 200); // Bright red, more opaque
-    sphere(pulseSize);
-    
-    // Add a second indicator with different color and timing
-    const pulseSize2 = 30 + cos(frameCount * 0.15) * 15;
-    fill(255, 255, 0, 200); // Yellow, more opaque
-    sphere(pulseSize2);
+    fill(255, 0, 0); // Red dot
+    sphere(10); // Small fixed size
     
     pop();
   }
@@ -1233,40 +1222,26 @@ export class GameCharacter {
     text(this.type, 0, -20);
     pop();
     
-    // Add damage indicators when character takes damage
-    if (this.health < this.lastHealth && frameCount % 5 === 0) {
-      this.damageIndicators.push({
-        value: Math.floor(this.lastHealth - this.health),
-        x: random(-this.width/2, this.width/2),
-        y: -this.height * 0.5,
-        life: 30
-      });
+    // Track health changes without showing damage indicators
+    if (this.health < this.lastHealth) {
+      // Just update the last health value without creating text indicators
       this.lastHealth = this.health;
-    }
-    
-    // Draw damage indicators
-    for (let i = this.damageIndicators.length - 1; i >= 0; i--) {
-      const indicator = this.damageIndicators[i];
       
-      push();
-      translate(indicator.x, indicator.y, 0);
-      rotateY(-this.rotation);
-      
-      // Text gets smaller and more transparent as it rises
-      const alpha = indicator.life * 8;
-      fill(255, 0, 0, alpha);
-      textSize(20 + (30 - indicator.life));
-      textAlign(CENTER, CENTER);
-      text("-" + indicator.value, 0, 0);
-      pop();
-      
-      // Move indicator up
-      indicator.y -= 2;
-      indicator.life--;
-      
-      // Remove expired indicators
-      if (indicator.life <= 0) {
-        this.damageIndicators.splice(i, 1);
+      // Flash the health bar instead of showing damage numbers
+      if (this.gameState.frameCount % 5 === 0) {
+        // Create a small hit effect
+        if (this.gameState && this.gameState.waves) {
+          const hitWave = new Wave(
+            this.x, 
+            this.y, 
+            this.z, 
+            this.width * 0.8, 
+            [255, 0, 0, 100]
+          );
+          hitWave.growthRate = 1.5;
+          hitWave.maxRadius = this.width * 1.2;
+          this.gameState.waves.push(hitWave);
+        }
       }
     }
     
@@ -1463,31 +1438,71 @@ export class GameCharacter {
     // Special abilities unique to each character type
     switch (this.type) {
       case 'TANK':
-        // Tank creates a shockwave that damages all nearby enemies
-        const tankWave = new Wave(
-          this.x, 
-          this.y, 
-          this.z, 
-          this.width * 5, 
-          [100, 100, 100, 200]
-        );
-        tankWave.damage = this.damage * 0.5;
-        tankWave.growthRate = 3;
-        this.gameState.waves.push(tankWave);
+        // Tank fires multiple shells in different directions
+        for (let i = 0; i < 6; i++) {
+          const angle = this.rotation - HALF_PI + (i - 2.5) * 0.2;
+          const shellX = this.x + Math.cos(angle) * this.width * 0.7;
+          const shellY = this.y - this.height * 0.3;
+          const shellZ = this.z + Math.sin(angle) * this.width * 0.7;
+          
+          // Create visible projectile
+          const tankShell = new Projectile(
+            shellX,
+            shellY,
+            shellZ,
+            angle,
+            'TANK_SHELL',
+            this,
+            this.gameState
+          );
+          
+          // Add to projectiles array
+          this.projectiles.push(tankShell);
+          
+          // Also add to gameState bullets for backward compatibility
+          const tankBullet = new Bullet(
+            shellX, 
+            shellY, 
+            shellZ, 
+            angle, 
+            null, 
+            this, 
+            this.gameState
+          );
+          tankBullet.damage = this.damage * 0.5;
+          tankBullet.size = 8;
+          tankBullet.color = [100, 100, 100];
+          tankBullet.vx = Math.cos(angle) * 20;
+          tankBullet.vz = Math.sin(angle) * 20;
+          this.gameState.bullets.push(tankBullet);
+        }
         break;
         
       case 'HERO':
-        // Hero does a spinning sword attack
-        const heroWave = new Wave(
-          this.x, 
-          this.y, 
-          this.z, 
-          this.width * 3, 
-          [200, 200, 255, 150]
-        );
-        heroWave.damage = this.damage * 0.7;
-        heroWave.growthRate = 2;
-        this.gameState.waves.push(heroWave);
+        // Hero does a spinning sword attack - use projectiles instead of waves
+        for (let i = 0; i < 8; i++) {
+          const angle = i * TWO_PI / 8;
+          const slashX = this.x + Math.cos(angle) * this.width;
+          const slashY = this.y - this.height * 0.2;
+          const slashZ = this.z + Math.sin(angle) * this.width;
+          
+          // Create a bullet for damage
+          const heroBullet = new Bullet(
+            slashX, 
+            slashY, 
+            slashZ, 
+            angle, 
+            null, 
+            this, 
+            this.gameState
+          );
+          heroBullet.damage = this.damage * 0.3;
+          heroBullet.size = 5;
+          heroBullet.color = [200, 200, 255];
+          heroBullet.vx = Math.cos(angle) * 15;
+          heroBullet.vz = Math.sin(angle) * 15;
+          this.gameState.bullets.push(heroBullet);
+        }
         break;
         
       case 'MARIO':
@@ -1526,63 +1541,112 @@ export class GameCharacter {
         break;
         
       case 'MEGAMAN':
-        // Megaman charges a powerful blast
-        const megamanWave = new Wave(
-          this.x, 
-          this.y, 
-          this.z, 
-          this.width * 4, 
-          [0, 200, 255, 150]
+        // Megaman fires a large blast - use projectiles instead of waves
+        const megaBlastX = this.x + Math.cos(this.rotation - HALF_PI) * this.width * 0.5;
+        const megaBlastY = this.y - this.height * 0.2;
+        const megaBlastZ = this.z + Math.sin(this.rotation - HALF_PI) * this.width * 0.5;
+        
+        // Create a large projectile
+        const megaBlast = new Projectile(
+          megaBlastX,
+          megaBlastY,
+          megaBlastZ,
+          this.rotation - HALF_PI,
+          'MEGAMAN_BLAST',
+          this,
+          this.gameState
         );
-        megamanWave.damage = this.damage;
-        megamanWave.growthRate = 2.5;
-        this.gameState.waves.push(megamanWave);
+        
+        // Make it larger and more powerful
+        megaBlast.size = 25;
+        megaBlast.damage = this.damage * 2;
+        megaBlast.speed = 20;
+        
+        // Add to projectiles array
+        this.projectiles.push(megaBlast);
+        
+        // Also add to gameState bullets for backward compatibility
+        const megaBullet = new Bullet(
+          megaBlastX, 
+          megaBlastY, 
+          megaBlastZ, 
+          this.rotation - HALF_PI, 
+          null, 
+          this, 
+          this.gameState
+        );
+        megaBullet.damage = this.damage * 2;
+        megaBullet.size = 15;
+        megaBullet.color = [0, 200, 255];
+        megaBullet.vx = Math.cos(this.rotation - HALF_PI) * 20;
+        megaBullet.vz = Math.sin(this.rotation - HALF_PI) * 20;
+        this.gameState.bullets.push(megaBullet);
         break;
         
       case 'SONGOKU':
-        // Songoku does a kamehameha blast
-        // Create a powerful wave in front of the character
-        const gokuWave = new Wave(
-          this.x + cos(this.rotation - HALF_PI) * this.width * 2, 
-          this.y, 
-          this.z + sin(this.rotation - HALF_PI) * this.width * 2, 
-          this.width * 6, 
-          [255, 255, 0, 200]
+        // Songoku fires a large kamehameha beam - use projectiles instead of waves
+        const gokuHandsX = this.x + Math.cos(this.rotation - HALF_PI) * this.width * 0.4;
+        const gokuHandsY = this.y - this.height * 0.1;
+        const gokuHandsZ = this.z + Math.sin(this.rotation - HALF_PI) * this.width * 0.4;
+        
+        // Create a large kamehameha projectile
+        const kamehameha = new Projectile(
+          gokuHandsX,
+          gokuHandsY,
+          gokuHandsZ,
+          this.rotation - HALF_PI,
+          'SONGOKU_KAMEHAMEHA',
+          this,
+          this.gameState
         );
-        gokuWave.damage = this.damage * 1.5;
-        gokuWave.growthRate = 4;
-        this.gameState.waves.push(gokuWave);
+        
+        // Make it larger and more powerful
+        kamehameha.size = 30;
+        kamehameha.damage = this.damage * 3;
+        kamehameha.speed = 25;
+        
+        // Add to projectiles array
+        this.projectiles.push(kamehameha);
+        
+        // Also add to gameState bullets for backward compatibility
+        const gokuBullet = new Bullet(
+          gokuHandsX, 
+          gokuHandsY, 
+          gokuHandsZ, 
+          this.rotation - HALF_PI, 
+          null, 
+          this, 
+          this.gameState
+        );
+        gokuBullet.damage = this.damage * 3;
+        gokuBullet.size = 20;
+        gokuBullet.color = [255, 255, 0];
+        gokuBullet.vx = Math.cos(this.rotation - HALF_PI) * 25;
+        gokuBullet.vz = Math.sin(this.rotation - HALF_PI) * 25;
+        this.gameState.bullets.push(gokuBullet);
         break;
     }
   }
   
   takeDamage(amount) {
-    // Store previous health for damage indicator
+    // Store previous health for health bar animation
     this.lastHealth = this.health;
     
     // Apply damage
     this.health -= amount;
     
-    // Create damage indicator
-    this.damageIndicators.push({
-      value: Math.floor(amount),
-      x: random(-this.width/2, this.width/2),
-      y: -this.height * 0.5,
-      life: 30
-    });
-    
-    // Create hit effect
+    // Create hit effect - simplified for better performance
     if (this.gameState && this.gameState.waves) {
       // Create a small impact wave
       const hitWave = new Wave(
         this.x, 
         this.y, 
         this.z, 
-        this.width * 1.5, 
-        [255, 0, 0, 150]
+        this.width * 1.2, 
+        [255, 0, 0, 120]
       );
-      hitWave.growthRate = 2;
-      hitWave.maxRadius = this.width * 2;
+      hitWave.growthRate = 1.5;
+      hitWave.maxRadius = this.width * 1.5;
       hitWave.damage = 0; // This wave doesn't cause damage
       this.gameState.waves.push(hitWave);
     }
