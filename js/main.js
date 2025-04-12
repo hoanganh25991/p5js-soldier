@@ -3,6 +3,8 @@
 
 // Game state
 let gameState = {
+  // Game state management
+  currentState: 'menu', // menu, playing, paused, gameOver
   frameCount: 0,
   enemiesKilled: 0,
   totalEnemiesSpawned: 0,
@@ -38,7 +40,15 @@ let gameState = {
   shootSound: null,
   cloneSound: null,
   // Global popup timer
-  popupTimer: null
+  popupTimer: null,
+  // UI elements
+  ui: {
+    statusBoard: null,
+    cooldownPopup: null,
+    menuScreen: null,
+    pauseMenu: null,
+    gameOverScreen: null
+  }
 };
 
 function preload() {
@@ -52,70 +62,133 @@ function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   gameState.camera = createCamera();
   
+  // Create UI elements
+  gameState.ui.statusBoard = createStatusBoard();
+  gameState.ui.menuScreen = createMenuUI();
+  gameState.ui.pauseMenu = createPauseMenu();
+  gameState.ui.gameOverScreen = createGameOverScreen();
+  
   // Initialize game objects
+  resetGame();
+}
+
+// Reset game to initial state
+function resetGame() {
+  // Reset game state
+  gameState.frameCount = 0;
+  gameState.enemiesKilled = 0;
+  gameState.totalEnemiesSpawned = 0;
+  gameState.pillarHeight = CONFIG.PILLAR_HEIGHT;
+  gameState.playerHealth = CONFIG.PLAYER_HEALTH;
+  gameState.skillCooldowns = {
+    clone: 0,
+    turret: 0,
+    airstrike: 0,
+    laser: 0
+  };
+  
+  // Reset camera
+  gameState.cameraRotationX = -0.4;
+  gameState.cameraRotationY = 0;
+  gameState.zoomLevel = 2.0;
+  
+  // Clear all entities
+  gameState.enemies = [];
+  gameState.bullets = [];
+  gameState.clones = [];
+  gameState.turrets = [];
+  gameState.airstrikes = [];
+  gameState.waves = [];
+  gameState.lasers = [];
+  
+  // Initialize player and pillar
   gameState.player = new Player(gameState);
   gameState.pillar = new Pillar(gameState);
-
+  
   // Initial enemy spawn
   for (let i = 0; i < CONFIG.ENEMY_COUNT; i++) {
     gameState.enemies.push(Enemy.spawnRandom(gameState));
     gameState.totalEnemiesSpawned++;
   }
+  
+  // Update UI
+  updateStatusBoard();
 }
 
 function draw() {
-  gameState.frameCount++;
-
-  // Sky gradient
-  background(135, 206, 235); // Light blue sky
-
-  // Update player first to get new height
-  gameState.player.update();
-
-  // Update camera position and rotation
-  updateCamera();
-
-  // Update and remove finished waves
-  for (let i = gameState.waves.length - 1; i >= 0; i--) {
-    if (gameState.waves[i].update()) {
-      gameState.waves.splice(i, 1);
-    }
+  // Handle different game states
+  switch (gameState.currentState) {
+    case 'menu':
+      // Just draw a simple background in menu state
+      background(50, 80, 120);
+      break;
+      
+    case 'playing':
+      // Main game loop
+      gameState.frameCount++;
+      
+      // Sky gradient
+      background(135, 206, 235); // Light blue sky
+      
+      // Update player first to get new height
+      gameState.player.update();
+      
+      // Update camera position and rotation
+      updateCamera();
+      
+      // Update and remove finished waves
+      for (let i = gameState.waves.length - 1; i >= 0; i--) {
+        if (gameState.waves[i].update()) {
+          gameState.waves.splice(i, 1);
+        }
+      }
+      
+      // Add some ambient light
+      ambientLight(100);
+      pointLight(255, 255, 255, 0, -500, 0);
+      
+      // Draw environment
+      drawEnvironment();
+      
+      // Show waves
+      gameState.waves.forEach(wave => wave.show());
+      
+      // Draw pillar
+      gameState.pillar.show();
+      
+      // Spawn new enemies
+      spawnEnemies();
+      
+      // Show player
+      gameState.player.show();
+      
+      // Update and show all game entities
+      updateAndShowEntities();
+      
+      // Update cooldowns
+      for (let skill in gameState.skillCooldowns) {
+        if (gameState.skillCooldowns[skill] > 0) {
+          gameState.skillCooldowns[skill]--;
+        }
+      }
+      
+      // Update status board
+      updateStatusBoard();
+      
+      // Check win/lose conditions
+      checkGameEndConditions();
+      break;
+      
+    case 'paused':
+      // In paused state, we don't update anything
+      // Just keep the last frame visible
+      break;
+      
+    case 'gameOver':
+      // In game over state, we don't update anything
+      // Just keep the last frame visible with game over overlay
+      break;
   }
-
-  // Add some ambient light
-  ambientLight(100);
-  pointLight(255, 255, 255, 0, -500, 0);
-
-  // Draw environment
-  drawEnvironment();
-
-  // Show waves
-  gameState.waves.forEach(wave => wave.show());
-
-  // Draw pillar
-  gameState.pillar.show();
-
-  // Spawn new enemies
-  spawnEnemies();
-
-  // Show player
-  gameState.player.show();
-
-  // Update and show all game entities
-  updateAndShowEntities();
-
-  // Update cooldowns
-  for (let skill in gameState.skillCooldowns) {
-    if (gameState.skillCooldowns[skill] > 0) {
-      gameState.skillCooldowns[skill]--;
-    }
-  }
-
-  // Update status board
-  updateStatusBoard();
-
-  // Check win/lose conditions
-  checkGameEndConditions();
 }
 
 function updateCamera() {
@@ -244,48 +317,16 @@ function updateAndShowEntities() {
   }
 }
 
-function updateStatusBoard() {
-  document.getElementById('pillar-height').textContent = Math.ceil(gameState.pillarHeight);
-  document.getElementById('health').textContent = Math.ceil(gameState.playerHealth);
-  document.getElementById('kills').textContent = gameState.enemiesKilled;
-}
-
 function checkGameEndConditions() {
   if (gameState.playerHealth <= 0) {
+    gameState.currentState = 'gameOver';
+    showGameOverScreen(false); // Game over - defeat
     noLoop();
-    push();
-    translate(-100, 0, 0); // Center the text in 3D space
-    textFont(gameState.gameFont);
-    textSize(32);
-    fill(255, 0, 0);
-    textAlign(CENTER);
-    text('Game Over!', 0, 0);
-    pop();
   } else if (gameState.enemiesKilled >= CONFIG.VICTORY_KILLS) {
+    gameState.currentState = 'gameOver';
+    showGameOverScreen(true); // Game over - victory
     noLoop();
-    push();
-    translate(-100, 0, 0); // Center the text in 3D space
-    textFont(gameState.gameFont);
-    textSize(32);
-    fill(0, 255, 0);
-    textAlign(CENTER);
-    text('Victory!', 0, 0);
-    pop();
   }
-}
-
-function showCooldownMessage(skillName, cooldown) {
-  const popup = document.getElementById('cooldown-popup');
-  popup.textContent = `${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`;
-  popup.style.opacity = '1';
-
-  // Clear existing timer
-  if (gameState.popupTimer) clearTimeout(gameState.popupTimer);
-
-  // Hide popup after 2 seconds
-  gameState.popupTimer = setTimeout(() => {
-    popup.style.opacity = '0';
-  }, 2000);
 }
 
 // Event handlers
@@ -294,6 +335,9 @@ function windowResized() {
 }
 
 function mouseWheel(event) {
+  // Only allow zooming in playing state
+  if (gameState.currentState !== 'playing') return false;
+  
   // Zoom with mouse wheel - rolling forward (negative delta) decreases zoom level (zooms in)
   // rolling backward (positive delta) increases zoom level (zooms out)
   gameState.zoomLevel = constrain(gameState.zoomLevel + (event.delta * 0.001), 0.2, 10.0);
@@ -301,6 +345,9 @@ function mouseWheel(event) {
 }
 
 function mousePressed() {
+  // Only allow camera control in playing state
+  if (gameState.currentState !== 'playing') return;
+  
   // Start dragging with middle mouse button (button 1)
   if (mouseButton === CENTER) {
     gameState.isDragging = true;
@@ -316,6 +363,23 @@ function mouseReleased() {
 }
 
 function keyPressed() {
+  // Handle pause with Escape key
+  if (key === 'Escape' || key === 'p' || key === 'P') {
+    if (gameState.currentState === 'playing') {
+      gameState.currentState = 'paused';
+      select('#pause-menu').style('display', 'flex');
+      noLoop();
+    } else if (gameState.currentState === 'paused') {
+      gameState.currentState = 'playing';
+      select('#pause-menu').style('display', 'none');
+      loop();
+    }
+    return;
+  }
+  
+  // Only process skill keys in playing state
+  if (gameState.currentState !== 'playing') return;
+  
   if (key === 'c' || key === 'C') {
     if (gameState.skillCooldowns.clone <= 0) {
       // Create clone at random position around the player
