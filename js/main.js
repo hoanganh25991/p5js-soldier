@@ -54,8 +54,8 @@ let gameState = {
 function preload() {
   // Load assets
   gameState.gameFont = loadFont('opensans-light.ttf');
-  gameState.shootSound = loadSound('single-shot.mp3');
-  gameState.cloneSound = loadSound('woosh-effect-12-255591.mp3');
+  gameState.shootSound = loadSound('sounds/single-shot.mp3');
+  gameState.cloneSound = loadSound('sounds/woosh-effect-12-255591.mp3');
 }
 
 function setup() {
