@@ -5,6 +5,7 @@ import CONFIG from '../config.js';
 import { findNearestEnemies, updateHeight } from '../utils.js';
 import { Bullet } from './bullet.js';
 import { Wave } from './wave.js';
+import { Projectile } from './projectile.js';
 
 export class GameCharacter {
   constructor(x, y, z, type, gameState) {
@@ -51,21 +52,48 @@ export class GameCharacter {
     this.specialCooldown = 0;
     this.specialRate = 180; // 3 seconds between special abilities
     
-    // Set a fixed height for the character (much higher than the calculated ground level)
-    // This ensures the character is visible on the screen
-    this.y = -50;
+    // Physics for jumping and movement
+    this.groundLevel = -50; // Default ground level
+    this.y = this.groundLevel; // Start at ground level
+    this.velocityY = 0; // Vertical velocity for jumping
+    this.gravity = 0.5; // Gravity force
+    this.isJumping = false; // Track if character is jumping
+    
+    // Projectile properties
+    this.projectiles = []; // Store active projectiles
   }
   
   update() {
     // Decrease lifespan
     this.lifespan--;
     
-    // Keep the character at a fixed height
-    // This ensures the character is visible on the screen
-    this.y = -50;
+    // Apply physics for jumping
+    if (this.isJumping || this.y < this.groundLevel) {
+      // Apply gravity
+      this.velocityY += this.gravity;
+      this.y += this.velocityY;
+      
+      // Check if landed
+      if (this.y >= this.groundLevel) {
+        this.y = this.groundLevel;
+        this.velocityY = 0;
+        this.isJumping = false;
+      }
+    }
     
-    // Only update every other frame to improve performance with multiple characters
-    if (this.gameState.frameCount % 30 === 0) {
+    // Update projectiles
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const projectile = this.projectiles[i];
+      projectile.update();
+      
+      // Remove projectiles that are done
+      if (projectile.isDone) {
+        this.projectiles.splice(i, 1);
+      }
+    }
+    
+    // Only update targeting and movement every few frames to improve performance
+    if (this.gameState.frameCount % 10 === 0) {
       // Find nearest enemy
       const target = this.findNearestEnemy();
       
@@ -124,11 +152,13 @@ export class GameCharacter {
   }
   
   show() {
-    // Remove console.log to improve performance
-    // console.log(`Showing ${this.type} character at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
+    // Draw all projectiles first
+    for (const projectile of this.projectiles) {
+      projectile.show();
+    }
     
     push();
-    // Position the character on the ground with feet at ground level
+    // Position the character at their current height (for jumping)
     translate(this.x, this.y, this.z);
     
     // Use the character's actual rotation instead of continuous rotation
@@ -1033,27 +1063,33 @@ export class GameCharacter {
         }
         pop();
         
-        // Power-up aura effect
+        // Power-up aura effect - optimized for performance
         if (this.specialCooldown < 30 || this.attackCooldown < 10) {
           push();
           noStroke();
           
-          // Ground energy effect
-          translate(0, this.height * 0.6, 0);
-          fill(255, 255, 0, 100);
-          ellipse(0, 0, this.width * 2 + sin(frameCount * 0.2) * this.width * 0.5, this.depth * 0.5);
+          // Ground energy effect - only draw when absolutely necessary
+          // Only draw ground effect for special abilities, not regular attacks
+          if (this.specialCooldown < 30) {
+            translate(0, this.height * 0.6, 0);
+            fill(255, 255, 0, 100);
+            ellipse(0, 0, this.width * 2, this.depth * 0.5); // Removed sin animation for better performance
+          }
           
-          // Rising energy particles
-          for (let i = 0; i < 10; i++) {
-            push();
-            let angle = random(TWO_PI);
-            let dist = random(this.width);
-            let height = random(-this.height * 0.5, this.height * 0.5);
-            
-            translate(cos(angle) * dist, height, sin(angle) * dist);
-            fill(255, 255, random(100, 200), 150);
-            sphere(random(this.width * 0.05, this.width * 0.1));
-            pop();
+          // Rising energy particles - reduced count and only for special abilities
+          if (this.specialCooldown < 15) { // Only during the first half of special cooldown
+            // Reduce particle count from 10 to 3
+            for (let i = 0; i < 3; i++) {
+              push();
+              let angle = random(TWO_PI);
+              let dist = random(this.width);
+              let height = random(-this.height * 0.5, this.height * 0.5);
+              
+              translate(cos(angle) * dist, height, sin(angle) * dist);
+              fill(255, 255, random(100, 200), 150);
+              sphere(random(this.width * 0.05, this.width * 0.1));
+              pop();
+            }
           }
           pop();
         }
@@ -1247,11 +1283,30 @@ export class GameCharacter {
     // Different attack based on character type
     switch (this.type) {
       case 'TANK':
-        // Tank fires a powerful shot
+        // Tank fires a visible shell
+        const tankShellX = this.x + Math.cos(this.rotation - HALF_PI) * this.width * 0.7;
+        const tankShellY = this.y - this.height * 0.3;
+        const tankShellZ = this.z + Math.sin(this.rotation - HALF_PI) * this.width * 0.7;
+        
+        // Create visible projectile
+        const tankShell = new Projectile(
+          tankShellX,
+          tankShellY,
+          tankShellZ,
+          this.rotation - HALF_PI,
+          'TANK_SHELL',
+          this,
+          this.gameState
+        );
+        
+        // Add to projectiles array
+        this.projectiles.push(tankShell);
+        
+        // Also add to gameState bullets for backward compatibility
         const tankBullet = new Bullet(
-          this.x, 
-          this.y - this.height * 0.3, 
-          this.z, 
+          tankShellX, 
+          tankShellY, 
+          tankShellZ, 
           this.rotation - HALF_PI, 
           target, 
           this, 
@@ -1280,25 +1335,59 @@ export class GameCharacter {
         break;
         
       case 'MARIO':
-        // Mario jumps on enemies
-        this.velocityY = -5;
+        // Mario jumps on enemies - FULL BODY JUMP
+        this.velocityY = -15; // Stronger jump
+        this.isJumping = true;
+        
+        // Only damage enemy if directly above them
         if (dist(this.x, this.z, target.x, target.z) < this.width) {
           target.health -= this.damage;
+          
+          // Create a small impact effect
+          this.gameState.waves.push(new Wave(
+            target.x, 
+            target.y, 
+            target.z, 
+            this.width, 
+            [255, 50, 50, 150]
+          ));
         }
         break;
         
       case 'MEGAMAN':
-        // Megaman fires from arm cannon
-        for (let i = 0; i < 3; i++) { // Triple shot
+        // Megaman fires visible blasts from arm cannon
+        const megamanArmX = this.x + Math.cos(this.rotation - HALF_PI) * this.width * 0.5;
+        const megamanArmY = this.y - this.height * 0.2;
+        const megamanArmZ = this.z + Math.sin(this.rotation - HALF_PI) * this.width * 0.5;
+        
+        // Triple shot with visible projectiles
+        for (let i = 0; i < 3; i++) {
           const spread = (i - 1) * 0.1;
-          const bulletAngle = this.rotation - HALF_PI + spread;
-          const bulletSpeed = 25;
+          const blastAngle = this.rotation - HALF_PI + spread;
           
+          // Create visible projectile
+          const megaBlast = new Projectile(
+            megamanArmX,
+            megamanArmY,
+            megamanArmZ,
+            blastAngle,
+            'MEGAMAN_BLAST',
+            this,
+            this.gameState
+          );
+          
+          // Adjust damage for multiple shots
+          megaBlast.damage = this.damage / 3;
+          
+          // Add to projectiles array
+          this.projectiles.push(megaBlast);
+          
+          // Also add to gameState bullets for backward compatibility
           const megamanBullet = new Bullet(
-            this.x, 
-            this.y, 
-            this.z, 
-            bulletAngle, 
+            megamanArmX, 
+            megamanArmY, 
+            megamanArmZ, 
+            blastAngle, 
             target, 
             this, 
             this.gameState
@@ -1311,9 +1400,10 @@ export class GameCharacter {
           // If we have a target, the bullet will already have velocity set
           // If not, we need to set it manually
           if (!target) {
-            megamanBullet.vx = Math.cos(bulletAngle) * bulletSpeed;
+            const bulletSpeed = 25;
+            megamanBullet.vx = Math.cos(blastAngle) * bulletSpeed;
             megamanBullet.vy = 0; // No vertical movement
-            megamanBullet.vz = Math.sin(bulletAngle) * bulletSpeed;
+            megamanBullet.vz = Math.sin(blastAngle) * bulletSpeed;
           }
           
           this.gameState.bullets.push(megamanBullet);
@@ -1321,15 +1411,31 @@ export class GameCharacter {
         break;
         
       case 'SONGOKU':
-        // Songoku does a powerful energy attack
-        const bulletAngle = this.rotation - HALF_PI;
-        const bulletSpeed = 30;
+        // Songoku fires a visible kamehameha beam
+        const gokuHandsX = this.x + Math.cos(this.rotation - HALF_PI) * this.width * 0.4;
+        const gokuHandsY = this.y - this.height * 0.1;
+        const gokuHandsZ = this.z + Math.sin(this.rotation - HALF_PI) * this.width * 0.4;
         
+        // Create visible kamehameha projectile
+        const kamehameha = new Projectile(
+          gokuHandsX,
+          gokuHandsY,
+          gokuHandsZ,
+          this.rotation - HALF_PI,
+          'SONGOKU_KAMEHAMEHA',
+          this,
+          this.gameState
+        );
+        
+        // Add to projectiles array
+        this.projectiles.push(kamehameha);
+        
+        // Also add to gameState bullets for backward compatibility
         const gokuBullet = new Bullet(
-          this.x, 
-          this.y, 
-          this.z, 
-          bulletAngle, 
+          gokuHandsX, 
+          gokuHandsY, 
+          gokuHandsZ, 
+          this.rotation - HALF_PI, 
           target, 
           this, 
           this.gameState
@@ -1342,9 +1448,10 @@ export class GameCharacter {
         // If we have a target, the bullet will already have velocity set
         // If not, we need to set it manually
         if (!target) {
-          gokuBullet.vx = Math.cos(bulletAngle) * bulletSpeed;
+          const bulletSpeed = 30;
+          gokuBullet.vx = Math.cos(this.rotation - HALF_PI) * bulletSpeed;
           gokuBullet.vy = 0; // No vertical movement
-          gokuBullet.vz = Math.sin(bulletAngle) * bulletSpeed;
+          gokuBullet.vz = Math.sin(this.rotation - HALF_PI) * bulletSpeed;
         }
         
         this.gameState.bullets.push(gokuBullet);

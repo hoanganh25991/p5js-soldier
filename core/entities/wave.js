@@ -24,12 +24,20 @@ export class Wave {
     this.damage = 0; // Damage caused by the wave
     this.damageRadius = 0; // Radius within which damage is applied
     
-    // Create multiple rings for visual effect
-    this.rings = [
-      { radius: initialRadius, speed: this.growthRate },
-      { radius: initialRadius * 0.8, speed: this.growthRate * 0.8 },
-      { radius: initialRadius * 0.6, speed: this.growthRate * 0.6 }
-    ];
+    // Create fewer rings for better performance
+    // Reduced from 3 rings to 1-2 rings based on initial radius
+    if (initialRadius > 100) {
+      // For larger waves, use just one ring
+      this.rings = [
+        { radius: initialRadius, speed: this.growthRate }
+      ];
+    } else {
+      // For smaller waves, use two rings
+      this.rings = [
+        { radius: initialRadius, speed: this.growthRate },
+        { radius: initialRadius * 0.7, speed: this.growthRate * 0.7 }
+      ];
+    }
   }
 
   update() {
@@ -96,9 +104,13 @@ export class Wave {
       stroke(this.color[0], this.color[1], this.color[2], alpha);
       strokeWeight(3 - i); // Thinner outer rings
       
+      // Use fewer vertices for better performance
+      // Increase the angle step from 0.1 to 0.3 (reduces vertex count by 3x)
+      const angleStep = 0.3;
+      
       // Draw continuous ring
       beginShape();
-      for (let angle = 0; angle <= TWO_PI; angle += 0.1) {
+      for (let angle = 0; angle <= TWO_PI; angle += angleStep) {
         let r = this.rings[i].radius;
         let x = cos(angle) * r;
         let z = sin(angle) * r;
