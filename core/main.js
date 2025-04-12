@@ -268,6 +268,28 @@ function updateAndShowEntities() {
     }
   }
   
+  // Update and show Gas Lighter objects
+  if (gameState.gasLighters) {
+    for (let i = gameState.gasLighters.length - 1; i >= 0; i--) {
+      if (gameState.gasLighters[i].update()) { // Returns true when Gas Lighter hits the ground and casts a fire skill
+        gameState.gasLighters.splice(i, 1);
+      } else {
+        gameState.gasLighters[i].show();
+      }
+    }
+  }
+  
+  // Update and show Fire Skills
+  if (gameState.fireSkills) {
+    for (let i = gameState.fireSkills.length - 1; i >= 0; i--) {
+      if (gameState.fireSkills[i].update()) { // Returns true when fire skill is done
+        gameState.fireSkills.splice(i, 1);
+      } else {
+        gameState.fireSkills[i].show();
+      }
+    }
+  }
+  
   // Update and show Game Characters
   // Remove console.log to improve performance
   // console.log(`Game characters count in update loop: ${gameState.gameCharacters.length}`);
@@ -454,6 +476,93 @@ function keyPressed() {
             // Fallback to spawn sound if throw sound doesn't exist
             gameState.spawnSound.play();
           }
+          break;
+          
+        case SKILL_NAMES.GAS_LIGHTER:
+          // Throw a Gas Lighter in the direction the player is facing
+          const gasLighterPlayerAngle = gameState.player.rotation;
+          
+          // Calculate a random throw distance within the configured range
+          const gasLighterMinDistance = CONFIG.GAS_LIGHTER.THROW_DISTANCE * 0.5; // Minimum 50% of max distance
+          const gasLighterMaxDistance = CONFIG.GAS_LIGHTER.THROW_DISTANCE;
+          const gasLighterThrowDistance = random(gasLighterMinDistance, gasLighterMaxDistance);
+          
+          // Calculate a random angle deviation to make throws less predictable
+          const gasLighterAngleDeviation = random(-PI/6, PI/6); // +/- 30 degrees
+          const gasLighterThrowAngle = gasLighterPlayerAngle + gasLighterAngleDeviation;
+          
+          // Initialize gasLighters array if it doesn't exist
+          if (!gameState.gasLighters) {
+            gameState.gasLighters = [];
+          }
+          
+          // Import the GasLighter class if needed
+          import('./entities/gasLighter.js').then(module => {
+            const GasLighter = module.GasLighter;
+            
+            // Create the Gas Lighter object with random properties
+            const gasLighter = new GasLighter(
+              gameState.player.x,
+              gameState.player.y - 20, // Start slightly above player
+              gameState.player.z,
+              gasLighterThrowAngle,
+              CONFIG.GAS_LIGHTER.THROW_SPEED * random(0.8, 1.5), // Random speed variation
+              gasLighterThrowDistance,
+              gameState
+            );
+            
+            // Add to game state
+            gameState.gasLighters.push(gasLighter);
+            
+            // Create throw effect
+            if (gameState.waves) {
+              // Create a small wave at the throw position
+              const throwWave = new Wave(
+                gameState.player.x, 
+                gameState.player.y - 20, // Start slightly above player
+                gameState.player.z, 
+                50, // Small initial radius
+                [255, 100, 0, 150] // Orange for Gas Lighter
+              );
+              throwWave.growthRate = 5;
+              throwWave.maxRadius = 100;
+              gameState.waves.push(throwWave);
+              
+              // Add a trail effect behind the Gas Lighter
+              for (let i = 0; i < 5; i++) {
+                const trailDelay = i * 3; // Frames of delay
+                
+                // Schedule a delayed trail particle
+                setTimeout(() => {
+                  if (gameState.waves) {
+                    const trailX = gameState.player.x + cos(gasLighterThrowAngle) * (i * 20);
+                    const trailY = gameState.player.y - 20 - i * 2; // Arc upward
+                    const trailZ = gameState.player.z + sin(gasLighterThrowAngle) * (i * 20);
+                    
+                    const trailWave = new Wave(
+                      trailX,
+                      trailY,
+                      trailZ,
+                      20, // Small radius
+                      [255, 100, 0, 100 - i * 15] // Fading orange
+                    );
+                    trailWave.growthRate = 3;
+                    trailWave.maxRadius = 40;
+                    trailWave.lifespan = 15;
+                    gameState.waves.push(trailWave);
+                  }
+                }, trailDelay * 16); // 16ms per frame
+              }
+            }
+            
+            // Play throw sound
+            if (gameState.throwSound) {
+              gameState.throwSound.play();
+            } else if (gameState.spawnSound) {
+              // Fallback to spawn sound if throw sound doesn't exist
+              gameState.spawnSound.play();
+            }
+          });
           break;
       }
     } else {

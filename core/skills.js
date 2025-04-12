@@ -9,7 +9,8 @@ export const SKILL_NAMES = {
   TURRET: 'turret',
   AIRSTRIKE: 'airstrike',
   LASER: 'laser',
-  GBA: 'game-boy-advanced'
+  GBA: 'game-boy-advanced',
+  GAS_LIGHTER: 'gas-lighter'
 };
 
 // Key mapping - maps keyboard keys to skills
@@ -18,7 +19,8 @@ export const SKILL_KEYS = {
   [SKILL_NAMES.TURRET]: 't',
   [SKILL_NAMES.AIRSTRIKE]: 'a',
   [SKILL_NAMES.LASER]: 'l',
-  [SKILL_NAMES.GBA]: 'g'
+  [SKILL_NAMES.GBA]: 'g',
+  [SKILL_NAMES.GAS_LIGHTER]: 'f'
 };
 
 // Skill definitions with all properties
@@ -57,6 +59,13 @@ export const SKILLS = {
     cooldown: CONFIG.GBA.COOLDOWN,
     duration: CONFIG.GBA.CHARACTER_DURATION,
     key: SKILL_KEYS[SKILL_NAMES.GBA]
+  },
+  [SKILL_NAMES.GAS_LIGHTER]: {
+    name: 'Gas Lighter',
+    description: 'Throws a Gas Lighter that casts random fire skills',
+    cooldown: CONFIG.GAS_LIGHTER.COOLDOWN,
+    duration: CONFIG.GAS_LIGHTER.FIRE_SKILL_DURATION,
+    key: SKILL_KEYS[SKILL_NAMES.GAS_LIGHTER]
   }
 };
 
@@ -100,7 +109,8 @@ export function activateSkill(skillState, skillName, frameCount) {
   }
   
   // For skills with count (like clones)
-  if (skillName === SKILL_NAMES.CLONE || skillName === SKILL_NAMES.TURRET || skillName === SKILL_NAMES.GBA) {
+  if (skillName === SKILL_NAMES.CLONE || skillName === SKILL_NAMES.TURRET || 
+      skillName === SKILL_NAMES.GBA || skillName === SKILL_NAMES.GAS_LIGHTER) {
     skillState[skillName].count++;
   }
   

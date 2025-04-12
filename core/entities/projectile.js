@@ -67,6 +67,14 @@ export class Projectile {
         this.hitRadius = 40;
         this.lifespan = 90;
         break;
+        
+      case 'FIRE_FIREBALL':
+        this.color = [255, 100, 0];
+        this.size = 15;
+        this.speed = 25;
+        this.lifespan = 60;
+        this.hitRadius = 30;
+        break;
     }
   }
   
@@ -162,6 +170,32 @@ export class Projectile {
         case 'SONGOKU_KAMEHAMEHA':
           waveColor = [255, 255, 0, 180];
           waveSize = 120;
+          break;
+          
+        case 'FIRE_FIREBALL':
+          waveColor = [255, 100, 0, 180];
+          waveSize = 100;
+          
+          // Add extra fire particles for fireball
+          for (let i = 0; i < 8; i++) {
+            const angle = random(TWO_PI);
+            const radius = random(30, 60);
+            const particleX = target.x + cos(angle) * radius;
+            const particleY = target.y + random(-30, 30);
+            const particleZ = target.z + sin(angle) * radius;
+            
+            const fireParticle = new Wave(
+              particleX,
+              particleY,
+              particleZ,
+              random(10, 20),
+              [255, random(50, 150), 0, random(150, 200)]
+            );
+            fireParticle.growthRate = random(2, 4);
+            fireParticle.maxRadius = random(20, 40);
+            fireParticle.lifespan = random(15, 30);
+            this.gameState.waves.push(fireParticle);
+          }
           break;
           
         default:
@@ -262,6 +296,47 @@ export class Projectile {
           torus(this.size * 0.8, this.size * 0.1);
           pop();
         }
+        pop();
+        break;
+        
+      case 'FIRE_FIREBALL':
+        // Fireball - flaming sphere with dynamic fire effects
+        push();
+        
+        // Core of the fireball
+        fill(255, 200, 50);
+        sphere(this.size * 0.6);
+        
+        // Outer flame layer
+        fill(this.color[0], this.color[1], this.color[2], 180);
+        sphere(this.size * 0.9 + sin(frameCount * 0.2) * this.size * 0.1);
+        
+        // Flame tendrils
+        for (let i = 0; i < 8; i++) {
+          push();
+          const angle = i * TWO_PI / 8 + frameCount * 0.05;
+          const x = cos(angle) * this.size * 0.7;
+          const y = sin(angle) * this.size * 0.7;
+          const z = sin(frameCount * 0.1 + i) * this.size * 0.5;
+          
+          translate(x, y, z);
+          fill(255, 100 + random(50), 0, 150);
+          sphere(this.size * 0.3 + sin(frameCount * 0.3 + i) * this.size * 0.1);
+          pop();
+        }
+        
+        // Smoke trail
+        for (let i = 0; i < 3; i++) {
+          push();
+          // Position behind the fireball
+          rotateY(PI);
+          translate(0, 0, this.size * (1 + i * 0.5));
+          
+          fill(100, 100, 100, 80 - i * 20);
+          sphere(this.size * (0.5 + i * 0.2));
+          pop();
+        }
+        
         pop();
         break;
         
