@@ -56,10 +56,13 @@ function autoShoot(source, targetCount = 1, fireRate = CONFIG.FIRE_RATE, gameSta
 
 // Find nearest enemies to a source
 function findNearestEnemies(source, count = 1, gameState) {
-  if (gameState.enemies.length === 0) return [];
+  // Get enemies from the controller
+  const enemies = gameState.enemyController ? gameState.enemyController.getEnemies() : [];
+  
+  if (enemies.length === 0) return [];
 
   // Sort enemies by distance to source
-  return gameState.enemies
+  return enemies
     .map(enemy => ({
       enemy,
       distance: dist(source.x, source.z, enemy.x, enemy.z)

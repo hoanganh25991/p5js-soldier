@@ -56,21 +56,25 @@ class Bullet {
     }
 
     // Check collision with enemies
-    for (let i = this.gameState.enemies.length - 1; i >= 0; i--) {
-      let enemy = this.gameState.enemies[i];
-      let d = dist(this.x, this.z, enemy.x, enemy.z);
-
-      // Check if bullet is at right height to hit enemy
-      if (d < enemy.width * 1.5 &&
-          this.y < enemy.y + enemy.height &&
-          this.y > enemy.y) {
-        console.log('Bullet hit enemy!');
-        enemy.health -= this.damage;
-        if (enemy.health <= 0) {
-          this.gameState.enemies.splice(i, 1);
-          this.gameState.enemiesKilled++;
+    if (this.gameState.enemyController) {
+      const enemies = this.gameState.enemyController.getEnemies();
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        let enemy = enemies[i];
+        let d = dist(this.x, this.z, enemy.x, enemy.z);
+  
+        // Check if bullet is at right height to hit enemy
+        if (d < enemy.width * 1.5 &&
+            this.y < enemy.y + enemy.height &&
+            this.y > enemy.y) {
+          console.log('Bullet hit enemy!');
+          
+          // Use the takeDamage method on the enemy
+          if (enemy.takeDamage(this.damage)) {
+            // Enemy died, will be removed by the controller in next update
+          }
+          
+          return true; // Bullet hit something
         }
-        return true; // Bullet hit something
       }
     }
 

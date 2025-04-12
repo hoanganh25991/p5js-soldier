@@ -6,8 +6,6 @@ let gameState = {
   // Game state management
   currentState: 'menu', // menu, playing, paused, gameOver
   frameCount: 0,
-  enemiesKilled: 0,
-  totalEnemiesSpawned: 0,
   pillarHeight: CONFIG.PILLAR_HEIGHT,
   playerHealth: CONFIG.PLAYER_HEALTH,
   skillCooldowns: {
@@ -28,13 +26,14 @@ let gameState = {
   // Game entities
   player: null,
   pillar: null,
-  enemies: [],
   bullets: [],
   clones: [],
   turrets: [],
   airstrikes: [],
   waves: [],
   lasers: [],
+  // Controllers
+  enemyController: null,
   // Assets
   gameFont: null,
   shootSound: null,
@@ -68,6 +67,9 @@ function setup() {
   gameState.ui.pauseMenu = createPauseMenu();
   gameState.ui.gameOverScreen = createGameOverScreen();
   
+  // Initialize mouse controls
+  initMouseControls(gameState);
+  
   // Initialize game objects
   resetGame();
 }
@@ -76,8 +78,6 @@ function setup() {
 function resetGame() {
   // Reset game state
   gameState.frameCount = 0;
-  gameState.enemiesKilled = 0;
-  gameState.totalEnemiesSpawned = 0;
   gameState.pillarHeight = CONFIG.PILLAR_HEIGHT;
   gameState.playerHealth = CONFIG.PLAYER_HEALTH;
   gameState.skillCooldowns = {
@@ -93,7 +93,6 @@ function resetGame() {
   gameState.zoomLevel = 2.0;
   
   // Clear all entities
-  gameState.enemies = [];
   gameState.bullets = [];
   gameState.clones = [];
   gameState.turrets = [];
@@ -105,11 +104,9 @@ function resetGame() {
   gameState.player = new Player(gameState);
   gameState.pillar = new Pillar(gameState);
   
-  // Initial enemy spawn
-  for (let i = 0; i < CONFIG.ENEMY_COUNT; i++) {
-    gameState.enemies.push(Enemy.spawnRandom(gameState));
-    gameState.totalEnemiesSpawned++;
-  }
+  // Initialize enemy controller
+  gameState.enemyController = new EnemyController(gameState);
+  gameState.enemyController.initialize();
   
   // Update UI
   updateStatusBoard();
@@ -155,9 +152,6 @@ function draw() {
       
       // Draw pillar
       gameState.pillar.show();
-      
-      // Spawn new enemies
-      spawnEnemies();
       
       // Show player
       gameState.player.show();
@@ -228,26 +222,10 @@ function updateCamera() {
 
 // Environment drawing is now handled in environment.js
 
-function spawnEnemies() {
-  if (gameState.enemies.length < CONFIG.MAX_ENEMIES && gameState.frameCount % CONFIG.SPAWN_INTERVAL === 0) {
-    gameState.enemies.push(Enemy.spawnRandom(gameState));
-    gameState.totalEnemiesSpawned++;
-  }
-}
-
 function updateAndShowEntities() {
-  // Update and show enemies
-  for (let i = gameState.enemies.length - 1; i >= 0; i--) {
-    gameState.enemies[i].update();
-    gameState.enemies[i].show();
-    if (gameState.enemies[i].health <= 0) {
-      gameState.enemies.splice(i, 1);
-      gameState.enemiesKilled++;
-      if (gameState.enemies.length < 50) {
-        gameState.enemies.push(Enemy.spawnRandom(gameState));
-      }
-    }
-  }
+  // Update and render enemies using the controller
+  gameState.enemyController.update();
+  gameState.enemyController.render();
 
   // Update and show bullets
   for (let i = gameState.bullets.length - 1; i >= 0; i--) {
@@ -302,7 +280,7 @@ function checkGameEndConditions() {
     gameState.currentState = 'gameOver';
     showGameOverScreen(false); // Game over - defeat
     noLoop();
-  } else if (gameState.enemiesKilled >= CONFIG.VICTORY_KILLS) {
+  } else if (gameState.enemyController.getEnemiesKilled() >= CONFIG.VICTORY_KILLS) {
     gameState.currentState = 'gameOver';
     showGameOverScreen(true); // Game over - victory
     noLoop();
@@ -314,32 +292,18 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
 
+// Mouse control functions are defined in mouseControls.js
+// The global p5.js functions remain as wrappers that call those handlers
 function mouseWheel(event) {
-  // Only allow zooming in playing state
-  if (gameState.currentState !== 'playing') return false;
-  
-  // Zoom with mouse wheel - rolling forward (negative delta) decreases zoom level (zooms in)
-  // rolling backward (positive delta) increases zoom level (zooms out)
-  gameState.zoomLevel = constrain(gameState.zoomLevel + (event.delta * 0.001), 0.2, 10.0);
-  return false; // Prevent default scrolling
+  return handleMouseWheel(event, gameState);
 }
 
 function mousePressed() {
-  // Only allow camera control in playing state
-  if (gameState.currentState !== 'playing') return;
-  
-  // Start dragging with middle mouse button (button 1)
-  if (mouseButton === CENTER) {
-    gameState.isDragging = true;
-    gameState.lastMouseX = mouseX;
-    gameState.lastMouseY = mouseY;
-  }
+  handleMousePressed(gameState);
 }
 
 function mouseReleased() {
-  if (mouseButton === CENTER) {
-    gameState.isDragging = false;
-  }
+  handleMouseReleased(gameState);
 }
 
 function keyPressed() {

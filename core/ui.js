@@ -288,7 +288,11 @@ function updateStatusBoard() {
   // Update stats
   select('#pillar-height').html(Math.ceil(gameState.pillarHeight));
   select('#health').html(Math.ceil(gameState.playerHealth));
-  select('#kills').html(gameState.enemiesKilled);
+  
+  // Get kills from enemy controller
+  if (gameState.enemyController) {
+    select('#kills').html(gameState.enemyController.getEnemiesKilled());
+  }
   
   // Update cooldowns
   const cooldownIds = {

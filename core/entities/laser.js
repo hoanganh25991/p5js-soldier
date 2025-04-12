@@ -10,9 +10,13 @@ class Laser {
 
   update() {
     this.lifespan--;
-    for (let enemy of this.gameState.enemies) {
-      if (abs(enemy.y - this.y) < 20) {
-        enemy.health -= CONFIG.LASER.DAMAGE;
+    
+    if (this.gameState.enemyController) {
+      const enemies = this.gameState.enemyController.getEnemies();
+      for (let enemy of enemies) {
+        if (abs(enemy.y - this.y) < 20) {
+          enemy.takeDamage(CONFIG.LASER.DAMAGE);
+        }
       }
     }
   }

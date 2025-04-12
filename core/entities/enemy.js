@@ -1,4 +1,5 @@
 // Enemy class
+// Represents an enemy entity with properties and rendering
 
 class Enemy {
   constructor(x, z, attributes, gameState) {
@@ -53,11 +54,13 @@ class Enemy {
   }
 
   update() {
+    // Calculate movement towards the center (pillar)
     let angle = atan2(0 - this.z, 0 - this.x);
     this.x += cos(angle) * this.speed;
     this.z += sin(angle) * this.speed;
     this.rotation = angle + HALF_PI; // Make enemy face the pillar
 
+    // Check if enemy has reached the pillar
     if (dist(this.x, this.z, 0, 0) < 50) {
       this.gameState.pillarHeight = max(0, this.gameState.pillarHeight - CONFIG.ENEMY_DAMAGE_TO_PILLAR);
       if (this.gameState.pillarHeight === 0) {
@@ -85,5 +88,14 @@ class Enemy {
     fill(r, g, b);
     box(this.width, this.height, this.depth);
     pop();
+  }
+
+  takeDamage(amount) {
+    this.health -= amount;
+    return this.health <= 0;
+  }
+
+  getPosition() {
+    return { x: this.x, y: this.y, z: this.z };
   }
 }
