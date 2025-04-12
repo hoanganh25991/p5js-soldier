@@ -44,6 +44,11 @@ export class Bullet {
         this.vx = (dx / dist) * this.speed;
         this.vy = (dy / dist) * this.speed;
         this.vz = (dz / dist) * this.speed;
+      } else {
+        // If no target, use the angle to determine direction
+        this.vx = Math.cos(angle) * this.speed;
+        this.vy = 0; // No vertical movement
+        this.vz = Math.sin(angle) * this.speed;
       }
     }
   }
@@ -57,7 +62,7 @@ export class Bullet {
     // Debug: Log bullet position every second
     if (this.gameState.frameCount % 60 === 0) {
       console.log(`Bullet at: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
-      console.log(`Bullet velocity: ${this.vx.toFixed(2)}, ${this.vy.toFixed(2)}, ${this.vz.toFixed(2)}`);
+      console.log(`Bullet velocity: ${this.vx ? this.vx.toFixed(2) : 'undefined'}, ${this.vy ? this.vy.toFixed(2) : 'undefined'}, ${this.vz ? this.vz.toFixed(2) : 'undefined'}`);
     }
 
     // Check collision with enemies

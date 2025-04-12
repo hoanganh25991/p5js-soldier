@@ -3,6 +3,8 @@
 
 import CONFIG from '../config.js';
 import { GameCharacter } from './gameCharacter.js';
+import { updateHeight } from '../utils.js';
+import { Wave } from './wave.js';
 
 export class GameBoyAdvanced {
   constructor(x, y, z, direction, speed, distance, gameState) {
@@ -20,16 +22,20 @@ export class GameBoyAdvanced {
     this.distanceTraveled = 0;
     
     // Physics
-    this.velocityY = -5; // Initial upward velocity
-    this.gravity = 0.2;  // Gravity pulling down
+    this.velocityY = -10; // Higher initial upward velocity for better visibility
+    this.gravity = 0.4;   // Stronger gravity for faster fall
     this.grounded = false;
     
-    // Appearance
-    this.width = 15;
-    this.height = 5;
-    this.depth = 10;
+    // Appearance (larger for better visibility)
+    this.width = 25;
+    this.height = 8;
+    this.depth = 15;
     this.rotation = 0;
     this.rotationSpeed = 0.1;
+    
+    // Set a fixed ground level
+    // This ensures the GBA and characters are visible on the screen
+    this.groundLevel = -50;
   }
   
   update() {
@@ -55,8 +61,8 @@ export class GameBoyAdvanced {
     this.distanceTraveled += this.speed;
     
     // Check if GBA has hit the ground
-    if (this.y >= 0) {
-      this.y = 0; // Set to ground level
+    if (this.y >= this.groundLevel) {
+      this.y = this.groundLevel; // Set to ground level
       this.grounded = true;
     }
     
@@ -69,13 +75,19 @@ export class GameBoyAdvanced {
   }
   
   show() {
+    console.log(`Showing GBA at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
+    
     push();
     translate(this.x, this.y, this.z);
     rotateY(this.direction);
     rotateX(this.rotation);
     
-    // GBA body - purple color
-    fill(128, 0, 128);
+    // Add stroke for better visibility
+    stroke(0);
+    strokeWeight(2);
+    
+    // GBA body - brighter purple color
+    fill(180, 50, 180);
     box(this.width, this.height, this.depth);
     
     // GBA screen - light blue
@@ -106,10 +118,12 @@ export class GameBoyAdvanced {
     const characterTypes = ['TANK', 'HERO', 'MARIO', 'MEGAMAN', 'SONGOKU'];
     const randomType = characterTypes[Math.floor(random(characterTypes.length))];
     
+    console.log(`Spawning ${randomType} character at position: ${this.x.toFixed(0)}, ${this.groundLevel.toFixed(0)}, ${this.z.toFixed(0)}`);
+    
     // Create the character
     const character = new GameCharacter(
       this.x, 
-      0, // On the ground
+      this.groundLevel, // On the ground
       this.z, 
       randomType,
       this.gameState
@@ -117,5 +131,25 @@ export class GameBoyAdvanced {
     
     // Add to game state
     this.gameState.gameCharacters.push(character);
+    console.log(`Game characters count: ${this.gameState.gameCharacters.length}`);
+    
+    // Create a visual effect for the spawn
+    // Add a wave effect to make the spawn more noticeable
+    if (this.gameState.waves) {
+      const spawnWave = new Wave(
+        this.x, 
+        this.groundLevel, 
+        this.z, 
+        100, // Large radius
+        [255, 255, 255, 200] // White, semi-transparent
+      );
+      spawnWave.growthRate = 5; // Fast growth
+      this.gameState.waves.push(spawnWave);
+    }
+    
+    // Play spawn sound
+    if (this.gameState.spawnSound) {
+      this.gameState.spawnSound.play();
+    }
   }
 }

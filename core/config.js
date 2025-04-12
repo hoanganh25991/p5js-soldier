@@ -87,36 +87,36 @@ const CONFIG = {
         COOLDOWN: 45,
         THROW_SPEED: 15,
         THROW_DISTANCE: 150,
-        CHARACTER_DURATION: 10 * 60, // 10 seconds
-        CHARACTER_HEALTH: 150,
+        CHARACTER_DURATION: 20 * 60, // 20 seconds (increased from 10)
+        CHARACTER_HEALTH: 300, // Increased from 150
         CHARACTER_TYPES: {
             TANK: {
                 HEALTH_MULTIPLIER: 2.0,
-                DAMAGE: 40,
+                DAMAGE: 80, // Increased from 40
                 SPEED: 0.8,
                 SIZE: 1.5
             },
             HERO: {
                 HEALTH_MULTIPLIER: 1.2,
-                DAMAGE: 60,
+                DAMAGE: 120, // Increased from 60
                 SPEED: 1.5,
                 SIZE: 1.0
             },
             MARIO: {
                 HEALTH_MULTIPLIER: 0.8,
-                DAMAGE: 30,
+                DAMAGE: 60, // Increased from 30
                 SPEED: 2.0,
                 SIZE: 0.8
             },
             MEGAMAN: {
                 HEALTH_MULTIPLIER: 1.0,
-                DAMAGE: 50,
+                DAMAGE: 100, // Increased from 50
                 SPEED: 1.2,
                 SIZE: 0.9
             },
             SONGOKU: {
                 HEALTH_MULTIPLIER: 1.5,
-                DAMAGE: 70,
+                DAMAGE: 140, // Increased from 70
                 SPEED: 1.8,
                 SIZE: 1.1
             }

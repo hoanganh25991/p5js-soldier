@@ -2,7 +2,7 @@
 // Implements different game characters spawned by the GBA
 
 import CONFIG from '../config.js';
-import { findNearestEnemies } from '../utils.js';
+import { findNearestEnemies, updateHeight } from '../utils.js';
 import { Bullet } from './bullet.js';
 import { Wave } from './wave.js';
 
@@ -25,13 +25,13 @@ export class GameCharacter {
     this.speed = this.typeConfig.SPEED;
     this.size = this.typeConfig.SIZE;
     
-    // Dimensions based on size
-    this.width = 20 * this.size;
-    this.height = 40 * this.size;
-    this.depth = 20 * this.size;
+    // Dimensions based on size (make them much larger for better visibility)
+    this.width = 50 * this.size;
+    this.height = 80 * this.size;
+    this.depth = 50 * this.size;
     
     // Combat
-    this.attackRange = 100;
+    this.attackRange = 200; // Larger attack range to match increased size
     this.attackCooldown = 0;
     this.attackRate = 60; // Frames between attacks
     
@@ -46,11 +46,19 @@ export class GameCharacter {
     // Special abilities cooldown
     this.specialCooldown = 0;
     this.specialRate = 180; // 3 seconds between special abilities
+    
+    // Set a fixed height for the character (much higher than the calculated ground level)
+    // This ensures the character is visible on the screen
+    this.y = -50;
   }
   
   update() {
     // Decrease lifespan
     this.lifespan--;
+    
+    // Keep the character at a fixed height
+    // This ensures the character is visible on the screen
+    this.y = -50;
     
     // Find nearest enemy
     const target = this.findNearestEnemy();
@@ -91,7 +99,10 @@ export class GameCharacter {
   }
   
   show() {
+    console.log(`Showing ${this.type} character at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
+    
     push();
+    // Position the character on the ground with feet at ground level
     translate(this.x, this.y, this.z);
     rotateY(this.rotation);
     
@@ -101,15 +112,42 @@ export class GameCharacter {
     // Health bar above character
     this.drawHealthBar();
     
+    // Add a visual indicator above the character
+    this.drawIndicator();
+    
+    pop();
+  }
+  
+  // Draw a visual indicator above the character to make it more noticeable
+  drawIndicator() {
+    push();
+    // Position above the character
+    translate(0, -this.height * 1.2, 0);
+    
+    // Make the indicator always face the camera
+    rotateY(-this.rotation);
+    
+    // Pulsing effect
+    const pulseSize = 15 + sin(frameCount * 0.1) * 5;
+    
+    // Draw the indicator
+    noStroke();
+    fill(255, 255, 0, 150); // Yellow, semi-transparent
+    sphere(pulseSize);
+    
     pop();
   }
   
   drawCharacter() {
+    // Set stroke for all characters to make them more visible
+    stroke(0);
+    strokeWeight(3);
+    
     // Different appearance based on character type
     switch (this.type) {
       case 'TANK':
         // Tank - heavy, armored character
-        fill(100, 100, 100); // Gray
+        fill(150, 150, 150); // Lighter gray for better visibility
         box(this.width * 1.2, this.height * 0.8, this.depth * 1.2);
         
         // Tank turret
@@ -128,7 +166,7 @@ export class GameCharacter {
         
       case 'HERO':
         // Hero with broadsword
-        fill(150, 150, 200); // Light blue-gray
+        fill(180, 180, 255); // Brighter blue for better visibility
         box(this.width, this.height, this.depth);
         
         // Sword
@@ -142,7 +180,7 @@ export class GameCharacter {
         
       case 'MARIO':
         // Mario - small, fast character
-        fill(255, 0, 0); // Red
+        fill(255, 50, 50); // Brighter red for better visibility
         box(this.width, this.height, this.depth);
         
         // Mario hat
@@ -162,7 +200,7 @@ export class GameCharacter {
         
       case 'MEGAMAN':
         // Megaman - balanced character with arm cannon
-        fill(0, 100, 255); // Blue
+        fill(50, 150, 255); // Brighter blue for better visibility
         box(this.width, this.height, this.depth);
         
         // Arm cannon
@@ -183,7 +221,7 @@ export class GameCharacter {
         
       case 'SONGOKU':
         // Songoku - powerful character with spiky hair
-        fill(255, 165, 0); // Orange
+        fill(255, 200, 50); // Brighter orange for better visibility
         box(this.width, this.height, this.depth);
         
         // Spiky hair
@@ -278,38 +316,62 @@ export class GameCharacter {
         // Megaman fires from arm cannon
         for (let i = 0; i < 3; i++) { // Triple shot
           const spread = (i - 1) * 0.1;
+          const bulletAngle = this.rotation - HALF_PI + spread;
+          const bulletSpeed = 25;
+          
           const megamanBullet = new Bullet(
             this.x, 
             this.y, 
             this.z, 
-            this.rotation - HALF_PI + spread, 
+            bulletAngle, 
             target, 
             this, 
             this.gameState
           );
+          
           megamanBullet.damage = this.damage / 3;
           megamanBullet.size = 6;
           megamanBullet.color = [0, 200, 255];
-          megamanBullet.speed = 25;
+          
+          // If we have a target, the bullet will already have velocity set
+          // If not, we need to set it manually
+          if (!target) {
+            megamanBullet.vx = Math.cos(bulletAngle) * bulletSpeed;
+            megamanBullet.vy = 0; // No vertical movement
+            megamanBullet.vz = Math.sin(bulletAngle) * bulletSpeed;
+          }
+          
           this.gameState.bullets.push(megamanBullet);
         }
         break;
         
       case 'SONGOKU':
         // Songoku does a powerful energy attack
+        const bulletAngle = this.rotation - HALF_PI;
+        const bulletSpeed = 30;
+        
         const gokuBullet = new Bullet(
           this.x, 
           this.y, 
           this.z, 
-          this.rotation - HALF_PI, 
+          bulletAngle, 
           target, 
           this, 
           this.gameState
         );
+        
         gokuBullet.damage = this.damage;
         gokuBullet.size = 10;
         gokuBullet.color = [255, 255, 0];
-        gokuBullet.speed = 30;
+        
+        // If we have a target, the bullet will already have velocity set
+        // If not, we need to set it manually
+        if (!target) {
+          gokuBullet.vx = Math.cos(bulletAngle) * bulletSpeed;
+          gokuBullet.vy = 0; // No vertical movement
+          gokuBullet.vz = Math.sin(bulletAngle) * bulletSpeed;
+        }
+        
         this.gameState.bullets.push(gokuBullet);
         break;
     }
@@ -350,6 +412,13 @@ export class GameCharacter {
         // Mario throws fireballs in all directions
         for (let i = 0; i < 8; i++) {
           const angle = i * TWO_PI / 8;
+          // Set properties before creating the bullet
+          const bulletSpeed = 15;
+          const bulletDamage = this.damage * 0.6;
+          const bulletSize = 5;
+          const bulletColor = [255, 100, 0];
+          
+          // Create the bullet with these properties
           const marioBullet = new Bullet(
             this.x, 
             this.y, 
@@ -359,10 +428,17 @@ export class GameCharacter {
             this, 
             this.gameState
           );
-          marioBullet.damage = this.damage * 0.6;
-          marioBullet.size = 5;
-          marioBullet.color = [255, 100, 0];
-          marioBullet.speed = 15;
+          
+          // Set additional properties
+          marioBullet.damage = bulletDamage;
+          marioBullet.size = bulletSize;
+          marioBullet.color = bulletColor;
+          
+          // Recalculate velocity based on new speed
+          marioBullet.vx = Math.cos(angle) * bulletSpeed;
+          marioBullet.vy = 0; // No vertical movement
+          marioBullet.vz = Math.sin(angle) * bulletSpeed;
+          
           this.gameState.bullets.push(marioBullet);
         }
         break;

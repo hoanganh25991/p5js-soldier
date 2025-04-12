@@ -33,6 +33,7 @@ function preload() {
   gameState.gameFont = loadFont('fonts/opensans-light.ttf');
   gameState.shootSound = loadSound('sounds/single-shot.mp3');
   gameState.cloneSound = loadSound('sounds/woosh.mp3');
+  gameState.spawnSound = loadSound('sounds/woosh.mp3'); // Reuse woosh sound for character spawn
 }
 
 // p5.js setup function - called once at start
@@ -258,10 +259,12 @@ function updateAndShowEntities() {
   }
   
   // Update and show Game Characters
+  console.log(`Game characters count in update loop: ${gameState.gameCharacters.length}`);
   for (let i = gameState.gameCharacters.length - 1; i >= 0; i--) {
     gameState.gameCharacters[i].update();
     gameState.gameCharacters[i].show();
     if (gameState.gameCharacters[i].health <= 0 || gameState.gameCharacters[i].lifespan <= 0) {
+      console.log(`Removing ${gameState.gameCharacters[i].type} character due to health: ${gameState.gameCharacters[i].health}, lifespan: ${gameState.gameCharacters[i].lifespan}`);
       gameState.gameCharacters.splice(i, 1);
     }
   }
@@ -367,13 +370,13 @@ function keyPressed() {
         case SKILL_NAMES.GBA:
           // Create GBA at player position with direction based on player rotation
           let throwDirection = gameState.player.rotation;
-          let throwSpeed = CONFIG.GBA.THROW_SPEED;
-          let throwDistance = CONFIG.GBA.THROW_DISTANCE;
+          let throwSpeed = 5; // Fixed speed for better visibility
+          let throwDistance = 100; // Shorter distance for better visibility
           
           // Create the GBA object
           gameState.gbas.push(new GameBoyAdvanced(
             gameState.player.x, 
-            gameState.player.y - 10, // Slightly above player
+            -50, // Fixed height for better visibility
             gameState.player.z,
             throwDirection,
             throwSpeed,
