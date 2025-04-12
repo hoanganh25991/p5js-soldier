@@ -262,7 +262,7 @@ function windowResized() {
 
 // Mouse control functions - these are global p5.js functions that delegate to our handlers
 function mouseWheel(event) {
-  return handleMouseWheel(event, gameState);
+  handleMouseWheel(event, gameState);
 }
 
 function mousePressed() {
