@@ -64,43 +64,46 @@ export class GameCharacter {
     // This ensures the character is visible on the screen
     this.y = -50;
     
-    // Find nearest enemy
-    const target = this.findNearestEnemy();
-    
-    // Track if we need to find a new target
-    let targetDefeated = false;
-    
-    if (target) {
-      // Calculate angle to target
-      const angleToTarget = atan2(target.z - this.z, target.x - this.x);
-      this.rotation = angleToTarget + HALF_PI;
+    // Only update every other frame to improve performance with multiple characters
+    if (this.gameState.frameCount % 30 === 0) {
+      // Find nearest enemy
+      const target = this.findNearestEnemy();
       
-      // Calculate distance to target
-      const distToTarget = dist(this.x, this.z, target.x, target.z);
+      // Track if we need to find a new target
+      let targetDefeated = false;
       
-      if (distToTarget > this.attackRange) {
-        // Move towards target if not in attack range
-        this.x += cos(angleToTarget) * this.speed;
-        this.z += sin(angleToTarget) * this.speed;
-      } else {
-        // Attack if in range and cooldown is ready
-        if (this.attackCooldown <= 0) {
-          // Attack the target
-          this.attack(target);
-          this.attackCooldown = this.attackRate;
-          
-          // Check if target is defeated after attack
-          if (target.health <= 0) {
-            targetDefeated = true;
+      if (target) {
+        // Calculate angle to target
+        const angleToTarget = atan2(target.z - this.z, target.x - this.x);
+        this.rotation = angleToTarget + HALF_PI;
+        
+        // Calculate distance to target
+        const distToTarget = dist(this.x, this.z, target.x, target.z);
+        
+        if (distToTarget > this.attackRange) {
+          // Move towards target if not in attack range
+          this.x += cos(angleToTarget) * this.speed;
+          this.z += sin(angleToTarget) * this.speed;
+        } else {
+          // Attack if in range and cooldown is ready
+          if (this.attackCooldown <= 0) {
+            // Attack the target
+            this.attack(target);
+            this.attackCooldown = this.attackRate;
+            
+            // Check if target is defeated after attack
+            if (target.health <= 0) {
+              targetDefeated = true;
+            }
           }
         }
-      }
-      
-      // If target was defeated, immediately look for the next closest enemy
-      if (targetDefeated) {
-        // Move a bit away to create distance before engaging next enemy
-        this.x += cos(angleToTarget) * -20; // Move back slightly
-        this.z += sin(angleToTarget) * -20;
+        
+        // If target was defeated, immediately look for the next closest enemy
+        if (targetDefeated) {
+          // Move a bit away to create distance before engaging next enemy
+          this.x += cos(angleToTarget) * -20; // Move back slightly
+          this.z += sin(angleToTarget) * -20;
+        }
       }
     }
     
@@ -108,14 +111,16 @@ export class GameCharacter {
     if (this.attackCooldown > 0) this.attackCooldown--;
     if (this.specialCooldown > 0) this.specialCooldown--;
     
-    // Use special ability if cooldown is ready
-    if (this.specialCooldown <= 0) {
+    // Use special ability if cooldown is ready and not too frequently
+    if (this.specialCooldown <= 0 && this.gameState.frameCount % 5 === 0) {
       this.useSpecialAbility();
       this.specialCooldown = this.specialRate;
     }
     
-    // Update animation
-    this.animationFrame += this.animationSpeed;
+    // Update animation at a slower rate
+    if (this.gameState.frameCount % 3 === 0) {
+      this.animationFrame += this.animationSpeed;
+    }
   }
   
   show() {
