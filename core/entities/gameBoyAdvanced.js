@@ -7,6 +7,10 @@ import { updateHeight } from '../utils.js';
 import { Wave } from './wave.js';
 
 export class GameBoyAdvanced {
+  // Static method to get all characters from the game state
+  static getCharacters(gameState) {
+    return gameState.gameCharacters || [];
+  }
   constructor(x, y, z, direction, speed, distance, gameState) {
     this.gameState = gameState;
     

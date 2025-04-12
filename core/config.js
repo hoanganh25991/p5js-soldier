@@ -42,6 +42,7 @@ const CONFIG = {
     ENEMY_HEALTH: 100,
     ENEMY_DAMAGE_TO_PILLAR: 0.02,
     ENEMY_DAMAGE_TO_PLAYER: 0.2,
+    ENEMY_DAMAGE_TO_CHARACTER: 5, // Damage dealt to characters
 
     // Skill settings
     CLONE: {

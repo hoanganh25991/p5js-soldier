@@ -67,6 +67,9 @@ export class GameCharacter {
     // Find nearest enemy
     const target = this.findNearestEnemy();
     
+    // Track if we need to find a new target
+    let targetDefeated = false;
+    
     if (target) {
       // Calculate angle to target
       const angleToTarget = atan2(target.z - this.z, target.x - this.x);
@@ -82,9 +85,22 @@ export class GameCharacter {
       } else {
         // Attack if in range and cooldown is ready
         if (this.attackCooldown <= 0) {
+          // Attack the target
           this.attack(target);
           this.attackCooldown = this.attackRate;
+          
+          // Check if target is defeated after attack
+          if (target.health <= 0) {
+            targetDefeated = true;
+          }
         }
+      }
+      
+      // If target was defeated, immediately look for the next closest enemy
+      if (targetDefeated) {
+        // Move a bit away to create distance before engaging next enemy
+        this.x += cos(angleToTarget) * -20; // Move back slightly
+        this.z += sin(angleToTarget) * -20;
       }
     }
     
@@ -799,6 +815,11 @@ export class GameCharacter {
         fill(255);
         ellipse(0, 0, this.width * 0.3, this.width * 0.3);
         
+        // Set the font before drawing text
+        if (this.gameState.gameFont) {
+          textFont(this.gameState.gameFont);
+        }
+        
         fill(255, 0, 0);
         textSize(this.width * 0.2);
         textAlign(CENTER, CENTER);
@@ -1086,6 +1107,11 @@ export class GameCharacter {
     translate(0, -this.height * 0.9, 0);
     rotateY(-this.rotation); // Counter-rotate to face camera
     
+    // Set the font before drawing any text
+    if (this.gameState.gameFont) {
+      textFont(this.gameState.gameFont);
+    }
+    
     // Create a 3D health bar that's always visible
     push();
     // Add a backing plate for better visibility
@@ -1206,7 +1232,9 @@ export class GameCharacter {
   }
   
   findNearestEnemy() {
-    return findNearestEnemies(this, 1, this.gameState);
+    // Get the closest enemy
+    const enemies = findNearestEnemies(this, 1, this.gameState);
+    return enemies.length > 0 ? enemies[0] : null;
   }
   
   attack(target) {

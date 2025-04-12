@@ -41,6 +41,11 @@ function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   gameState.camera = createCamera();
   
+  // Set the default font for all text rendering in WEBGL mode
+  if (gameState.gameFont) {
+    textFont(gameState.gameFont);
+  }
+  
   // Create UI elements
   gameState.ui.statusBoard = createStatusBoard();
   gameState.ui.menuScreen = createMenuUI();
@@ -78,6 +83,11 @@ function resetGame() {
 
 // p5.js draw function - called every frame
 function draw() {
+  // Set the font at the beginning of each frame to ensure all text rendering works
+  if (gameState.gameFont) {
+    textFont(gameState.gameFont);
+  }
+  
   // Handle different game states
   switch (gameState.currentState) {
     case 'menu':

@@ -2,6 +2,7 @@
 // Represents an enemy entity with properties and rendering
 
 import CONFIG from '../config.js';
+import { GameBoyAdvanced } from './gameBoyAdvanced.js';
 
 export class Enemy {
   constructor(x, z, attributes, gameState) {
@@ -56,19 +57,60 @@ export class Enemy {
   }
 
   update() {
-    // Calculate movement towards the center (pillar)
-    let angle = atan2(0 - this.z, 0 - this.x);
-    this.x += cos(angle) * this.speed;
-    this.z += sin(angle) * this.speed;
-    this.rotation = angle + HALF_PI; // Make enemy face the pillar
+    // Find the closest character to target
+    const closestCharacter = this.findNearestCharacter();
+    
+    // If there's a character to target, move towards it
+    if (closestCharacter) {
+      // Calculate movement towards the closest character
+      let angle = atan2(closestCharacter.z - this.z, closestCharacter.x - this.x);
+      this.x += cos(angle) * this.speed;
+      this.z += sin(angle) * this.speed;
+      this.rotation = angle + HALF_PI; // Make enemy face the character
+      
+      // Check if enemy has reached the character
+      if (dist(this.x, this.z, closestCharacter.x, closestCharacter.z) < 50) {
+        // Attack the character
+        if (closestCharacter.takeDamage) {
+          closestCharacter.takeDamage(CONFIG.ENEMY_DAMAGE_TO_CHARACTER * this.damageMultiplier);
+        }
+      }
+    } else {
+      // If no characters, move towards the center (pillar) as before
+      let angle = atan2(0 - this.z, 0 - this.x);
+      this.x += cos(angle) * this.speed;
+      this.z += sin(angle) * this.speed;
+      this.rotation = angle + HALF_PI; // Make enemy face the pillar
 
-    // Check if enemy has reached the pillar
-    if (dist(this.x, this.z, 0, 0) < 50) {
-      this.gameState.pillarHeight = max(0, this.gameState.pillarHeight - CONFIG.ENEMY_DAMAGE_TO_PILLAR);
-      if (this.gameState.pillarHeight === 0) {
-        this.gameState.playerHealth -= CONFIG.ENEMY_DAMAGE_TO_PLAYER;
+      // Check if enemy has reached the pillar
+      if (dist(this.x, this.z, 0, 0) < 50) {
+        this.gameState.pillarHeight = max(0, this.gameState.pillarHeight - CONFIG.ENEMY_DAMAGE_TO_PILLAR);
+        if (this.gameState.pillarHeight === 0) {
+          this.gameState.playerHealth -= CONFIG.ENEMY_DAMAGE_TO_PLAYER;
+        }
       }
     }
+  }
+  
+  findNearestCharacter() {
+    // Get all characters from the game state using the static method
+    const characters = GameBoyAdvanced.getCharacters(this.gameState);
+    
+    if (characters.length === 0) return null;
+    
+    // Find the closest character
+    let closestCharacter = null;
+    let closestDistance = Infinity;
+    
+    for (const character of characters) {
+      const distance = dist(this.x, this.z, character.x, character.z);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestCharacter = character;
+      }
+    }
+    
+    return closestCharacter;
   }
 
   show() {
