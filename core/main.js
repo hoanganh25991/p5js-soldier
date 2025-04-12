@@ -368,58 +368,78 @@ function keyPressed() {
           break;
           
         case SKILL_NAMES.GBA:
-          // Instead of throwing a GBA, spawn a character immediately
-          // Calculate a position directly in front of the player
-          const spawnDistance = 100; // Distance in front of player
+          // Throw a GBA in the direction the player is facing
           const playerAngle = gameState.player.rotation;
-          const spawnX = gameState.player.x + Math.cos(playerAngle) * spawnDistance;
-          const spawnZ = gameState.player.z + Math.sin(playerAngle) * spawnDistance;
           
-          // Choose a random character type
-          const characterTypes = ['TANK', 'HERO', 'MARIO', 'MEGAMAN', 'SONGOKU'];
-          const randomType = characterTypes[Math.floor(random(characterTypes.length))];
+          // Calculate a random throw distance within the configured range
+          const minDistance = CONFIG.GBA.THROW_DISTANCE * 0.5; // Minimum 50% of max distance
+          const maxDistance = CONFIG.GBA.THROW_DISTANCE;
+          const throwDistance = random(minDistance, maxDistance);
           
-          console.log(`Directly spawning ${randomType} character at position: ${spawnX.toFixed(0)}, -50, ${spawnZ.toFixed(0)}`);
+          // Calculate a random angle deviation to make throws less predictable
+          const angleDeviation = random(-PI/6, PI/6); // +/- 30 degrees
+          const throwAngle = playerAngle + angleDeviation;
           
-          // Create the character
-          const character = new GameCharacter(
-            spawnX, 
-            -50, // Fixed height
-            spawnZ, 
-            randomType,
+          // Create the GBA object with random properties
+          const gba = new GameBoyAdvanced(
+            gameState.player.x,
+            gameState.player.y - 20, // Start slightly above player
+            gameState.player.z,
+            throwAngle,
+            CONFIG.GBA.THROW_SPEED * random(0.8, 1.5), // Random speed variation
+            throwDistance,
             gameState
           );
           
           // Add to game state
-          gameState.gameCharacters.push(character);
+          gameState.gbas.push(gba);
           
-          // Create visual effects
+          // Create throw effect
           if (gameState.waves) {
-            // Create a wave at the spawn position
-            const spawnWave = new Wave(
-              spawnX, 
-              -50, // Fixed height
-              spawnZ, 
-              300, // MUCH larger radius
-              [255, 0, 0, 200] // Bright red, more opaque
+            // Create a small wave at the throw position
+            const throwWave = new Wave(
+              gameState.player.x, 
+              gameState.player.y - 20, // Start slightly above player
+              gameState.player.z, 
+              50, // Small initial radius
+              [180, 50, 180, 150] // Purple for GBA
             );
-            spawnWave.growthRate = 10; // Faster growth
-            gameState.waves.push(spawnWave);
+            throwWave.growthRate = 5;
+            throwWave.maxRadius = 100;
+            gameState.waves.push(throwWave);
             
-            // Add a second wave with different color
-            const spawnWave2 = new Wave(
-              spawnX, 
-              -50, // Fixed height
-              spawnZ, 
-              200, // Smaller initial radius
-              [255, 255, 0, 200] // Yellow, more opaque
-            );
-            spawnWave2.growthRate = 15; // Even faster growth
-            gameState.waves.push(spawnWave2);
+            // Add a trail effect behind the GBA
+            for (let i = 0; i < 5; i++) {
+              const trailDelay = i * 3; // Frames of delay
+              
+              // Schedule a delayed trail particle
+              setTimeout(() => {
+                if (gameState.waves) {
+                  const trailX = gameState.player.x + cos(throwAngle) * (i * 20);
+                  const trailY = gameState.player.y - 20 - i * 2; // Arc upward
+                  const trailZ = gameState.player.z + sin(throwAngle) * (i * 20);
+                  
+                  const trailWave = new Wave(
+                    trailX,
+                    trailY,
+                    trailZ,
+                    20, // Small radius
+                    [180, 50, 180, 100 - i * 15] // Fading purple
+                  );
+                  trailWave.growthRate = 3;
+                  trailWave.maxRadius = 40;
+                  trailWave.lifespan = 15;
+                  gameState.waves.push(trailWave);
+                }
+              }, trailDelay * 16); // 16ms per frame
+            }
           }
           
-          // Play spawn sound
-          if (gameState.spawnSound) {
+          // Play throw sound
+          if (gameState.throwSound) {
+            gameState.throwSound.play();
+          } else if (gameState.spawnSound) {
+            // Fallback to spawn sound if throw sound doesn't exist
             gameState.spawnSound.play();
           }
           break;

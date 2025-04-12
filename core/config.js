@@ -84,11 +84,11 @@ const CONFIG = {
     
     // Game Boy Advanced skill
     GBA: {
-        COOLDOWN: 45,
-        THROW_SPEED: 15,
-        THROW_DISTANCE: 150,
-        CHARACTER_DURATION: 20 * 60, // 20 seconds (increased from 10)
-        CHARACTER_HEALTH: 300, // Increased from 150
+        COOLDOWN: 0,
+        THROW_SPEED: 8, // Slower speed to make the throw more visible
+        THROW_DISTANCE: 150 * 5, // Maximum throw distance
+        CHARACTER_DURATION: 200 * 60, // 20 seconds (increased from 10)
+        CHARACTER_HEALTH: 300 * 100, // Increased from 150
         CHARACTER_TYPES: {
             TANK: {
                 HEALTH_MULTIPLIER: 2.0,
@@ -119,6 +119,19 @@ const CONFIG = {
                 DAMAGE: 140, // Increased from 70
                 SPEED: 1.8,
                 SIZE: 1.1
+            }
+        },
+        // Visual effects for character summoning
+        SUMMON_EFFECTS: {
+            PARTICLES_COUNT: 20,
+            WAVE_DURATION: 45,
+            SHOCKWAVE_SIZE: 300,
+            PARTICLE_COLORS: {
+                TANK: [100, 100, 100],
+                HERO: [100, 100, 255],
+                MARIO: [255, 50, 50],
+                MEGAMAN: [0, 150, 255],
+                SONGOKU: [255, 255, 0]
             }
         }
     }

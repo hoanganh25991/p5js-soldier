@@ -118,21 +118,13 @@ export class GameBoyAdvanced {
     const characterTypes = ['TANK', 'HERO', 'MARIO', 'MEGAMAN', 'SONGOKU'];
     const randomType = characterTypes[Math.floor(random(characterTypes.length))];
     
-    console.log(`Spawning ${randomType} character at CENTER position: 0, -50, 0`);
+    console.log(`Spawning ${randomType} character at position: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
     
-    // Calculate a position directly in front of the player
-    const spawnDistance = 100; // Distance in front of player
-    const playerAngle = this.gameState.player.rotation;
-    const spawnX = this.gameState.player.x + Math.cos(playerAngle) * spawnDistance;
-    const spawnZ = this.gameState.player.z + Math.sin(playerAngle) * spawnDistance;
-    
-    console.log(`Player angle: ${playerAngle.toFixed(2)}, Spawn position: ${spawnX.toFixed(0)}, -50, ${spawnZ.toFixed(0)}`);
-    
-    // Create the character directly in front of the player
+    // Create the character at the GBA's landing position
     const character = new GameCharacter(
-      spawnX, 
-      -50, // Fixed height
-      spawnZ, 
+      this.x, 
+      this.y, // Use the GBA's height
+      this.z, 
       randomType,
       this.gameState
     );
@@ -141,30 +133,89 @@ export class GameBoyAdvanced {
     this.gameState.gameCharacters.push(character);
     console.log(`Game characters count: ${this.gameState.gameCharacters.length}`);
     
-    // Create a visual effect for the spawn
-    // Add a wave effect to make the spawn more noticeable
+    // Create an impressive visual effect for the spawn
     if (this.gameState.waves) {
-      // Create a wave at the spawn position
-      const spawnWave = new Wave(
-        spawnX, 
-        -50, // Fixed height
-        spawnZ, 
-        300, // MUCH larger radius
-        [255, 0, 0, 200] // Bright red, more opaque
+      // Create a ground impact wave
+      const impactWave = new Wave(
+        this.x, 
+        this.y, 
+        this.z, 
+        200, // Initial radius
+        [255, 255, 255, 200] // White, more opaque
       );
-      spawnWave.growthRate = 10; // Faster growth
-      this.gameState.waves.push(spawnWave);
+      impactWave.growthRate = 15; // Fast growth
+      impactWave.maxRadius = 500; // Larger max radius
+      this.gameState.waves.push(impactWave);
       
-      // Add a second wave with different color
-      const spawnWave2 = new Wave(
-        spawnX, 
-        -50, // Fixed height
-        spawnZ, 
-        200, // Smaller initial radius
-        [255, 255, 0, 200] // Yellow, more opaque
+      // Create a colored wave based on character type
+      let waveColor;
+      switch (randomType) {
+        case 'TANK':
+          waveColor = [100, 100, 100, 180]; // Gray for tank
+          break;
+        case 'HERO':
+          waveColor = [100, 100, 255, 180]; // Blue for hero
+          break;
+        case 'MARIO':
+          waveColor = [255, 50, 50, 180]; // Red for Mario
+          break;
+        case 'MEGAMAN':
+          waveColor = [0, 150, 255, 180]; // Light blue for Megaman
+          break;
+        case 'SONGOKU':
+          waveColor = [255, 255, 0, 180]; // Yellow for Songoku
+          break;
+        default:
+          waveColor = [200, 200, 0, 180]; // Default yellow
+      }
+      
+      // Character-specific wave
+      const characterWave = new Wave(
+        this.x, 
+        this.y, 
+        this.z, 
+        150, // Smaller initial radius
+        waveColor
       );
-      spawnWave2.growthRate = 15; // Even faster growth
-      this.gameState.waves.push(spawnWave2);
+      characterWave.growthRate = 10;
+      characterWave.maxRadius = 400;
+      this.gameState.waves.push(characterWave);
+      
+      // Add rising particles effect
+      for (let i = 0; i < 20; i++) {
+        // Create particles that rise up from the spawn point
+        const particleAngle = random(TWO_PI);
+        const particleRadius = random(50, 200);
+        const particleX = this.x + cos(particleAngle) * random(30, 100);
+        const particleY = this.y;
+        const particleZ = this.z + sin(particleAngle) * random(30, 100);
+        
+        // Create a small wave for each particle
+        const particleWave = new Wave(
+          particleX,
+          particleY - random(10, 100), // Start below and rise up
+          particleZ,
+          random(20, 50),
+          [...waveColor.slice(0, 3), random(100, 200)] // Use character color with random alpha
+        );
+        particleWave.growthRate = random(3, 8);
+        particleWave.maxRadius = random(50, 150);
+        particleWave.riseSpeed = random(2, 5); // Make particles rise
+        this.gameState.waves.push(particleWave);
+      }
+      
+      // Add a shockwave ring on the ground
+      const shockwave = new Wave(
+        this.x,
+        this.y,
+        this.z,
+        50,
+        [255, 255, 255, 200]
+      );
+      shockwave.growthRate = 30;
+      shockwave.maxRadius = 300;
+      shockwave.height = 10; // Flat wave
+      this.gameState.waves.push(shockwave);
     }
     
     // Play spawn sound
