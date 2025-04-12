@@ -53,7 +53,7 @@ let gameState = {
 
 function preload() {
   // Load assets
-  gameState.gameFont = loadFont('assets/opensans-light.ttf');
+  gameState.gameFont = loadFont('fonts/opensans-light.ttf');
   gameState.shootSound = loadSound('sounds/single-shot.mp3');
   gameState.cloneSound = loadSound('sounds/woosh.mp3');
 }
