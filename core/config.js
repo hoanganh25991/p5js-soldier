@@ -142,7 +142,7 @@ const CONFIG = {
         COOLDOWN: 0,
         THROW_SPEED: 10, // Slightly faster than GBA
         THROW_DISTANCE: 150 * 5, // Maximum throw distance
-        FIRE_SKILL_DURATION: 120 * 60, // 2 minutes duration
+        FIRE_SKILL_DURATION: 60 * 2, // 2 minutes duration
         FIRE_SKILL_TYPES: {
             FIREBALL: {
                 DAMAGE: 100,

@@ -55,7 +55,8 @@ export function createStatusBoard() {
     { key: 'T', name: 'Turret', id: 'turret-cd' },
     { key: 'A', name: 'Airstrike', id: 'airstrike-cd' },
     { key: 'L', name: 'Laser', id: 'laser-cd' },
-    { key: 'G', name: 'Game Boy Advanced', id: 'gba-cd' }
+    { key: 'G', name: 'Game Boy Advanced', id: 'gba-cd' },
+    { key: 'F', name: 'Gas Lighter', id: 'gas-lighter-cd' }
   ];
   
   skills.forEach((skill, index) => {
@@ -146,6 +147,8 @@ export function createMenuUI() {
     <p>T - Deploy Turret</p>
     <p>A - Call Airstrike</p>
     <p>L - Fire Laser</p>
+    <p>G - Throw Game Boy Advanced (summons game characters)</p>
+    <p>F - Throw Gas Lighter (casts fire skills)</p>
     <p>Middle Mouse - Rotate Camera</p>
     <p>Mouse Wheel - Zoom In/Out</p>
   `;
@@ -310,7 +313,8 @@ export function updateStatusBoard() {
     turret: 'turret-cd',
     airstrike: 'airstrike-cd',
     laser: 'laser-cd',
-    'game-boy-advanced': 'gba-cd'
+    'game-boy-advanced': 'gba-cd',
+    'gas-lighter': 'gas-lighter-cd'
   };
   
   // Use new skill system for cooldowns

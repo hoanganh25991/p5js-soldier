@@ -18,7 +18,8 @@ const gameState = {
     turret: 0,
     airstrike: 0,
     laser: 0,
-    'game-boy-advanced': 0
+    'game-boy-advanced': 0,
+    'gas-lighter': 0
   },
   
   // New skill system
@@ -42,6 +43,8 @@ const gameState = {
   gbas: [],
   gameCharacters: [],
   waves: [],
+  gasLighters: [],
+  fireSkills: [],
   
   // Game stats
   enemiesKilled: 0,
@@ -80,7 +83,8 @@ function resetGameState() {
     turret: 0,
     airstrike: 0,
     laser: 0,
-    'game-boy-advanced': 0
+    'game-boy-advanced': 0,
+    'gas-lighter': 0
   };
   
   // Clear game objects
@@ -93,6 +97,8 @@ function resetGameState() {
   gameState.gbas = [];
   gameState.gameCharacters = [];
   gameState.waves = [];
+  gameState.gasLighters = [];
+  gameState.fireSkills = [];
 }
 
 export { gameState, resetGameState };
