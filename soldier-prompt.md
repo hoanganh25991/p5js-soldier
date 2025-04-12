@@ -15,6 +15,7 @@ Game Character
 - [x] hero must come much closer to enemy to fight, nearly only 10 distance
 - [x] reduce character size by half, they now too big
 - [x] character move faster
+- [x] fix bug: character performs too many actions when no enemies around, causing FPS drop
 
 --------------------------------------------
 - [] add sound when throw GBA

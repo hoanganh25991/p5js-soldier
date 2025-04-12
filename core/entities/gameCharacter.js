@@ -154,10 +154,17 @@ export class GameCharacter {
     if (this.attackCooldown > 0) this.attackCooldown--;
     if (this.specialCooldown > 0) this.specialCooldown--;
     
-    // Use special ability if cooldown is ready and not too frequently
+    // Use special ability if cooldown is ready, not too frequently, and only if enemies exist
     if (this.specialCooldown <= 0 && this.gameState.frameCount % 5 === 0) {
-      this.useSpecialAbility();
-      this.specialCooldown = this.specialRate;
+      // Check if there are any enemies before using special ability
+      const hasEnemies = this.findNearestEnemy() !== null;
+      if (hasEnemies) {
+        this.useSpecialAbility();
+        this.specialCooldown = this.specialRate;
+      } else {
+        // If no enemies, set a shorter cooldown to check again soon
+        this.specialCooldown = 30;
+      }
     }
     
     // Update animation at a slower rate
@@ -1676,5 +1683,56 @@ export class GameCharacter {
     
     // Return true if character is dead
     return this.health <= 0;
+  }
+  
+  // Cache for enemy search to improve performance
+  _enemyCache = {
+    lastUpdateFrame: -1,
+    nearestEnemy: null,
+    enemyCount: 0
+  };
+  
+  // Find the nearest enemy with caching to improve performance
+  findNearestEnemy() {
+    // Only update the cache every 10 frames to reduce calculations
+    const currentFrame = this.gameState.frameCount;
+    
+    // If we have a recent cache and the enemy count hasn't changed, use the cached result
+    if (
+      this._enemyCache.lastUpdateFrame > currentFrame - 10 && 
+      this.gameState.enemyController && 
+      this.gameState.enemyController.getEnemies().length === this._enemyCache.enemyCount
+    ) {
+      return this._enemyCache.nearestEnemy;
+    }
+    
+    // Get all enemies from the controller
+    const enemies = this.gameState.enemyController ? this.gameState.enemyController.getEnemies() : [];
+    this._enemyCache.enemyCount = enemies.length;
+    
+    // If no enemies, cache null and return
+    if (enemies.length === 0) {
+      this._enemyCache.nearestEnemy = null;
+      this._enemyCache.lastUpdateFrame = currentFrame;
+      return null;
+    }
+    
+    // Find the closest enemy
+    let closestEnemy = null;
+    let closestDistance = Infinity;
+    
+    for (const enemy of enemies) {
+      const distance = dist(this.x, this.z, enemy.x, enemy.z);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestEnemy = enemy;
+      }
+    }
+    
+    // Update cache
+    this._enemyCache.nearestEnemy = closestEnemy;
+    this._enemyCache.lastUpdateFrame = currentFrame;
+    
+    return closestEnemy;
   }
 }
