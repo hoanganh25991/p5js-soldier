@@ -193,26 +193,6 @@ export class GameCharacter {
     // Health bar above character
     this.drawHealthBar();
     
-    // Add a visual indicator above the character
-    this.drawIndicator();
-    
-    pop();
-  }
-  
-  // Draw a simple indicator above the character (removed complex effects)
-  drawIndicator() {
-    push();
-    // Position above the character
-    translate(0, -this.height * 1.2, 0);
-    
-    // Make the indicator always face the camera
-    rotateY(-this.rotation);
-    
-    // Simple small indicator dot
-    noStroke();
-    fill(255, 0, 0); // Red dot
-    sphere(10); // Small fixed size
-    
     pop();
   }
   

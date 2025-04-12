@@ -94,31 +94,31 @@ const CONFIG = {
             TANK: {
                 HEALTH_MULTIPLIER: 2.0,
                 DAMAGE: 80, // Increased from 40
-                SPEED: 1.6, // Doubled from 0.8
+                SPEED: 10, // Doubled from 0.8
                 SIZE: 0.75 // Reduced by half from 1.5
             },
             HERO: {
                 HEALTH_MULTIPLIER: 1.2,
                 DAMAGE: 120, // Increased from 60
-                SPEED: 3.0, // Doubled from 1.5
+                SPEED: 10, // Doubled from 1.5
                 SIZE: 1.0
             },
             MARIO: {
                 HEALTH_MULTIPLIER: 0.5,
                 DAMAGE: 60, // Increased from 30
-                SPEED: 4.0, // Doubled from 2.0
+                SPEED: 10, // Doubled from 2.0
                 SIZE: 0.8
             },
             MEGAMAN: {
                 HEALTH_MULTIPLIER: 1.0,
                 DAMAGE: 100, // Increased from 50
-                SPEED: 2.4, // Doubled from 1.2
+                SPEED: 10, // Doubled from 1.2
                 SIZE: 0.9
             },
             SONGOKU: {
                 HEALTH_MULTIPLIER: 1.5,
                 DAMAGE: 140, // Increased from 70
-                SPEED: 3.6, // Doubled from 1.8
+                SPEED: 10, // Doubled from 1.8
                 SIZE: 1.1
             }
         },

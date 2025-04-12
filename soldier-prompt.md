@@ -16,6 +16,7 @@ Game Character
 - [x] reduce character size by half, they now too big
 - [x] character move faster
 - [x] fix bug: character performs too many actions when no enemies around, causing FPS drop
+- [x] remove red indicator ball on top of characters
 
 --------------------------------------------
 - [] add sound when throw GBA
