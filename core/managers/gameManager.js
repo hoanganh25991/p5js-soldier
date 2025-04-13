@@ -6,14 +6,14 @@ import { resetGameState } from '../gameState.js';
 import { Player } from '../entities/player.js';
 import { Pillar } from '../entities/pillar.js';
 import { EnemyController } from '../controllers/enemyController.js';
-import { initializeUpgrades, applyUpgrades, awardXP, incrementCombo, updateStatusBoard } from '../progression.js';
-import { showGameOverScreen } from '../ui.js';
+import { initializeUpgrades, applyUpgrades, awardXP, incrementCombo } from '../progression.js';
+import { updateStatusBoard, showGameOverScreen } from '../ui.js';
 
 /**
  * Reset game to initial state
  * @param {Object} gameState - The global game state
  */
-export function resetGame() {
+export function resetGame(gameState) {
   // Reset game state
   resetGameState();
   

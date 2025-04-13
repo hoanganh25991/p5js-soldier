@@ -11,9 +11,6 @@ export function updateAndShowEntities(gameState) {
   // Update power-up spawn timer
   updatePowerUpSpawnTimer(gameState);
   
-  // Update and remove finished waves
-  updateWaves(gameState);
-  
   // Update and render enemies using the controller
   gameState.enemyController.update();
   gameState.enemyController.render();

@@ -57,7 +57,7 @@ function setup() {
   initializeCamera(gameState);
   
   // Initialize game objects
-  resetGame();
+  resetGame(gameState);
 }
 
 // p5.js draw function - called every frame
