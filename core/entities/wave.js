@@ -24,11 +24,17 @@ export class Wave {
     this.damage = 0; // Damage caused by the wave
     this.damageRadius = 0; // Radius within which damage is applied
     
+    // Debug mode
+    this.debug = false; // Set to true to show debug visualization
+    
     // Drastically simplified - always use just one ring for all wave effects
     // This significantly reduces the number of objects and calculations
     this.rings = [
       { radius: initialRadius, speed: this.growthRate }
     ];
+    
+    // Store initial Y position for debugging
+    this.initialY = y || -50;
   }
 
   update() {

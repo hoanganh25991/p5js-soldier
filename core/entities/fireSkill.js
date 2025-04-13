@@ -41,6 +41,9 @@ export class FireSkill {
     // This ensures effects appear on the ground and behind characters but are still visible
     this.effectY = -48; // Slightly above ground level to ensure visibility
     
+    // Debug log the effect Y position
+    console.debug(`FireSkill: Initialized with effectY=${this.effectY} for type=${this.type}`);
+    
     switch (this.type) {
       case 'FIREBALL':
         // Fireball doesn't need initialization, it's cast on update
@@ -307,10 +310,31 @@ export class FireSkill {
       push();
       translate(meteor.x, meteor.y, meteor.z);
       
-      // Meteor rotation for more dynamic appearance
-      const rotationSpeed = frameCount * 0.05;
-      rotateX(rotationSpeed + (meteor.rotation || 0));
-      rotateY(rotationSpeed * 0.7);
+      // Align meteor with its trajectory instead of rotating
+      // Calculate the direction vector of the meteor
+      const dirX = meteor.vx;
+      const dirY = meteor.vy;
+      const dirZ = meteor.vz;
+      
+      // Calculate the angle to align with the direction of travel
+      // This ensures the meteor points in the direction it's moving
+      if (dirY !== 0) {
+        // Calculate angle between direction vector and vertical axis
+        const angle = Math.atan2(Math.sqrt(dirX * dirX + dirZ * dirZ), dirY);
+        // Calculate rotation axis (perpendicular to direction and vertical axis)
+        const axisX = dirZ;
+        const axisZ = -dirX;
+        const axisLength = Math.sqrt(axisX * axisX + axisZ * axisZ);
+        
+        if (axisLength > 0.001) {
+          // Normalize the axis
+          const normAxisX = axisX / axisLength;
+          const normAxisZ = axisZ / axisLength;
+          
+          // Apply rotation around the calculated axis
+          rotate(angle, normAxisX, 0, normAxisZ);
+        }
+      }
       
       // Enhanced meteor trail
       push();
@@ -904,7 +928,7 @@ export class FireSkill {
       vy: vy,
       vz: vz,
       size: this.typeConfig.METEOR_SIZE,
-      rotation: random(TWO_PI),
+      // No random rotation - we'll align with trajectory instead
       targetX: targetX,
       targetZ: targetZ,
       targetY: targetY

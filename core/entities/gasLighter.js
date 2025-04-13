@@ -174,7 +174,7 @@ export class GasLighter {
     }
     
     // Debug log before creating fire skill
-    console.log(`[GAS LIGHTER DEBUG] Creating fire skill of type ${selectedType} at position x=${this.x.toFixed(2)}, y=${this.y.toFixed(2)}, z=${this.z.toFixed(2)}`);
+    console.debug(`[GAS LIGHTER DEBUG] Creating fire skill of type ${selectedType} at position x=${this.x.toFixed(2)}, y=${this.y.toFixed(2)}, z=${this.z.toFixed(2)}`);
     
     // Create the fire skill at the Gas Lighter's landing position
     const fireSkill = new FireSkill(
@@ -191,12 +191,12 @@ export class GasLighter {
     }
     
     // Debug log before adding to game state
-    console.log(`[GAS LIGHTER DEBUG] Fire skill created with damage=${fireSkill.damage}, lifespan=${fireSkill.lifespan}`);
+    console.debug(`[GAS LIGHTER DEBUG] Fire skill created with damage=${fireSkill.damage}, lifespan=${fireSkill.lifespan}`);
     
     this.gameState.fireSkills.push(fireSkill);
     
     // Debug log after adding to game state
-    console.log(`[GAS LIGHTER DEBUG] Fire skill added to game state, total fire skills: ${this.gameState.fireSkills.length}`);
+    console.debug(`[GAS LIGHTER DEBUG] Fire skill added to game state, total fire skills: ${this.gameState.fireSkills.length}`);
     
     // Create a visual effect for the cast
     if (this.gameState.waves) {

@@ -287,12 +287,12 @@ function updateAndShowEntities() {
   
   // Update and show Fire Skills
   if (gameState.fireSkills) {
-    console.log(`[MAIN DEBUG] Fire skills count in update loop: ${gameState.fireSkills.length}`);
+    console.debug(`[MAIN DEBUG] Fire skills count in update loop: ${gameState.fireSkills.length}`);
     for (let i = gameState.fireSkills.length - 1; i >= 0; i--) {
       if (gameState.fireSkills[i].update()) { // Returns true when fire skill is done
-        console.log(`[MAIN DEBUG] Fire skill ${gameState.fireSkills[i].type} disappeared at position x=${gameState.fireSkills[i].x.toFixed(2)}, z=${gameState.fireSkills[i].z.toFixed(2)}`);
+        console.debug(`[MAIN DEBUG] Fire skill ${gameState.fireSkills[i].type} disappeared at position x=${gameState.fireSkills[i].x.toFixed(2)}, z=${gameState.fireSkills[i].z.toFixed(2)}`);
         gameState.fireSkills.splice(i, 1);
-        console.log(`[MAIN DEBUG] Fire skill removed, remaining skills: ${gameState.fireSkills.length}`);
+        console.debug(`[MAIN DEBUG] Fire skill removed, remaining skills: ${gameState.fireSkills.length}`);
       } else {
         gameState.fireSkills[i].show();
       }
@@ -300,14 +300,14 @@ function updateAndShowEntities() {
   }
   
   // Update and show Game Characters
-  console.log(`[MAIN DEBUG] Game characters count in update loop: ${gameState.gameCharacters.length}`);
+  console.debug(`[MAIN DEBUG] Game characters count in update loop: ${gameState.gameCharacters.length}`);
   for (let i = gameState.gameCharacters.length - 1; i >= 0; i--) {
     gameState.gameCharacters[i].update();
     gameState.gameCharacters[i].show();
     if (gameState.gameCharacters[i].health <= 0 || gameState.gameCharacters[i].lifespan <= 0) {
-      console.log(`[MAIN DEBUG] Removing ${gameState.gameCharacters[i].type} character due to health: ${gameState.gameCharacters[i].health.toFixed(2)}, lifespan: ${gameState.gameCharacters[i].lifespan}`);
+      console.debug(`[MAIN DEBUG] Removing ${gameState.gameCharacters[i].type} character due to health: ${gameState.gameCharacters[i].health.toFixed(2)}, lifespan: ${gameState.gameCharacters[i].lifespan}`);
       gameState.gameCharacters.splice(i, 1);
-      console.log(`[MAIN DEBUG] Character removed, remaining characters: ${gameState.gameCharacters.length}`);
+      console.debug(`[MAIN DEBUG] Character removed, remaining characters: ${gameState.gameCharacters.length}`);
     }
   }
 }
