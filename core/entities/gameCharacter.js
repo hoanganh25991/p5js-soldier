@@ -288,128 +288,35 @@ export class GameCharacter {
     let healthPercent = this.health / maxHealth;
     healthPercent = isNaN(healthPercent) ? 0 : Math.max(0, Math.min(1, healthPercent));
     
-    // Debug log health values if they seem incorrect
-    if (healthPercent > 1 || healthPercent < 0 || isNaN(healthPercent)) {
-      console.debug(`[CHARACTER HEALTH BAR DEBUG] Invalid health percentage: ${healthPercent}, health=${this.health}, maxHealth=${maxHealth}`);
-    }
-    
-    // Position the health bar above the character
-    const barHeight = 15; // Increased height for more pronounced 3D effect
+    // Position the health bar higher above the character to avoid overlap
+    const barHeight = CONFIG.ENEMY_HEALTH_BAR.HEIGHT; // Same height as enemy health bar
     const barWidth = this.width * 1.2; // Slightly wider than the character
-    const barDepth = 20; // Significantly increased depth for true 3D appearance
-    const barY = -this.height / 2 - CONFIG.ENEMY_HEALTH_BAR.OFFSET - 5; // Slightly higher position
+    const barY = -this.height - 20; // Position above character
     
     // Make the health bar always face the camera
     const currentRotation = this.rotation;
     rotateY(-currentRotation);
     
-    // Create a more pronounced 3D health bar
+    // Draw background (empty bar)
     push();
     translate(0, barY, 0);
-    
-    // Add slight rotation for better 3D perspective
-    rotateX(PI/16); // Slight tilt forward
-    
-    // Draw the outer frame/casing of the health bar (like a capsule)
-    push();
-    stroke(30, 30, 30);
-    strokeWeight(1);
-    fill(70, 70, 70);
-    
-    // Main frame
-    box(barWidth + 6, barHeight + 6, barDepth + 6);
-    
-    // Inner cutout (black background)
-    push();
-    translate(0, 0, 2); // Move slightly forward
-    fill(20, 20, 20);
-    box(barWidth, barHeight, barDepth + 8); // Slightly deeper than the frame
-    pop();
-    pop();
-    
-    // Draw the health bar background (empty portion)
-    push();
     noStroke();
-    fill(40, 40, 40);
-    translate(0, 0, 3); // Position in front of the cutout
-    box(barWidth - 4, barHeight - 4, barDepth - 4);
+    fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.BACKGROUND);
+    box(barWidth, barHeight, 5);
     pop();
     
     // Only draw health bar if there's health to show
     if (healthPercent > 0) {
-      // Draw the filled portion with 3D lighting effects
+      // Draw health (filled portion)
       push();
+      translate(-barWidth/2 + (barWidth * healthPercent)/2, barY, 0);
+      
+      // Always use green for character health bars
+      fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.HIGH); // Always green
+      
       noStroke();
-      
-      // Calculate the position for the health bar fill
-      // It should start from the left edge and extend based on health percentage
-      const fillWidth = barWidth * healthPercent;
-      translate(-barWidth/2 + fillWidth/2, 0, 4); // Position at left edge + half of fill width
-      
-      // Use a fixed color for health bar that doesn't match character colors
-      const baseColor = [200, 200, 200]; // Light gray for all health bars
-      
-      // Create a glowing 3D health bar with multiple layers
-      
-      // Base layer (slightly darker)
-      fill(baseColor[0] * 0.7, baseColor[1] * 0.7, baseColor[2] * 0.7);
-      box(fillWidth, barHeight - 6, barDepth - 6);
-      
-      // Middle layer (base color)
-      push();
-      translate(0, 0, 1);
-      fill(baseColor[0], baseColor[1], baseColor[2]);
-      box(fillWidth - 2, barHeight - 8, barDepth - 8);
+      box(barWidth * healthPercent, barHeight, 6); // Slightly in front of background
       pop();
-      
-      // Top layer (brighter for highlight)
-      push();
-      translate(0, 0, 2);
-      fill(min(255, baseColor[0] * 1.3), min(255, baseColor[1] * 1.3), min(255, baseColor[2] * 1.3));
-      box(fillWidth - 4, barHeight - 10, barDepth - 10);
-      pop();
-      
-      // Add pulsing glow effect
-      const pulseAmount = sin(frameCount * 0.1) * 0.5 + 0.5; // Pulsing between 0 and 1
-      push();
-      translate(0, 0, 3);
-      fill(baseColor[0], baseColor[1], baseColor[2], 100 * pulseAmount);
-      box(fillWidth - 6, barHeight - 12, barDepth - 6);
-      pop();
-      
-      // Add highlight reflections (small white strips)
-      push();
-      fill(255, 255, 255, 150);
-      translate(0, -barHeight/4, 4);
-      box(fillWidth * 0.8, 1, barDepth - 12);
-      pop();
-      
-      pop();
-    }
-    
-    // Add decorative elements to make it look more high-tech
-    
-    // Left cap
-    push();
-    translate(-barWidth/2 - 3, 0, 0);
-    fill(80, 80, 80);
-    rotateY(PI/2);
-    cylinder(barHeight/2, 5);
-    pop();
-    
-    // Right cap
-    push();
-    translate(barWidth/2 + 3, 0, 0);
-    fill(80, 80, 80);
-    rotateY(PI/2);
-    cylinder(barHeight/2, 5);
-    pop();
-    
-    pop(); // End of health bar group
-    
-    // Debug log for health bar
-    if (this.gameState.frameCount % 60 === 0) { // Log once per second
-      console.debug(`[CHARACTER HEALTH BAR DEBUG] ${this.type} health: ${this.health.toFixed(2)}/${maxHealth} (${(healthPercent * 100).toFixed(1)}%)`);
     }
   }
   
