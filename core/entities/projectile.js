@@ -21,6 +21,7 @@ export class Projectile {
     this.gravity = 0;
     this.lifespan = 60; // Default lifespan in frames
     this.isDone = false;
+    this.target = null; // Target for homing projectiles
     
     // Appearance
     this.size = 10;
@@ -79,6 +80,29 @@ export class Projectile {
   }
   
   update() {
+    // For homing projectiles (like fireballs), adjust trajectory slightly
+    if (this.type === 'FIRE_FIREBALL' && this.target && !this.target.isDead) {
+      // Calculate angle to target
+      const targetAngle = atan2(this.target.z - this.z, this.target.x - this.x);
+      
+      // Current angle
+      const currentAngle = atan2(this.vz, this.vx);
+      
+      // Calculate angle difference (shortest path)
+      let angleDiff = targetAngle - currentAngle;
+      if (angleDiff > PI) angleDiff -= TWO_PI;
+      if (angleDiff < -PI) angleDiff += TWO_PI;
+      
+      // Adjust angle slightly (homing effect)
+      const homingStrength = 0.05; // How quickly it turns toward target
+      const newAngle = currentAngle + angleDiff * homingStrength;
+      
+      // Update velocity based on new angle
+      const speed = sqrt(this.vx * this.vx + this.vz * this.vz);
+      this.vx = cos(newAngle) * speed;
+      this.vz = sin(newAngle) * speed;
+    }
+    
     // Move projectile
     this.x += this.vx;
     this.y += this.vy;

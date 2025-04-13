@@ -127,16 +127,58 @@ export class GasLighter {
   }
   
   castFireSkill() {
-    // Choose a random fire skill type
+    // Get enemies for context-aware skill selection
+    const enemies = this.gameState.enemyController ? this.gameState.enemyController.getEnemies() : [];
+    
+    // Define all fire skill types
     const fireSkillTypes = ['FIREBALL', 'FLAME_SHIELD', 'INFERNO_BLAST', 'PHOENIX_REBIRTH', 'FIRESTORM'];
-    const randomType = fireSkillTypes[Math.floor(random(fireSkillTypes.length))];
+    
+    let selectedType;
+    
+    // Make intelligent skill selection based on game state
+    if (enemies.length === 0) {
+      // No enemies - prioritize healing or defensive skills
+      const defensiveSkills = ['PHOENIX_REBIRTH', 'FLAME_SHIELD'];
+      selectedType = defensiveSkills[Math.floor(random(defensiveSkills.length))];
+    } else if (this.gameState.player && this.gameState.player.health < CONFIG.PLAYER_HEALTH * 0.5) {
+      // Player health is low - 70% chance to cast Phoenix Rebirth for healing
+      selectedType = random() < 0.7 ? 'PHOENIX_REBIRTH' : fireSkillTypes[Math.floor(random(fireSkillTypes.length))];
+    } else {
+      // Normal combat situation - choose based on enemy count and proximity
+      
+      // Count nearby enemies (within 200 units)
+      const nearbyEnemies = enemies.filter(enemy => {
+        return dist(this.x, this.z, enemy.x, enemy.z) < 200;
+      });
+      
+      if (nearbyEnemies.length >= 3) {
+        // Many nearby enemies - area effect skills are more effective
+        const aoeSkills = ['FLAME_SHIELD', 'INFERNO_BLAST', 'FIRESTORM'];
+        selectedType = aoeSkills[Math.floor(random(aoeSkills.length))];
+      } else if (nearbyEnemies.length > 0) {
+        // Some nearby enemies - balanced approach
+        // 60% chance for targeted skills, 40% chance for any skill
+        if (random() < 0.6) {
+          const targetedSkills = ['FIREBALL', 'INFERNO_BLAST'];
+          selectedType = targetedSkills[Math.floor(random(targetedSkills.length))];
+        } else {
+          selectedType = fireSkillTypes[Math.floor(random(fireSkillTypes.length))];
+        }
+      } else {
+        // Enemies are far away - ranged skills are better
+        const rangedSkills = ['FIREBALL', 'FIRESTORM'];
+        selectedType = random() < 0.7 ? 
+          rangedSkills[Math.floor(random(rangedSkills.length))] : 
+          fireSkillTypes[Math.floor(random(fireSkillTypes.length))];
+      }
+    }
     
     // Create the fire skill at the Gas Lighter's landing position
     const fireSkill = new FireSkill(
       this.x, 
       this.y, 
       this.z, 
-      randomType,
+      selectedType,
       this.gameState
     );
     
@@ -149,7 +191,7 @@ export class GasLighter {
     // Create a visual effect for the cast
     if (this.gameState.waves) {
       // Get the color for this fire skill type
-      let waveColor = CONFIG.GAS_LIGHTER.CAST_EFFECTS.PARTICLE_COLORS[randomType] || [255, 100, 0];
+      let waveColor = CONFIG.GAS_LIGHTER.CAST_EFFECTS.PARTICLE_COLORS[selectedType] || [255, 100, 0];
       
       // Add alpha channel
       waveColor = [...waveColor, 180];

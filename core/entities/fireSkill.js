@@ -184,13 +184,16 @@ export class FireSkill {
       meteor.y += meteor.vy;
       meteor.z += meteor.vz;
       
-      // Check if meteor hit the ground
-      if (meteor.y >= -50) {
+      // Check if meteor reached its target position or went below ground
+      const distToTarget = dist(meteor.x, meteor.z, meteor.targetX, meteor.targetZ);
+      const heightPastTarget = meteor.y > meteor.targetY;
+      
+      if (distToTarget < 20 || heightPastTarget || meteor.y >= -50) {
         // Create impact wave
         if (this.gameState.waves) {
           const impactWave = new Wave(
             meteor.x,
-            -50,
+            meteor.y,
             meteor.z,
             this.typeConfig.METEOR_SIZE * 2,
             [...this.typeConfig.COLOR, 180]
@@ -201,7 +204,30 @@ export class FireSkill {
         }
         
         // Damage enemies near impact
-        this.damageNearbyEnemies(this.typeConfig.METEOR_SIZE * 3, this.damage, meteor.x, -50, meteor.z);
+        this.damageNearbyEnemies(this.typeConfig.METEOR_SIZE * 3, this.damage, meteor.x, meteor.y, meteor.z);
+        
+        // Create additional fire particles
+        if (this.gameState.waves) {
+          for (let j = 0; j < 8; j++) {
+            const particleAngle = random(TWO_PI);
+            const particleRadius = random(10, 30);
+            const particleX = meteor.x + cos(particleAngle) * particleRadius;
+            const particleY = meteor.y;
+            const particleZ = meteor.z + sin(particleAngle) * particleRadius;
+            
+            const fireParticle = new Wave(
+              particleX,
+              particleY,
+              particleZ,
+              random(5, 15),
+              [255, random(50, 150), 0, random(150, 200)]
+            );
+            fireParticle.growthRate = random(2, 4);
+            fireParticle.maxRadius = random(20, 40);
+            fireParticle.lifespan = random(15, 30);
+            this.gameState.waves.push(fireParticle);
+          }
+        }
         
         // Remove meteor
         this.meteors.splice(i, 1);
@@ -269,11 +295,27 @@ export class FireSkill {
   // Skill-specific methods
   
   castFireball() {
-    // Find a random enemy to target
+    // Find a random enemy to target, prioritizing closer enemies
     const enemies = this.gameState.enemyController ? this.gameState.enemyController.getEnemies() : [];
     if (enemies.length === 0) return;
     
-    const target = enemies[Math.floor(random(enemies.length))];
+    // Sort enemies by distance to the Gas Lighter
+    const sortedEnemies = [...enemies].sort((a, b) => {
+      const distA = dist(this.x, this.z, a.x, a.z);
+      const distB = dist(this.x, this.z, b.x, b.z);
+      return distA - distB; // Sort by closest first
+    });
+    
+    // 70% chance to target one of the closest enemies, 30% chance for random
+    let target;
+    if (random() < 0.7 && sortedEnemies.length > 0) {
+      // Choose one of the closest 3 enemies (or fewer if there aren't 3)
+      const closestCount = min(3, sortedEnemies.length);
+      target = sortedEnemies[floor(random(closestCount))];
+    } else {
+      // Choose a completely random enemy
+      target = enemies[Math.floor(random(enemies.length))];
+    }
     
     // Calculate angle to target
     const angleToTarget = atan2(target.z - this.z, target.x - this.x);
@@ -294,6 +336,7 @@ export class FireSkill {
     fireball.size = this.typeConfig.SIZE;
     fireball.speed = this.typeConfig.SPEED;
     fireball.damage = this.damage;
+    fireball.target = target; // Track the target for homing capability
     
     // Add to projectiles array
     this.projectiles.push(fireball);
@@ -366,18 +409,54 @@ export class FireSkill {
     fill(...this.typeConfig.COLOR, 50 + sin(frameCount * this.typeConfig.PULSE_RATE) * 30);
     sphere(this.typeConfig.RADIUS * (0.9 + sin(frameCount * this.typeConfig.PULSE_RATE) * 0.1));
     
-    // Flame particles around shield
+    // Get enemies for targeting flame particles
+    const enemies = this.gameState.enemyController ? this.gameState.enemyController.getEnemies() : [];
+    const nearbyEnemies = enemies.filter(enemy => {
+      const distance = dist(this.x, this.z, enemy.x, enemy.z);
+      return distance < this.typeConfig.RADIUS * 2; // Only consider enemies within twice the shield radius
+    });
+    
+    // Flame particles around shield - some random, some targeting enemies
     for (let i = 0; i < 8; i++) {
       push();
-      const angle = i * TWO_PI / 8 + frameCount * 0.01;
-      const radius = this.typeConfig.RADIUS;
-      const x = cos(angle) * radius;
-      const z = sin(angle) * radius;
+      
+      let x, z;
+      
+      // 70% chance to target a nearby enemy if available
+      if (nearbyEnemies.length > 0 && random() < 0.7) {
+        // Choose a random nearby enemy
+        const targetEnemy = nearbyEnemies[floor(random(nearbyEnemies.length))];
+        
+        // Calculate direction to enemy
+        const dx = targetEnemy.x - this.x;
+        const dz = targetEnemy.z - this.z;
+        const dist = sqrt(dx*dx + dz*dz);
+        
+        // Position flame particle in the direction of the enemy, but still on shield surface
+        x = dx / dist * this.typeConfig.RADIUS;
+        z = dz / dist * this.typeConfig.RADIUS;
+      } else {
+        // Random position on shield
+        const angle = i * TWO_PI / 8 + frameCount * 0.01;
+        x = cos(angle) * this.typeConfig.RADIUS;
+        z = sin(angle) * this.typeConfig.RADIUS;
+      }
+      
       const y = sin(frameCount * 0.1 + i) * 20;
       
       translate(x, y, z);
       fill(...this.typeConfig.COLOR, 150);
       sphere(5 + sin(frameCount * 0.2 + i) * 3);
+      
+      // Add a small flame trail pointing outward
+      push();
+      const outwardX = x * 0.3;
+      const outwardZ = z * 0.3;
+      translate(outwardX, 0, outwardZ);
+      fill(...this.typeConfig.COLOR, 100);
+      sphere(3 + sin(frameCount * 0.3 + i) * 2);
+      pop();
+      
       pop();
     }
     
@@ -387,10 +466,13 @@ export class FireSkill {
   createBlastWave(progress = 0) {
     if (!this.gameState.waves) return;
     
+    // Get enemies for targeting
+    const enemies = this.gameState.enemyController ? this.gameState.enemyController.getEnemies() : [];
+    
     // Calculate radius based on progress
     const radius = this.typeConfig.RADIUS * (progress || 0.2);
     
-    // Create a blast wave
+    // Create the main blast wave
     const blastWave = new Wave(
       this.x,
       this.y - 20,
@@ -403,6 +485,43 @@ export class FireSkill {
     blastWave.lifespan = 20;
     blastWave.damage = this.damage / 5; // Damage over time
     this.gameState.waves.push(blastWave);
+    
+    // Create additional targeted blast waves toward enemies (30% chance)
+    if (enemies.length > 0 && random() < 0.3) {
+      // Sort enemies by distance
+      const sortedEnemies = [...enemies].sort((a, b) => {
+        const distA = dist(this.x, this.z, a.x, a.z);
+        const distB = dist(this.x, this.z, b.x, b.z);
+        return distA - distB;
+      });
+      
+      // Target one of the closest 3 enemies
+      const closestCount = min(3, sortedEnemies.length);
+      const targetEnemy = sortedEnemies[floor(random(closestCount))];
+      
+      // Calculate direction to enemy
+      const dx = targetEnemy.x - this.x;
+      const dz = targetEnemy.z - this.z;
+      const distance = sqrt(dx*dx + dz*dz);
+      
+      // Create a directional blast wave toward the enemy
+      // Position it partway between the skill and the enemy
+      const midpointX = this.x + dx * 0.5;
+      const midpointZ = this.z + dz * 0.5;
+      
+      const targetedWave = new Wave(
+        midpointX,
+        this.y - 20,
+        midpointZ,
+        radius * 0.7, // Slightly smaller
+        [...this.typeConfig.COLOR, 200] // More opaque
+      );
+      targetedWave.growthRate = this.typeConfig.EXPANSION_RATE * 1.5; // Faster expansion
+      targetedWave.maxRadius = radius * 1.2;
+      targetedWave.lifespan = 15;
+      targetedWave.damage = this.damage / 4; // Slightly more damage
+      this.gameState.waves.push(targetedWave);
+    }
   }
   
   createPhoenixEffect() {
@@ -542,12 +661,31 @@ export class FireSkill {
     const meteorZ = sin(angle) * radius;
     const meteorY = -500 - random(200); // Start high above
     
-    // Calculate target position (random point on the ground)
-    const targetRadius = random(CONFIG.WORLD_RADIUS * 0.5);
-    const targetAngle = random(TWO_PI);
-    const targetX = cos(targetAngle) * targetRadius;
-    const targetZ = sin(targetAngle) * targetRadius;
-    const targetY = -50; // Ground level
+    // Get enemies
+    const enemies = this.gameState.enemyController ? this.gameState.enemyController.getEnemies() : [];
+    
+    let targetX, targetZ;
+    
+    // 80% chance to target an enemy if available
+    if (enemies.length > 0 && random() < 0.8) {
+      // Choose a random enemy to target
+      const targetEnemy = enemies[floor(random(enemies.length))];
+      targetX = targetEnemy.x;
+      targetZ = targetEnemy.z;
+      
+      // Add some randomness to the target position
+      targetX += random(-50, 50);
+      targetZ += random(-50, 50);
+    } else {
+      // Target a random position on the battlefield
+      const targetRadius = random(CONFIG.WORLD_RADIUS * 0.5);
+      const targetAngle = random(TWO_PI);
+      targetX = cos(targetAngle) * targetRadius;
+      targetZ = sin(targetAngle) * targetRadius;
+    }
+    
+    // Set target Y to be above ground level so meteors don't hit the ground
+    const targetY = -100 - random(50); // Above ground level
     
     // Calculate velocity
     const dx = targetX - meteorX;
@@ -569,7 +707,10 @@ export class FireSkill {
       vy: vy,
       vz: vz,
       size: this.typeConfig.METEOR_SIZE,
-      rotation: random(TWO_PI)
+      rotation: random(TWO_PI),
+      targetX: targetX,
+      targetZ: targetZ,
+      targetY: targetY
     };
     
     // Add to meteors array
