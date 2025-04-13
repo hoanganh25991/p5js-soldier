@@ -41,20 +41,39 @@ export function autoShoot(source, targetCount = 1, fireRate = CONFIG.FIRE_RATE, 
   // Find targets
   let targets = source.findNearestEnemies(targetCount);
 
-  // Debug: Log if we found any targets
-  console.log(`${source.constructor.name} found ${targets.length} targets`);
+  // Debug logging only 1% of the time to reduce console spam
+  if (Math.random() < 0.01) {
+    console.log(`${source.constructor.name} found ${targets.length} targets`);
+  }
 
   // Draw aim lines and shoot at all targets
   for (let target of targets) {
     let { gunX, gunY, gunZ, angle } = showAimLine(source, target);
     source.rotation = angle + HALF_PI;
 
-    // Debug: Log target position
-    console.log(`Shooting at target: ${target.x.toFixed(0)}, ${target.y.toFixed(0)}, ${target.z.toFixed(0)}`);
+    // Debug logging only 1% of the time
+    if (Math.random() < 0.01) {
+      console.log(`Shooting at target: ${target.x.toFixed(0)}, ${target.y.toFixed(0)}, ${target.z.toFixed(0)}`);
+    }
 
     // Create bullet
     gameState.bullets.push(new Bullet(gunX, gunY, gunZ, angle, target, source, gameState));
-    gameState.shootSound.play();
+    
+    // Play shoot sound with reduced volume for main soldier
+    if (source.constructor.name === 'Player') {
+      // Save current volume
+      const currentVolume = gameState.shootSound.getVolume();
+      // Set to lower volume (0.2 = 20% of original volume)
+      gameState.shootSound.setVolume(0.2);
+      gameState.shootSound.play();
+      // Reset to original volume after playing
+      setTimeout(() => {
+        gameState.shootSound.setVolume(currentVolume);
+      }, 100);
+    } else {
+      // For other entities (clones, turrets), play at normal volume
+      gameState.shootSound.play();
+    }
   }
 }
 

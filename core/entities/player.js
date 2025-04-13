@@ -2,6 +2,7 @@
 
 import CONFIG from '../config.js';
 import { updateHeight, showAimLine, autoShoot, findNearestEnemies } from '../utils.js';
+import { Bullet } from './bullet.js';
 
 export class Player {
   constructor(gameState) {
@@ -46,7 +47,33 @@ export class Player {
   }
 
   autoShoot(targetCount = 1) {
-    autoShoot(this, targetCount, CONFIG.FIRE_RATE, this.gameState);
+    // Custom implementation for player to reduce sound volume
+    if (this.gameState.frameCount % CONFIG.FIRE_RATE !== 0) return;
+
+    // Find targets
+    let targets = this.findNearestEnemies(targetCount);
+
+    // Draw aim lines and shoot at all targets
+    for (let target of targets) {
+      let { gunX, gunY, gunZ, angle } = this.showAimLine(target);
+      this.rotation = angle + HALF_PI;
+
+      // Create bullet
+      this.gameState.bullets.push(new Bullet(gunX, gunY, gunZ, angle, target, this, this.gameState));
+      
+      // Play shoot sound at reduced volume
+      if (this.gameState.shootSound) {
+        // Save current volume
+        const currentVolume = this.gameState.shootSound.getVolume();
+        // Set to lower volume (0.2 = 20% of original volume)
+        this.gameState.shootSound.setVolume(this.gameState.masterVolume * 0.2);
+        this.gameState.shootSound.play();
+        // Reset to original volume after playing
+        setTimeout(() => {
+          this.gameState.shootSound.setVolume(currentVolume);
+        }, 100);
+      }
+    }
   }
 
   update() {

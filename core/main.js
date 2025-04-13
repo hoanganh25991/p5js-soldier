@@ -46,6 +46,12 @@ function setup() {
     textFont(gameState.gameFont);
   }
   
+  // Set global sound volume (0.5 = 50% of original volume)
+  gameState.masterVolume = 0.5;
+  if (gameState.shootSound) gameState.shootSound.setVolume(gameState.masterVolume);
+  if (gameState.cloneSound) gameState.cloneSound.setVolume(gameState.masterVolume);
+  if (gameState.spawnSound) gameState.spawnSound.setVolume(gameState.masterVolume);
+  
   // Create UI elements
   gameState.ui.statusBoard = createStatusBoard();
   gameState.ui.menuScreen = createMenuUI();
@@ -346,6 +352,32 @@ function keyPressed() {
       select('#pause-menu').style('display', 'none');
       loop();
     }
+    return;
+  }
+  
+  // Handle mute with M key
+  if (key === 'm' || key === 'M') {
+    // Toggle mute state
+    if (gameState.isMuted) {
+      // Unmute
+      gameState.masterVolume = gameState.previousVolume;
+    } else {
+      // Mute
+      gameState.previousVolume = gameState.masterVolume || 0.5;
+      gameState.masterVolume = 0;
+    }
+    
+    // Update mute state
+    gameState.isMuted = !gameState.isMuted;
+    
+    // Update all sound volumes
+    if (gameState.shootSound) gameState.shootSound.setVolume(gameState.masterVolume);
+    if (gameState.cloneSound) gameState.cloneSound.setVolume(gameState.masterVolume);
+    if (gameState.spawnSound) gameState.spawnSound.setVolume(gameState.masterVolume);
+    
+    // Show message
+    showCooldownMessage(gameState.isMuted ? "Sound Muted" : "Sound Unmuted", 0);
+    
     return;
   }
   
