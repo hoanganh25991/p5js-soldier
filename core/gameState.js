@@ -7,7 +7,8 @@ import { initializeSkillState } from './skills.js';
 // Create the game state object
 const gameState = {
   // Game state management
-  currentState: 'menu', // menu, playing, paused, gameOver
+  currentState: 'menu', // menu, playing, paused, gameOver, levelUp
+  previousState: null, // Store previous state when entering levelUp
   frameCount: 0,
   pillarHeight: CONFIG.PILLAR_HEIGHT,
   playerHealth: CONFIG.PLAYER_HEALTH,
@@ -66,6 +67,9 @@ const gameState = {
   weather: 'clear', // clear, rain, storm, fog
   weatherIntensity: 0, // 0-1 value for intensity
   weatherTimer: 0, // Timer for weather changes
+  rainParticles: [], // Array to store rain particles
+  ambientLight: 100, // Default ambient light level
+  fogDensity: 0, // Fog density (0-1)
   
   // UI elements
   ui: {
@@ -87,6 +91,8 @@ const gameState = {
 // Reset game state to initial values
 function resetGameState() {
   gameState.frameCount = 0;
+  gameState.currentState = 'menu';
+  gameState.previousState = null;
   gameState.pillarHeight = CONFIG.PILLAR_HEIGHT;
   gameState.playerHealth = CONFIG.PLAYER_HEALTH;
   gameState.zoomLevel = 1.0;
@@ -108,6 +114,9 @@ function resetGameState() {
   gameState.weather = 'clear';
   gameState.weatherIntensity = 0;
   gameState.weatherTimer = random(600, 1800); // Random time until first weather change
+  gameState.rainParticles = [];
+  gameState.ambientLight = 100;
+  gameState.fogDensity = 0;
   
   // Reset skills
   gameState.skills = initializeSkillState();

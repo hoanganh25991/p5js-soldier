@@ -11,6 +11,9 @@ export const WEATHER_TYPES = {
 
 // Update time of day and weather
 export function updateEnvironment(gameState) {
+  // Only update every few frames to improve performance
+  if (gameState.frameCount % 3 !== 0) return;
+  
   // Update time of day (cycles from 0 to 1)
   gameState.timeOfDay = (gameState.timeOfDay + (1 / gameState.dayLength)) % 1;
   
@@ -120,8 +123,11 @@ function applyEnvironmentEffects(gameState) {
 
 // Create rain particles
 function createRainParticles(count) {
+  // Reduce the number of particles for better performance
+  const actualCount = Math.min(count, 200); // Cap at 200 particles maximum
+  
   const particles = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < actualCount; i++) {
     particles.push({
       x: random(-1000, 1000),
       y: random(-1000, 0),
@@ -279,14 +285,22 @@ function drawLightning(gameState) {
 
 // Draw fog effect
 function drawFog(gameState) {
+  // Skip fog rendering if density is very low
+  if (gameState.fogDensity < 0.1) return;
+  
   push();
   noStroke();
   
   // Semi-transparent white for fog
   fill(255, 255, 255, gameState.fogDensity * 150);
   
-  // Draw fog as a series of overlapping planes at different depths
-  for (let z = -1000; z < 1000; z += 200) {
+  // Draw fewer fog planes for better performance
+  // Just 5 planes instead of 10+
+  const playerZ = gameState.player.z;
+  const fogPlanes = [-800, -400, 0, 400, 800];
+  
+  for (let i = 0; i < fogPlanes.length; i++) {
+    const z = playerZ + fogPlanes[i];
     push();
     translate(0, 0, z);
     plane(2000, 2000);

@@ -94,7 +94,7 @@ function resetGame() {
   applyUpgrades(gameState);
   
   // Initialize power-up spawn timer
-  gameState.powerUpSpawnTimer = random(60, 120); // 1-2 seconds (for testing, can be increased later)
+  gameState.powerUpSpawnTimer = random(300, 600); // 5-10 seconds
   
   // Update UI
   updateStatusBoard();
@@ -141,8 +141,8 @@ function draw() {
         if (gameState.powerUpSpawnTimer === 0) {
           gameState.powerUps.push(spawnRandomPowerUp(gameState));
           
-          // Reset timer for next power-up (2-5 seconds for testing)
-          gameState.powerUpSpawnTimer = random(120, 300);
+          // Reset timer for next power-up (10-20 seconds)
+          gameState.powerUpSpawnTimer = random(600, 1200);
         }
       }
       
