@@ -26,8 +26,8 @@ export function createStatusBoard() {
   fpsDiv.child(fpsSpan);
   statusBoard.child(fpsDiv);
   
-  // Create pillar height display
-  const pillarHeightDiv = createElement('div', 'Pillar Height: ');
+  // Create tower height display
+  const pillarHeightDiv = createElement('div', 'Tower Height: ');
   const pillarHeightSpan = createElement('span', '100');
   pillarHeightSpan.id('pillar-height');
   pillarHeightDiv.child(pillarHeightSpan);
@@ -388,7 +388,7 @@ export function updateStatusBoard() {
   
   // Update stats
   select('#fps').html(Math.floor(frameRate()));
-  select('#pillar-height').html(Math.ceil(gameState.pillarHeight));
+  select('#pillar-height').html(Math.ceil(gameState.towerHeight));
   select('#health').html(Math.ceil(gameState.playerHealth));
   
   // Get kills from enemy controller
@@ -462,7 +462,7 @@ export function showGameOverScreen(isVictory) {
   
   stats.html(`
     <p>Enemies Killed: ${gameState.enemiesKilled}</p>
-    <p>Pillar Height: ${Math.ceil(gameState.pillarHeight)}</p>
+    <p>Tower Height: ${Math.ceil(gameState.towerHeight)}</p>
     <p>Health Remaining: ${Math.ceil(gameState.playerHealth)}</p>
   `);
   

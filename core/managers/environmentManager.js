@@ -27,8 +27,8 @@ export function updateGameEnvironment(gameState) {
   // Show waves
   gameState.waves.forEach(wave => wave.show());
   
-  // Draw pillar
-  gameState.pillar.show();
+  // Draw tower
+  gameState.tower.show();
   
   // Show player
   gameState.player.show();

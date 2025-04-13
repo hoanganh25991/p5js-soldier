@@ -10,7 +10,7 @@ const gameState = {
   currentState: 'menu', // menu, playing, paused, gameOver, levelUp
   previousState: null, // Store previous state when entering levelUp
   frameCount: 0,
-  pillarHeight: CONFIG.PILLAR_HEIGHT,
+  towerHeight: CONFIG.TOWER_HEIGHT,
   playerHealth: CONFIG.PLAYER_HEALTH,
   
   // Legacy skill cooldowns (for backward compatibility)
@@ -34,7 +34,7 @@ const gameState = {
   
   // Game objects
   player: null,
-  pillar: null,
+  tower: null,
   bullets: [],
   enemies: [],
   clones: [],

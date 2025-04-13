@@ -7,7 +7,7 @@ import { Bullet } from './entities/bullet.js';
 // Update entity height based on pillar height
 export function updateHeight(entity, gameState) {
   // Adjust height based on pillar height
-  entity.y = -20 - gameState.pillarHeight * 5 + entity.height / 2;
+  entity.y = -20 - gameState.towerHeight * 5 + entity.height / 2;
 }
 
 // Draw aim line from source to target
