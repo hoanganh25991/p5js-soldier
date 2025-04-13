@@ -44,10 +44,10 @@ export function updateCamera(gameState) {
     camZ + 100 // Camera behind player
   );
 
-  // Look at point in front of player at 1/3 screen height
+  // Look at point in front of player with better sky visibility
   gameState.camera.lookAt(
     0, // Keep centered horizontally
-    gameState.player.y + 700, // Look slightly down
+    gameState.player.y + 200, // Look more level to see sky
     -400 // Look ahead of player
   );
 }
