@@ -34,7 +34,7 @@ const CONFIG = {
 
   // Enemy settings
   ENEMY_RADIUS: 1000,
-  ENEMY_COUNT: 50,
+  ENEMY_COUNT: 30, // Reduced from 50 to improve performance
   ENEMY_SPEED: 0.5, // Increased enemy speed but still slower than bullets
   ENEMY_WIDTH: 20,
   ENEMY_HEIGHT: 40,

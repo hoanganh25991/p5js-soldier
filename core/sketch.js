@@ -65,8 +65,8 @@ function setup() {
 
 // p5.js draw function - called every frame
 function draw() {
-  // Set the font at the beginning of each frame to ensure all text rendering works
-  if (gameState.gameFont) {
+  // Only set the font once per frame if needed, not on every draw call
+  if (gameState.gameFont && frameCount === 1) {
     textFont(gameState.gameFont);
   }
   
