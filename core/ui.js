@@ -109,7 +109,7 @@ export function createMenuUI() {
   menuContainer.style('z-index', '300');
   
   // Title
-  const title = createElement('h1', 'Pillar Defense Game');
+  const title = createElement('h1', 'Soldier Tower');
   title.style('color', 'white');
   title.style('font-family', 'Arial, sans-serif');
   title.style('margin-bottom', '40px');
