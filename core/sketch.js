@@ -30,6 +30,9 @@ function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   gameState.camera = createCamera();
   
+  // Set target frame rate to 60 FPS
+  frameRate(60);
+  
   // Set the default font for all text rendering in WEBGL mode
   if (gameState.gameFont) {
     textFont(gameState.gameFont);

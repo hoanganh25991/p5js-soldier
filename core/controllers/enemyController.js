@@ -34,7 +34,6 @@ export class EnemyController {
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       // Skip invalid enemies
       if (!this.enemies[i]) {
-        console.log('Found invalid enemy at index', i);
         this.enemies.splice(i, 1);
         continue;
       }
@@ -43,19 +42,12 @@ export class EnemyController {
       
       // Check if enemy is dead
       if (this.enemies[i].health <= 0) {
-        // Debug log when enemy is removed
-        console.debug(`[ENEMY CONTROLLER DEBUG] Removing enemy at index ${i}, enemies killed: ${this.enemiesKilled + 1}`);
-        
         this.enemies.splice(i, 1);
         this.enemiesKilled++;
-        
-        // Debug log after enemy is removed
-        console.debug(`[ENEMY CONTROLLER DEBUG] Enemy removed, remaining enemies: ${this.enemies.length}, total killed: ${this.enemiesKilled}`);
         
         // Spawn new enemy if below max limit
         if (this.enemies.length < CONFIG.MAX_ENEMIES) {
           this.spawnEnemy();
-          console.debug(`[ENEMY CONTROLLER DEBUG] Spawned new enemy, total enemies: ${this.enemies.length}`);
         }
       }
     }

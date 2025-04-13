@@ -3,8 +3,8 @@
 const CONFIG = {
   // World settings
   WORLD_RADIUS: 1500,
-  MAX_ENEMIES: 50,
-  SPAWN_INTERVAL: 60, // frames between spawns
+  MAX_ENEMIES: 30, // Reduced from 50 to improve performance
+  SPAWN_INTERVAL: 90, // Increased from 60 to reduce spawn frequency
   // Game settings
   TOWER_HEIGHT: 100,
   PLAYER_HEALTH: 100,
