@@ -1,12 +1,15 @@
 // Character Classes Index
 // Exports all character classes for easy importing
 
-export { Character } from './Character.js';
-export { Tank } from './Tank.js';
-export { Hero } from './Hero.js';
-export { Mario } from './Mario.js';
-export { Megaman } from './Megaman.js';
-export { Songoku } from './Songoku.js';
+import { Character } from './Character.js';
+import { Tank } from './Tank.js';
+import { Hero } from './Hero.js';
+import { Mario } from './Mario.js';
+import { Megaman } from './Megaman.js';
+import { Songoku } from './Songoku.js';
+
+// Export all classes for external use
+export { Character, Tank, Hero, Mario, Megaman, Songoku };
 
 // Factory function to create the appropriate character type
 export function createCharacter(x, y, z, type, gameState) {
