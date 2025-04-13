@@ -93,7 +93,7 @@ function resetGameState() {
   gameState.frameCount = 0;
   gameState.currentState = 'menu';
   gameState.previousState = null;
-  gameState.pillarHeight = CONFIG.PILLAR_HEIGHT;
+  gameState.towerHeight = CONFIG.TOWER_HEIGHT;
   gameState.playerHealth = CONFIG.PLAYER_HEALTH;
   gameState.zoomLevel = 1.0;
   gameState.isDragging = false;

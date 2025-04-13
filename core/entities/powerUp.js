@@ -30,6 +30,19 @@ export class PowerUp {
     this.collected = false;
     this.pulseSize = 0;
     
+    // Visibility improvement - raise power-ups above ground
+    this.y = 50; // Start 50 units above ground
+    
+    // Auto-fly to player settings
+    this.flyToPlayerTimer = 300; // Start flying to player after 5 seconds (300 frames)
+    this.isFlying = false;
+    this.flySpeed = 8; // Similar to GBA throw speed
+    this.direction = 0; // Will be calculated when flying starts
+    
+    // Physics for flying animation
+    this.velocityY = 0;
+    this.gravity = 0.1; // Lighter gravity than GBA
+    
     // Create fewer particles for better performance
     this.particles = [];
     for (let i = 0; i < 5; i++) { // Reduced from 20 to 5
@@ -73,7 +86,11 @@ export class PowerUp {
   update() {
     // Rotate and float animation
     this.rotationY += 0.02;
-    this.floatOffset = sin(frameCount * this.floatSpeed) * 5;
+    
+    // Only apply float offset if not flying
+    if (!this.isFlying) {
+      this.floatOffset = sin(frameCount * this.floatSpeed) * 5;
+    }
     
     // Pulse effect
     this.pulseSize = sin(frameCount * 0.1) * 2;
@@ -87,14 +104,57 @@ export class PowerUp {
       particle.yOffset = sin(frameCount * 0.05 + i) * 15;
     }
     
-    // Decrease lifespan
-    this.lifespan--;
-    
-    // Make power-up more visible when player is nearby
+    // Calculate distance to player
     const distToPlayer = dist(this.x, this.y, this.z, 
                              this.gameState.player.x, 
                              this.gameState.player.y, 
                              this.gameState.player.z);
+    
+    // Check if it's time to start flying to player
+    if (!this.isFlying && this.flyToPlayerTimer <= 0) {
+      this.isFlying = true;
+      
+      // Calculate direction to player
+      this.direction = atan2(
+        this.gameState.player.z - this.z,
+        this.gameState.player.x - this.x
+      );
+      
+      // Initial upward velocity for arc motion
+      this.velocityY = -5;
+      
+      // Show message that power-up is coming to player
+      if (window.showCooldownMessage) {
+        window.showCooldownMessage(`${this.type.charAt(0).toUpperCase() + this.type.slice(1)} power-up is flying to you!`, 0);
+      }
+    }
+    
+    // Handle flying to player
+    if (this.isFlying) {
+      // Move toward player
+      this.x += cos(this.direction) * this.flySpeed;
+      this.z += sin(this.direction) * this.flySpeed;
+      
+      // Apply gravity and update vertical position
+      this.velocityY += this.gravity;
+      this.y += this.velocityY;
+      
+      // Cap the maximum height to ensure it doesn't go too high
+      const maxHeight = this.gameState.player.y - 100;
+      if (this.y < maxHeight) {
+        this.y = maxHeight;
+        this.velocityY = 0;
+      }
+      
+      // Ensure it doesn't go below ground level
+      if (this.y > 0) {
+        this.y = 0;
+        this.velocityY = -2; // Bounce effect
+      }
+    } else {
+      // Decrease timer if not flying yet
+      this.flyToPlayerTimer--;
+    }
     
     // Check for collection by player (increased collection radius)
     if (distToPlayer < 50 && !this.collected) {
@@ -103,22 +163,54 @@ export class PowerUp {
       return true; // Signal to remove this power-up
     }
     
+    // Decrease lifespan
+    this.lifespan--;
+    
     // Return true when lifespan is over to remove the power-up
     return this.lifespan <= 0;
   }
   
   show() {
     // Draw beam of light from ground to power-up (simplified)
-    push();
-    stroke(this.color[0], this.color[1], this.color[2], 100);
-    strokeWeight(3);
-    line(this.x, 0, this.z, this.x, this.y + this.floatOffset, this.z);
-    pop();
+    // Only show beam if not flying
+    if (!this.isFlying) {
+      push();
+      stroke(this.color[0], this.color[1], this.color[2], 100);
+      strokeWeight(3);
+      line(this.x, 0, this.z, this.x, this.y + this.floatOffset, this.z);
+      pop();
+    } else {
+      // Draw trail effect when flying
+      push();
+      stroke(this.color[0], this.color[1], this.color[2], 150);
+      strokeWeight(4);
+      // Draw a trail behind the power-up
+      const trailLength = 5;
+      for (let i = 1; i <= trailLength; i++) {
+        const alpha = 150 - (i * 20); // Fade out
+        stroke(this.color[0], this.color[1], this.color[2], alpha);
+        strokeWeight(4 - (i * 0.5));
+        const trailX = this.x - cos(this.direction) * this.flySpeed * i * 2;
+        const trailZ = this.z - sin(this.direction) * this.flySpeed * i * 2;
+        const trailY = this.y + (i * 2); // Trail slightly rises
+        line(trailX, trailY, trailZ, this.x, this.y, this.z);
+      }
+      pop();
+    }
+    
+    // Calculate current y position with float offset if not flying
+    const currentY = this.y + (this.isFlying ? 0 : this.floatOffset);
     
     // Draw the power-up itself
     push();
-    translate(this.x, this.y + this.floatOffset, this.z);
+    translate(this.x, currentY, this.z);
     rotateY(this.rotationY);
+    
+    // Add more rotation when flying for dynamic effect
+    if (this.isFlying) {
+      rotateX(frameCount * 0.1);
+      rotateZ(frameCount * 0.05);
+    }
     
     // Use a single light instead of multiple lights
     // Removed ambientLight and using only one pointLight
@@ -129,7 +221,13 @@ export class PowerUp {
     fill(this.color[0], this.color[1], this.color[2]);
     
     // Make power-ups larger for better visibility
-    const displaySize = this.size * 2 + this.pulseSize;
+    // Make them even larger when flying
+    const displaySize = this.size * 2 + this.pulseSize + (this.isFlying ? 5 : 0);
+    
+    // Add glow effect
+    ambientLight(this.color[0]/3, this.color[1]/3, this.color[2]/3);
+    specularMaterial(250);
+    shininess(20);
     
     // Simplified shapes for different power-ups
     switch(this.type) {
@@ -174,15 +272,42 @@ export class PowerUp {
     }
     
     // Draw particles (simplified)
-    for (let i = 0; i < this.particles.length; i++) {
-      const particle = this.particles[i];
-      const particleX = cos(particle.angle) * particle.radius;
-      const particleZ = sin(particle.angle) * particle.radius;
+    // Add more particles when flying
+    const particleCount = this.isFlying ? this.particles.length * 2 : this.particles.length;
+    for (let i = 0; i < particleCount; i++) {
+      // Use existing particles or calculate new positions for extra particles
+      const particleIndex = i % this.particles.length;
+      const particle = this.particles[particleIndex];
+      
+      // Calculate particle position
+      let particleX, particleZ, particleY;
+      
+      if (i < this.particles.length) {
+        // Original particles orbit around the power-up
+        particleX = cos(particle.angle) * particle.radius;
+        particleZ = sin(particle.angle) * particle.radius;
+        particleY = particle.yOffset;
+      } else {
+        // Extra particles for flying mode - create a trail effect
+        const trailFactor = (i - this.particles.length) / this.particles.length;
+        particleX = -cos(this.direction) * (30 + trailFactor * 50);
+        particleZ = -sin(this.direction) * (30 + trailFactor * 50);
+        particleY = particle.yOffset + trailFactor * 20;
+      }
       
       push();
-      translate(particleX, particle.yOffset, particleZ);
-      fill(this.color[0], this.color[1], this.color[2], 150);
-      sphere(particle.size);
+      translate(particleX, particleY, particleZ);
+      
+      // Make particles pulse when flying
+      const particleSize = this.isFlying ? 
+        particle.size * (1 + sin(frameCount * 0.2 + i) * 0.3) : 
+        particle.size;
+        
+      // Particles fade out in the trail
+      const alpha = i < this.particles.length ? 150 : 150 * (1 - ((i - this.particles.length) / this.particles.length));
+      
+      fill(this.color[0], this.color[1], this.color[2], alpha);
+      sphere(particleSize);
       pop();
     }
     
@@ -274,17 +399,17 @@ export function spawnRandomPowerUp(gameState) {
   const x = gameState.player.x + cos(angle) * radius;
   const z = gameState.player.z + sin(angle) * radius;
   
-  // Make sure power-up is at ground level (slightly above to be visible)
-  // Use the player's y position as a reference for ground level
-  const y = 0; // Ground level in the game is typically at y=0
+  // Set y to 0 - the PowerUp constructor will adjust the height
+  // to make it visible above ground
+  const y = 0;
   
   // Random power-up type
   const powerUpTypes = Object.values(POWER_UP_TYPES);
   const randomType = powerUpTypes[Math.floor(random(powerUpTypes.length))];
   
-  // Show spawn message
+  // Show spawn message with more details
   if (window.showCooldownMessage) {
-    window.showCooldownMessage(`${randomType.charAt(0).toUpperCase() + randomType.slice(1)} power-up spawned!`, 0);
+    window.showCooldownMessage(`${randomType.charAt(0).toUpperCase() + randomType.slice(1)} power-up spawned! It will fly to you in 5 seconds.`, 0);
   }
   
   // Create and return the power-up

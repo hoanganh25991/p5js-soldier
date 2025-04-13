@@ -84,16 +84,16 @@ export class Enemy {
         }
       }
     } else {
-      // If no characters, move towards the center (pillar) as before
+      // If no characters, move towards the center (tower) as before
       let angle = atan2(0 - this.z, 0 - this.x);
       this.x += cos(angle) * this.speed;
       this.z += sin(angle) * this.speed;
-      this.rotation = angle + HALF_PI; // Make enemy face the pillar
+      this.rotation = angle + HALF_PI; // Make enemy face the tower
 
-      // Check if enemy has reached the pillar
+      // Check if enemy has reached the tower
       if (dist(this.x, this.z, 0, 0) < 50) {
-        this.gameState.pillarHeight = max(0, this.gameState.pillarHeight - CONFIG.ENEMY_DAMAGE_TO_PILLAR);
-        if (this.gameState.pillarHeight === 0) {
+        this.gameState.towerHeight = max(0, this.gameState.towerHeight - CONFIG.ENEMY_DAMAGE_TO_TOWER);
+        if (this.gameState.towerHeight === 0) {
           this.gameState.playerHealth -= CONFIG.ENEMY_DAMAGE_TO_PLAYER;
         }
       }

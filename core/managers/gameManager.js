@@ -4,7 +4,7 @@
 import CONFIG from '../config.js';
 import { resetGameState } from '../gameState.js';
 import { Player } from '../entities/player.js';
-import { Pillar } from '../entities/pillar.js';
+import { Tower } from '../entities/tower.js';
 import { EnemyController } from '../controllers/enemyController.js';
 import { initializeUpgrades, applyUpgrades, awardXP, incrementCombo } from '../progression.js';
 import { updateStatusBoard, showGameOverScreen } from '../ui.js';
@@ -22,9 +22,9 @@ export function resetGame(gameState) {
   gameState.cameraRotationY = 0;
   gameState.zoomLevel = 2.0;
   
-  // Initialize player and pillar
+  // Initialize player and tower
   gameState.player = new Player(gameState);
-  gameState.pillar = new Pillar(gameState);
+  gameState.tower = new Tower(gameState);
   
   // Initialize enemy controller
   gameState.enemyController = new EnemyController(gameState);
