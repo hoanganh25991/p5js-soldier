@@ -20,6 +20,9 @@ import { Laser } from './entities/laser.js';
 import { GameBoyAdvanced } from './entities/gameBoyAdvanced.js';
 import { GameCharacter } from './entities/gameCharacter.js';
 import { SKILL_NAMES, SKILL_KEYS, SKILLS, updateSkillStates, isSkillAvailable, activateSkill, getSkillByKey } from './skills.js';
+import { PowerUp, spawnRandomPowerUp, POWER_UP_TYPES } from './entities/powerUp.js';
+import { updateEnvironment, drawEnvironmentEffects, getEnvironmentModifiers } from './environment/environmentEffects.js';
+import { initializeUpgrades, applyUpgrades, awardXP, checkLevelUp, updateCombo, incrementCombo } from './progression.js';
 
 // Add camera-specific properties to gameState
 gameState.cameraRotationX = -0.4; // Less steep angle for better perspective
@@ -61,6 +64,9 @@ function setup() {
   // Setup mouse handlers
   setupMouseHandlers(window, gameState);
   
+  // Make showCooldownMessage available globally for other modules
+  window.showCooldownMessage = showCooldownMessage;
+  
   // Initialize game objects
   resetGame();
 }
@@ -82,6 +88,13 @@ function resetGame() {
   // Initialize enemy controller
   gameState.enemyController = new EnemyController(gameState);
   gameState.enemyController.initialize();
+  
+  // Initialize progression system
+  gameState.upgrades = initializeUpgrades();
+  applyUpgrades(gameState);
+  
+  // Initialize power-up spawn timer
+  gameState.powerUpSpawnTimer = random(300, 600); // 5-10 seconds
   
   // Update UI
   updateStatusBoard();
@@ -105,14 +118,33 @@ function draw() {
       // Main game loop
       gameState.frameCount++;
       
-      // Sky gradient
-      background(135, 206, 235); // Light blue sky
+      // Update environment (day/night cycle and weather)
+      updateEnvironment(gameState);
+      
+      // Draw environment effects (sky, weather)
+      drawEnvironmentEffects(gameState);
       
       // Update player first to get new height
       gameState.player.update();
       
       // Update camera position and rotation
       updateCamera();
+      
+      // Update combo system
+      updateCombo(gameState);
+      
+      // Update power-up spawn timer
+      if (gameState.powerUpSpawnTimer > 0) {
+        gameState.powerUpSpawnTimer--;
+        
+        // Spawn a power-up when timer reaches zero
+        if (gameState.powerUpSpawnTimer === 0) {
+          gameState.powerUps.push(spawnRandomPowerUp(gameState));
+          
+          // Reset timer for next power-up (5-15 seconds)
+          gameState.powerUpSpawnTimer = random(300, 900);
+        }
+      }
       
       // Update and remove finished waves
       for (let i = gameState.waves.length - 1; i >= 0; i--) {
@@ -121,9 +153,23 @@ function draw() {
         }
       }
       
-      // Add some ambient light
-      ambientLight(100);
-      pointLight(255, 255, 255, 0, -500, 0);
+      // Get environment modifiers
+      const envModifiers = getEnvironmentModifiers(gameState);
+      
+      // Apply environment lighting
+      ambientLight(gameState.ambientLight || 100);
+      
+      // Add a main light source (sun/moon)
+      const timeOfDay = gameState.timeOfDay;
+      if (timeOfDay > 0.25 && timeOfDay < 0.75) {
+        // Daytime - bright white light from above
+        const intensity = 255 - Math.abs(timeOfDay - 0.5) * 200;
+        pointLight(intensity, intensity, intensity, 0, -500, 0);
+      } else {
+        // Nighttime - dim blue light
+        const moonIntensity = 100;
+        pointLight(moonIntensity * 0.8, moonIntensity * 0.8, moonIntensity, 0, -300, 0);
+      }
       
       // Draw environment
       drawEnvironment();
@@ -165,6 +211,11 @@ function draw() {
     case 'gameOver':
       // In game over state, we don't update anything
       // Just keep the last frame visible with game over overlay
+      break;
+      
+    case 'levelUp':
+      // In level up state, we don't update anything
+      // Just keep the last frame visible with level up overlay
       break;
   }
 }
@@ -310,17 +361,62 @@ function updateAndShowEntities() {
       console.debug(`[MAIN DEBUG] Character removed, remaining characters: ${gameState.gameCharacters.length}`);
     }
   }
+  
+  // Update and show Power-Ups
+  for (let i = gameState.powerUps.length - 1; i >= 0; i--) {
+    if (gameState.powerUps[i].update()) { // Returns true when power-up is collected or expires
+      gameState.powerUps.splice(i, 1);
+    } else {
+      gameState.powerUps[i].show();
+    }
+  }
 }
 
 function checkGameEndConditions() {
+  // Check if player has died
   if (gameState.playerHealth <= 0) {
     gameState.currentState = 'gameOver';
     showGameOverScreen(false); // Game over - defeat
     noLoop();
-  } else if (gameState.enemyController.getEnemiesKilled() >= CONFIG.VICTORY_KILLS) {
+    return;
+  }
+  
+  // Check for victory condition
+  if (gameState.enemyController.getEnemiesKilled() >= CONFIG.VICTORY_KILLS) {
     gameState.currentState = 'gameOver';
     showGameOverScreen(true); // Game over - victory
     noLoop();
+    return;
+  }
+  
+  // Check if enemies were killed this frame
+  const currentEnemiesKilled = gameState.enemyController.getEnemiesKilled();
+  if (currentEnemiesKilled > gameState.enemiesKilled) {
+    // Calculate how many enemies were killed this frame
+    const newKills = currentEnemiesKilled - gameState.enemiesKilled;
+    
+    // Update the stored count
+    gameState.enemiesKilled = currentEnemiesKilled;
+    
+    // Award XP for kills (base 10 XP per kill)
+    const baseXP = 10 * newKills;
+    
+    // Increment combo for each kill
+    for (let i = 0; i < newKills; i++) {
+      incrementCombo(gameState);
+    }
+    
+    // Apply combo multiplier (combo starts at 0, so add 1 for multiplier)
+    const comboMultiplier = 1 + (gameState.combo * 0.1); // 10% bonus per combo level
+    
+    // Calculate final XP with combo bonus
+    const xpGained = Math.floor(baseXP * comboMultiplier);
+    
+    // Award XP
+    awardXP(gameState, xpGained);
+    
+    // Update score
+    gameState.score += newKills * 100 * comboMultiplier;
   }
 }
 
@@ -352,6 +448,13 @@ function keyPressed() {
     } else if (gameState.currentState === 'paused') {
       gameState.currentState = 'playing';
       select('#pause-menu').style('display', 'none');
+      loop();
+    } else if (gameState.currentState === 'levelUp') {
+      // Return to previous state from level up screen
+      gameState.currentState = gameState.previousState || 'playing';
+      if (gameState.ui.levelUpScreen) {
+        gameState.ui.levelUpScreen.style('display', 'none');
+      }
       loop();
     }
     return;
@@ -413,7 +516,8 @@ function keyPressed() {
           gameState.cloneSound.play();
           
           // Optional: Limit max number of clones to avoid overwhelming
-          if (gameState.clones.length > SKILLS[SKILL_NAMES.CLONE].maxCount) {
+          const maxClones = SKILLS[SKILL_NAMES.CLONE].maxCount + (gameState.cloneMaxCountBonus || 0);
+          if (gameState.clones.length > maxClones) {
             gameState.clones.shift(); // Remove oldest clone if too many
           }
           break;
