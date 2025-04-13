@@ -7,7 +7,7 @@ export class Airstrike {
   constructor(gameState) {
     this.gameState = gameState;
     this.x = -CONFIG.ENEMY_RADIUS;
-    this.y = -700; // Even higher above pillars
+    this.y = -700; // Even higher above towers
     this.z = 0;
     this.speed = CONFIG.AIRSTRIKE.SPEED;
     this.damage = CONFIG.AIRSTRIKE.DAMAGE;

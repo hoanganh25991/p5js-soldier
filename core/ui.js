@@ -27,11 +27,11 @@ export function createStatusBoard() {
   statusBoard.child(fpsDiv);
   
   // Create tower height display
-  const pillarHeightDiv = createElement('div', 'Tower Height: ');
-  const pillarHeightSpan = createElement('span', '100');
-  pillarHeightSpan.id('pillar-height');
-  pillarHeightDiv.child(pillarHeightSpan);
-  statusBoard.child(pillarHeightDiv);
+  const towerHeightDiv = createElement('div', 'Tower Height: ');
+  const towerHeightSpan = createElement('span', '100');
+  towerHeightSpan.id('tower-height');
+  towerHeightDiv.child(towerHeightSpan);
+  statusBoard.child(towerHeightDiv);
   
   // Create health display
   const healthDiv = createElement('div', 'Health: ');
@@ -143,7 +143,7 @@ export function createMenuUI() {
   
   const instructionsText = `
     <h2>How to Play</h2>
-    <p>Defend your pillar from incoming enemies!</p>
+    <p>Defend your tower from incoming enemies!</p>
     <p><strong>Controls:</strong></p>
     <p>C - Spawn Clone</p>
     <p>T - Deploy Turret</p>
@@ -388,7 +388,7 @@ export function updateStatusBoard() {
   
   // Update stats
   select('#fps').html(Math.floor(frameRate()));
-  select('#pillar-height').html(Math.ceil(gameState.towerHeight));
+  select('#tower-height').html(Math.ceil(gameState.towerHeight));
   select('#health').html(Math.ceil(gameState.playerHealth));
   
   // Get kills from enemy controller

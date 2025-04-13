@@ -8,7 +8,7 @@ export class Player {
   constructor(gameState) {
     this.gameState = gameState;
     this.x = 0;
-    this.y = 0; // Will be calculated based on pillar height
+    this.y = 0; // Will be calculated based on tower height
     this.z = 0;
     this.width = CONFIG.PLAYER_WIDTH;
     this.height = CONFIG.PLAYER_HEIGHT;

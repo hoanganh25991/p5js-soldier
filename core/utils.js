@@ -4,9 +4,9 @@
 import CONFIG from './config.js';
 import { Bullet } from './entities/bullet.js';
 
-// Update entity height based on pillar height
+// Update entity height based on tower height
 export function updateHeight(entity, gameState) {
-  // Adjust height based on pillar height
+  // Adjust height based on tower height
   entity.y = -20 - gameState.towerHeight * 5 + entity.height / 2;
 }
 
