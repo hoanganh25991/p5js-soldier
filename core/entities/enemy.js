@@ -120,22 +120,97 @@ export class Enemy {
 
     // Calculate color based on health and damage type
     let healthPercent = this.health / this.maxHealth;
+    
+    // Ensure healthPercent is valid (not NaN or negative)
+    healthPercent = isNaN(healthPercent) ? 0 : Math.max(0, Math.min(1, healthPercent));
+    
     let r = lerp(this.baseColor._getRed(), this.damageColor._getRed(), this.colorBlend);
     let g = lerp(this.baseColor._getGreen(), this.damageColor._getGreen(), this.colorBlend);
     let b = lerp(this.baseColor._getBlue(), this.damageColor._getBlue(), this.colorBlend);
 
-    // Darken based on health
-    r *= healthPercent;
-    g *= healthPercent;
-    b *= healthPercent;
+    // Darken based on health, but ensure we don't get pure white (which happens if health > maxHealth)
+    r = r * healthPercent;
+    g = g * healthPercent;
+    b = b * healthPercent;
+    
+    // Debug: log enemy health values if they appear white
+    if (r > 240 && g > 240 && b > 240) {
+      console.log(`White enemy detected: health=${this.health}, maxHealth=${this.maxHealth}, healthPercent=${healthPercent}`);
+    }
 
     fill(r, g, b);
     box(this.width, this.height, this.depth);
+    
+    // Draw health bar above the enemy
+    this.drawHealthBar();
+    
     pop();
+  }
+  
+  // Draw health bar above the enemy
+  drawHealthBar() {
+    // Check if health bars are enabled in config
+    if (!CONFIG.ENEMY_HEALTH_BAR.ENABLED) return;
+    
+    // Calculate health percentage and ensure it's valid
+    let healthPercent = this.health / this.maxHealth;
+    healthPercent = isNaN(healthPercent) ? 0 : Math.max(0, Math.min(1, healthPercent));
+    
+    // Debug: log health values if they seem incorrect
+    if (healthPercent > 1 || healthPercent < 0 || isNaN(healthPercent)) {
+      console.log(`Invalid health percentage: ${healthPercent}, health=${this.health}, maxHealth=${this.maxHealth}`);
+    }
+    
+    // Position the health bar above the enemy using config values
+    const barHeight = CONFIG.ENEMY_HEALTH_BAR.HEIGHT;
+    const barWidth = this.width * 1.2; // Slightly wider than the enemy
+    const barY = -this.height / 2 - CONFIG.ENEMY_HEALTH_BAR.OFFSET; // Position above the enemy
+    
+    // Make the health bar always face the camera
+    // Save current rotation
+    const currentRotation = this.rotation;
+    rotateY(-currentRotation);
+    
+    // Draw background (empty bar)
+    push();
+    translate(0, barY, 0);
+    noStroke();
+    fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.BACKGROUND);
+    box(barWidth, barHeight, 5);
+    pop();
+    
+    // Only draw health bar if there's health to show
+    if (healthPercent > 0) {
+      // Draw health (filled portion)
+      push();
+      translate(-barWidth/2 + (barWidth * healthPercent)/2, barY, 0);
+      
+      // Color based on health percentage using config values
+      if (healthPercent > 0.6) {
+        fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.HIGH);
+      } else if (healthPercent > 0.3) {
+        fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.MEDIUM);
+      } else {
+        fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.LOW);
+      }
+      
+      noStroke();
+      box(barWidth * healthPercent, barHeight, 6); // Slightly in front of background
+      pop();
+    }
   }
 
   takeDamage(amount) {
+    // Ensure amount is a valid number
+    if (isNaN(amount) || amount <= 0) {
+      console.log(`Invalid damage amount: ${amount}`);
+      return false;
+    }
+    
+    // Apply damage
     this.health -= amount;
+    
+    // Return true if enemy is dead
     return this.health <= 0;
   }
 

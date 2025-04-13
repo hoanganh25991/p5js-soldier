@@ -59,12 +59,6 @@ export class Bullet {
     this.y += this.vy;
     this.z += this.vz;
 
-    // Debug: Log bullet position every second
-    if (this.gameState.frameCount % 60 === 0) {
-      console.log(`Bullet at: ${this.x.toFixed(0)}, ${this.y.toFixed(0)}, ${this.z.toFixed(0)}`);
-      console.log(`Bullet velocity: ${this.vx ? this.vx.toFixed(2) : 'undefined'}, ${this.vy ? this.vy.toFixed(2) : 'undefined'}, ${this.vz ? this.vz.toFixed(2) : 'undefined'}`);
-    }
-
     // Check collision with enemies
     if (this.gameState.enemyController) {
       const enemies = this.gameState.enemyController.getEnemies();
@@ -76,13 +70,10 @@ export class Bullet {
         if (d < enemy.width * 1.5 &&
             this.y < enemy.y + enemy.height &&
             this.y > enemy.y) {
-          console.log('Bullet hit enemy!');
-          
+          // Ensure damage is a valid number
+          const damage = isNaN(this.damage) ? CONFIG.BULLET.PLAYER.DAMAGE : this.damage;
           // Use the takeDamage method on the enemy
-          if (enemy.takeDamage(this.damage)) {
-            // Enemy died, will be removed by the controller in next update
-          }
-          
+          enemy.takeDamage(damage);
           return true; // Bullet hit something
         }
       }
@@ -95,7 +86,6 @@ export class Bullet {
       if (this.source instanceof Airstrike && this.y > 50) {
         this.gameState.waves.push(new Wave(this.x, this.z, this.gameState));
       }
-      console.log(`Bullet removed at distance: ${distance.toFixed(0)}, height: ${this.y.toFixed(0)}`);
       return true; // Bullet out of range or hit ground
     }
 

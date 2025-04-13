@@ -43,6 +43,17 @@ const CONFIG = {
   ENEMY_DAMAGE_TO_PILLAR: 0.02,
   ENEMY_DAMAGE_TO_PLAYER: 0.2,
   ENEMY_DAMAGE_TO_CHARACTER: 5, // Damage dealt to characters
+  ENEMY_HEALTH_BAR: {
+    ENABLED: true,
+    HEIGHT: 5,
+    OFFSET: 15, // Distance above enemy
+    COLORS: {
+      HIGH: [0, 255, 0, 230], // Green for high health
+      MEDIUM: [255, 255, 0, 230], // Yellow for medium health
+      LOW: [255, 0, 0, 230], // Red for low health
+      BACKGROUND: [40, 40, 40, 200] // Dark gray background
+    }
+  },
 
   // Skill settings
   CLONE: {

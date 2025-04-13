@@ -32,6 +32,13 @@ export class EnemyController {
   update() {
     // Update all enemies
     for (let i = this.enemies.length - 1; i >= 0; i--) {
+      // Skip invalid enemies
+      if (!this.enemies[i]) {
+        console.log('Found invalid enemy at index', i);
+        this.enemies.splice(i, 1);
+        continue;
+      }
+      
       this.enemies[i].update();
       
       // Check if enemy is dead
