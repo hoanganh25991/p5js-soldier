@@ -207,11 +207,25 @@ export class Enemy {
       return false;
     }
     
+    // Debug log before damage
+    console.log(`[ENEMY DEBUG] Before damage: health=${this.health.toFixed(2)}, damage=${amount.toFixed(2)}`);
+    
     // Apply damage
     this.health -= amount;
     
+    // Debug log after damage
+    console.log(`[ENEMY DEBUG] After damage: health=${this.health.toFixed(2)}, maxHealth=${this.maxHealth.toFixed(2)}`);
+    
+    // Check if enemy is dead
+    const isDead = this.health <= 0;
+    
+    // Debug log if enemy died
+    if (isDead) {
+      console.log(`[ENEMY DEBUG] Enemy died at position x=${this.x.toFixed(2)}, z=${this.z.toFixed(2)}`);
+    }
+    
     // Return true if enemy is dead
-    return this.health <= 0;
+    return isDead;
   }
 
   getPosition() {

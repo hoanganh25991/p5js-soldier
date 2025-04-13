@@ -208,9 +208,9 @@ export class FireSkill {
           impactWave.maxRadius = this.typeConfig.METEOR_SIZE * 6; // Larger
           impactWave.lifespan = 25; // Longer lasting
           
-          // Set height to create a 3D effect that rises from the ground
-          impactWave.height = 30; // Taller height for 3D effect
-          impactWave.riseSpeed = 1.5; // Make the wave rise slowly
+          // Set height to create a dramatic 3D effect that rises from the ground
+          impactWave.height = 80; // Much taller height for pronounced 3D effect
+          impactWave.riseSpeed = 2.5; // Make the wave rise faster
           
           this.gameState.waves.push(impactWave);
           
@@ -226,9 +226,9 @@ export class FireSkill {
           secondaryWave.maxRadius = this.typeConfig.METEOR_SIZE * 4;
           secondaryWave.lifespan = 20;
           
-          // Set height to create a 3D effect that rises from the ground
-          secondaryWave.height = 20; // Shorter than primary wave but still 3D
-          secondaryWave.riseSpeed = 1.2; // Slightly slower rise
+          // Set height to create a dramatic 3D effect that rises from the ground
+          secondaryWave.height = 60; // Tall height for pronounced 3D effect
+          secondaryWave.riseSpeed = 2.0; // Make the wave rise at a good pace
           
           this.gameState.waves.push(secondaryWave);
         }
@@ -277,11 +277,11 @@ export class FireSkill {
             fireParticle.maxRadius = random(20, 60);
             fireParticle.lifespan = random(15, 40);
             
-            // Make particles rise from the ground with 3D effect
-            fireParticle.height = random(15, 35); // Taller height for 3D effect
+            // Make particles rise dramatically from the ground with 3D effect
+            fireParticle.height = random(40, 100); // Much taller height for pronounced 3D effect
             
-            // All particles rise at different speeds
-            fireParticle.riseSpeed = random(0.8, 2.5);
+            // All particles rise at different speeds, but faster overall
+            fireParticle.riseSpeed = random(2.0, 4.0);
             
             this.gameState.waves.push(fireParticle);
           }
@@ -473,8 +473,8 @@ export class FireSkill {
       castWave.growthRate = 3;
       castWave.maxRadius = 50;
       castWave.lifespan = 15;
-      castWave.height = 25; // Add height for 3D effect
-      castWave.riseSpeed = 1.8; // Make it rise quickly
+      castWave.height = 70; // Much taller height for pronounced 3D effect
+      castWave.riseSpeed = 3.0; // Make it rise very quickly
       this.gameState.waves.push(castWave);
     }
   }
@@ -494,8 +494,8 @@ export class FireSkill {
     shieldWave.maxRadius = this.typeConfig.RADIUS * 1.1;
     shieldWave.lifespan = 30;
     shieldWave.damage = this.damage / 10; // Small damage over time
-    shieldWave.height = 40; // Taller height for 3D effect
-    shieldWave.riseSpeed = 0.8; // Slow rise for shield effect
+    shieldWave.height = 100; // Much taller height for pronounced 3D shield effect
+    shieldWave.riseSpeed = 1.5; // Moderate rise for shield effect
     this.gameState.waves.push(shieldWave);
   }
   
@@ -503,14 +503,44 @@ export class FireSkill {
     push();
     translate(this.x, this.effectY, this.z); // Use ground level Y position
     
-    // Shield effect - flattened to be on the ground
+    // Shield effect - 3D dome rising from the ground
     noStroke();
+    
+    // Base glow on the ground
+    push();
+    fill(...this.typeConfig.COLOR, 40 + sin(frameCount * this.typeConfig.PULSE_RATE) * 20);
+    translate(0, 0, 0);
+    rotateX(HALF_PI);
+    ellipse(0, 0, this.typeConfig.RADIUS * 2.2);
+    pop();
+    
+    // Main shield dome
+    push();
     fill(...this.typeConfig.COLOR, 50 + sin(frameCount * this.typeConfig.PULSE_RATE) * 30);
     
-    // Use a flattened ellipsoid instead of sphere to make it appear on the ground
-    push();
-    scale(1, 0.2, 1); // Flatten the sphere vertically
-    sphere(this.typeConfig.RADIUS * (0.9 + sin(frameCount * this.typeConfig.PULSE_RATE) * 0.1));
+    // Create a dome effect by using half a sphere
+    translate(0, -this.typeConfig.RADIUS * 0.5, 0); // Move up to create dome from ground
+    
+    // Draw the dome
+    beginShape();
+    const detailLevel = 20;
+    const radius = this.typeConfig.RADIUS * (0.9 + sin(frameCount * this.typeConfig.PULSE_RATE) * 0.1);
+    
+    // Draw only the top half of a sphere to create a dome
+    for (let i = 0; i <= detailLevel; i++) {
+      const lat = map(i, 0, detailLevel, 0, PI/2); // Only go from 0 to PI/2 for top half
+      
+      for (let j = 0; j <= detailLevel; j++) {
+        const lon = map(j, 0, detailLevel, 0, TWO_PI);
+        
+        const x = radius * sin(lat) * cos(lon);
+        const y = -radius * cos(lat); // Negative to make dome rise up
+        const z = radius * sin(lat) * sin(lon);
+        
+        vertex(x, y, z);
+      }
+    }
+    endShape(CLOSE);
     pop();
     
     // Get enemies for targeting flame particles
@@ -601,9 +631,9 @@ export class FireSkill {
     blastWave.lifespan = 20;
     blastWave.damage = this.damage / 5; // Damage over time
     
-    // Set height to create a 3D effect that rises from the ground
-    blastWave.height = 35; // Taller height for 3D effect
-    blastWave.riseSpeed = 1.2; // Make the wave rise slowly
+    // Set height to create a dramatic 3D effect that rises from the ground
+    blastWave.height = 90; // Much taller height for pronounced 3D effect
+    blastWave.riseSpeed = 2.2; // Make the wave rise faster
     
     this.gameState.waves.push(blastWave);
     
@@ -642,9 +672,9 @@ export class FireSkill {
       targetedWave.lifespan = 15;
       targetedWave.damage = this.damage / 4; // Slightly more damage
       
-      // Set height to create a 3D effect that rises from the ground
-      targetedWave.height = 25; // Taller height for 3D effect
-      targetedWave.riseSpeed = 1.5; // Make the wave rise quickly
+      // Set height to create a dramatic 3D effect that rises from the ground
+      targetedWave.height = 70; // Much taller height for pronounced 3D effect
+      targetedWave.riseSpeed = 2.8; // Make the wave rise very quickly
       
       this.gameState.waves.push(targetedWave);
     }
@@ -665,9 +695,9 @@ export class FireSkill {
     phoenixWave.maxRadius = this.typeConfig.RADIUS * 1.5;
     phoenixWave.lifespan = 30;
     
-    // Set height to create a 3D effect that rises from the ground
-    phoenixWave.height = 50; // Taller height for phoenix effect
-    phoenixWave.riseSpeed = 2; // Make the wave rise quickly for phoenix rebirth effect
+    // Set height to create a dramatic 3D effect that rises from the ground
+    phoenixWave.height = 120; // Very tall height for dramatic phoenix effect
+    phoenixWave.riseSpeed = 3.5; // Make the wave rise very quickly for phoenix rebirth effect
     
     this.gameState.waves.push(phoenixWave);
     
@@ -697,8 +727,8 @@ export class FireSkill {
       particle.riseSpeed = this.typeConfig.RISE_SPEED * random(0.8, 1.2);
       particle.lifespan = random(20, 40);
       
-      // Make particles have 3D height for better visual effect
-      particle.height = random(15, 30); // Taller height for 3D effect
+      // Make particles have dramatic 3D height for better visual effect
+      particle.height = random(50, 120); // Much taller height for pronounced 3D effect
       
       this.gameState.waves.push(particle);
     }
@@ -706,95 +736,114 @@ export class FireSkill {
   
   drawPhoenix() {
     push();
-    // Position phoenix at ground level with a slight elevation
-    translate(this.x, this.effectY - 10, this.z);
+    // Position phoenix at ground level
+    translate(this.x, this.effectY, this.z);
     
-    // Phoenix body - flattened to appear more like a ground effect
+    // Base glow on the ground
+    push();
+    noStroke();
+    fill(...this.typeConfig.COLOR, 40 + sin(frameCount * 0.1) * 20);
+    rotateX(HALF_PI);
+    ellipse(0, 0, this.typeConfig.RADIUS * 2.5);
+    pop();
+    
+    // Phoenix body - 3D rising effect
     noStroke();
     
-    // Create a flattened phoenix silhouette on the ground
+    // Wing flapping animation
+    const wingSpread = sin(frameCount * 0.05) * 0.3 + 0.7;
+    const wingHeight = sin(frameCount * 0.1) * 20;
+    const riseHeight = -80 - sin(frameCount * 0.03) * 30; // Rising effect
+    
+    // Draw 3D phoenix body
     push();
-    // Rotate to lay flat on the ground
-    rotateX(PI/2);
+    translate(0, riseHeight, 0); // Move up from ground
     
-    // Phoenix body outline
-    fill(...this.typeConfig.COLOR, 150);
-    
-    // Draw a flattened phoenix shape
-    beginShape();
-    // Body
-    vertex(0, 0, 0);
+    // Main body
+    fill(...this.typeConfig.COLOR, 180);
+    sphere(20);
     
     // Left wing
-    const wingSpread = sin(frameCount * 0.05) * 0.3 + 0.7;
-    vertex(-80 * wingSpread, -30, 0);
-    vertex(-120 * wingSpread, 0, 0);
-    vertex(-80 * wingSpread, 30, 0);
+    push();
+    translate(-40 * wingSpread, wingHeight, 0);
+    rotateZ(PI/6);
+    rotateY(-PI/4);
+    fill(...this.typeConfig.COLOR, 150);
     
-    // Tail
-    vertex(-30, 100, 0);
-    vertex(0, 120, 0);
-    vertex(30, 100, 0);
-    
-    // Right wing
-    vertex(80 * wingSpread, 30, 0);
-    vertex(120 * wingSpread, 0, 0);
-    vertex(80 * wingSpread, -30, 0);
-    
-    // Head
-    vertex(0, -80, 0);
-    
-    endShape(CLOSE);
-    
-    // Inner glow
-    fill(...this.typeConfig.COLOR, 100);
-    
-    // Draw a smaller phoenix shape for inner glow
+    // Create wing with custom shape
     beginShape();
-    // Body
-    vertex(0, 0, 0);
-    
-    // Left wing (smaller)
-    vertex(-60 * wingSpread, -20, 0);
-    vertex(-90 * wingSpread, 0, 0);
-    vertex(-60 * wingSpread, 20, 0);
-    
-    // Tail (smaller)
-    vertex(-20, 70, 0);
-    vertex(0, 90, 0);
-    vertex(20, 70, 0);
-    
-    // Right wing (smaller)
-    vertex(60 * wingSpread, 20, 0);
-    vertex(90 * wingSpread, 0, 0);
-    vertex(60 * wingSpread, -20, 0);
-    
-    // Head (smaller)
-    vertex(0, -60, 0);
-    
+    for (let i = 0; i < 10; i++) {
+      const angle = map(i, 0, 9, -PI/2, PI/2);
+      const r = 60 - i * 5;
+      const x = cos(angle) * r;
+      const y = sin(angle) * r;
+      vertex(x, y, 0);
+    }
     endShape(CLOSE);
     pop();
     
-    // Add some rising flame particles
-    for (let i = 0; i < 5; i++) {
+    // Right wing
+    push();
+    translate(40 * wingSpread, wingHeight, 0);
+    rotateZ(-PI/6);
+    rotateY(PI/4);
+    fill(...this.typeConfig.COLOR, 150);
+    
+    // Create wing with custom shape
+    beginShape();
+    for (let i = 0; i < 10; i++) {
+      const angle = map(i, 0, 9, -PI/2, PI/2);
+      const r = 60 - i * 5;
+      const x = cos(angle) * r;
+      const y = sin(angle) * r;
+      vertex(x, y, 0);
+    }
+    endShape(CLOSE);
+    pop();
+    
+    // Tail
+    push();
+    translate(0, 10, -30);
+    rotateX(PI/4);
+    fill(...this.typeConfig.COLOR, 170);
+    
+    // Create tail with custom shape
+    beginShape();
+    for (let i = 0; i < 8; i++) {
+      const x = map(i, 0, 7, -20, 20);
+      const y = map(i, 0, 7, 0, -80);
+      const z = sin(i/7 * PI) * 10;
+      vertex(x, y, z);
+    }
+    endShape(CLOSE);
+    pop();
+    
+    // Head
+    push();
+    translate(0, -20, 20);
+    fill(...this.typeConfig.COLOR, 200);
+    sphere(15);
+    
+    // Beak
+    translate(0, 0, 15);
+    fill(255, 200, 0, 200);
+    cone(5, 15);
+    pop();
+    
+    pop();
+    
+    // Rising flame particles
+    for (let i = 0; i < 15; i++) {
       push();
-      // Random position within the phoenix silhouette
       const angle = random(TWO_PI);
-      const dist = random(50);
+      const dist = random(10, 60);
       const x = cos(angle) * dist;
       const z = sin(angle) * dist;
+      const y = random(-100, -10); // Vary height
       
-      translate(x, random(-5, 5), z);
-      
-      // Flame particle
-      fill(...this.typeConfig.COLOR, random(100, 150));
-      
-      // Flattened flame
-      push();
-      scale(1, 0.3, 1); // Flatten vertically
-      sphere(random(5, 15));
-      pop();
-      
+      translate(x, y, z);
+      fill(255, random(100, 255), 0, random(100, 200));
+      sphere(random(3, 8));
       pop();
     }
     

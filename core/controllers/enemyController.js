@@ -43,12 +43,19 @@ export class EnemyController {
       
       // Check if enemy is dead
       if (this.enemies[i].health <= 0) {
+        // Debug log when enemy is removed
+        console.log(`[ENEMY CONTROLLER DEBUG] Removing enemy at index ${i}, enemies killed: ${this.enemiesKilled + 1}`);
+        
         this.enemies.splice(i, 1);
         this.enemiesKilled++;
+        
+        // Debug log after enemy is removed
+        console.log(`[ENEMY CONTROLLER DEBUG] Enemy removed, remaining enemies: ${this.enemies.length}, total killed: ${this.enemiesKilled}`);
         
         // Spawn new enemy if below max limit
         if (this.enemies.length < CONFIG.MAX_ENEMIES) {
           this.spawnEnemy();
+          console.log(`[ENEMY CONTROLLER DEBUG] Spawned new enemy, total enemies: ${this.enemies.length}`);
         }
       }
     }

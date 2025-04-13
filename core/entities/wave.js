@@ -63,10 +63,12 @@ export class Wave {
   }
 
   show() {
-    // Only skip rendering if the wave is exactly at ground level and has no rise speed
-    // This allows rising waves to be visible while still optimizing flat ground waves
+    // Never skip rendering for waves with height or rise speed
+    // Only skip flat waves at ground level with no movement for optimization
     if (this.y >= -51 && this.y <= -49 && this.riseSpeed <= 0 && this.height <= 5) {
-      return; // Don't render flat waves at ground level with no rise
+      // Don't render flat waves at ground level with no rise
+      // But always render waves with height or rise speed
+      return;
     }
     
     push();
@@ -114,7 +116,7 @@ export class Wave {
   }
   
   drawFlatWave() {
-    // Draw only one flat wave (cylinder) for better performance
+    // Draw a 3D wave effect with proper height
     if (this.rings.length > 0) {
       // Calculate alpha based on lifespan
       let alpha = map(this.lifespan, 30, 0, this.color[3] || 255, 0);
@@ -123,13 +125,27 @@ export class Wave {
       noStroke();
       fill(this.color[0], this.color[1], this.color[2], alpha);
       
-      // Draw a single cylinder with fewer detail segments
+      // Draw a 3D cylinder that rises from the ground
       push();
-      rotateX(HALF_PI); // Rotate to make cylinder vertical
       
-      // Use a simpler shape with fewer segments
-      const detailLevel = 8; // Reduced from default (24)
+      // Position the cylinder to rise from the ground
+      // Move it down by half its height so it starts at the ground
+      translate(0, this.height/2, 0);
+      
+      // Rotate to make cylinder vertical (standing up from ground)
+      rotateX(HALF_PI);
+      
+      // Use a moderate detail level for better performance
+      const detailLevel = 12; // Increased from 8 for better appearance
+      
+      // Draw the cylinder with proper radius and height
       cylinder(this.rings[0].radius, this.height, detailLevel);
+      
+      // Add a cap at the top for better visual effect
+      translate(0, -this.height/2, 0);
+      fill(this.color[0], this.color[1], this.color[2], alpha * 0.7);
+      ellipse(0, 0, this.rings[0].radius * 2);
+      
       pop();
     }
   }

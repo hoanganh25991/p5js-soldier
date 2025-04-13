@@ -1642,8 +1642,14 @@ export class GameCharacter {
     // Store previous health for health bar animation
     this.lastHealth = this.health;
     
+    // Debug log before damage
+    console.log(`[CHARACTER DEBUG] ${this.type} before damage: health=${this.health.toFixed(2)}, damage=${amount.toFixed(2)}`);
+    
     // Apply damage
     this.health -= amount;
+    
+    // Debug log after damage
+    console.log(`[CHARACTER DEBUG] ${this.type} after damage: health=${this.health.toFixed(2)}, maxHealth=${CONFIG.GBA.CHARACTER_HEALTH * this.typeConfig.HEALTH_MULTIPLIER}`);
     
     // Create hit effect - simplified for better performance
     if (this.gameState && this.gameState.waves) {
@@ -1661,8 +1667,16 @@ export class GameCharacter {
       this.gameState.waves.push(hitWave);
     }
     
+    // Check if character is dead
+    const isDead = this.health <= 0;
+    
+    // Debug log if character died
+    if (isDead) {
+      console.log(`[CHARACTER DEBUG] ${this.type} died at position x=${this.x.toFixed(2)}, z=${this.z.toFixed(2)}`);
+    }
+    
     // Return true if character is dead
-    return this.health <= 0;
+    return isDead;
   }
   
   // Cache for enemy search to improve performance
