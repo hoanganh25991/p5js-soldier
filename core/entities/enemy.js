@@ -3,6 +3,7 @@
 
 import CONFIG from '../config.js';
 import { GameBoyAdvanced } from './gameBoyAdvanced.js';
+import { HealthBar } from './healthBar.js';
 
 export class Enemy {
   constructor(x, z, attributes, gameState) {
@@ -33,6 +34,13 @@ export class Enemy {
     this.baseColor = attributes.baseColor || color(255, 0, 0);
     this.damageColor = attributes.damageColor || color(255, 165, 0);
     this.colorBlend = attributes.colorBlend || 0; // 0 = base color, 1 = damage color
+    
+    // Create health bar
+    this.healthBar = new HealthBar({
+      alwaysGreen: false,      // Use color based on health percentage
+      useEntityWidth: true,     // Use enemy width for health bar width
+      verticalOffset: CONFIG.ENEMY_HEALTH_BAR.OFFSET // Use config offset
+    });
   }
 
   static spawnRandom(gameState) {
@@ -152,51 +160,16 @@ export class Enemy {
     // Check if health bars are enabled in config
     if (!CONFIG.ENEMY_HEALTH_BAR.ENABLED) return;
     
-    // Calculate health percentage and ensure it's valid
-    let healthPercent = this.health / this.maxHealth;
-    healthPercent = isNaN(healthPercent) ? 0 : Math.max(0, Math.min(1, healthPercent));
+    // Update health bar with current health values
+    this.healthBar.updateHealth(this.health, this.maxHealth);
+    
+    // Draw the health bar
+    this.healthBar.draw(this, this.rotation);
     
     // Debug: log health values if they seem incorrect
+    const healthPercent = this.healthBar.getHealthPercentage();
     if (healthPercent > 1 || healthPercent < 0 || isNaN(healthPercent)) {
       console.log(`Invalid health percentage: ${healthPercent}, health=${this.health}, maxHealth=${this.maxHealth}`);
-    }
-    
-    // Position the health bar above the enemy using config values
-    const barHeight = CONFIG.ENEMY_HEALTH_BAR.HEIGHT;
-    const barWidth = this.width * 1.2; // Slightly wider than the enemy
-    const barY = -this.height / 2 - CONFIG.ENEMY_HEALTH_BAR.OFFSET; // Position above the enemy
-    
-    // Make the health bar always face the camera
-    // Save current rotation
-    const currentRotation = this.rotation;
-    rotateY(-currentRotation);
-    
-    // Draw background (empty bar)
-    push();
-    translate(0, barY, 0);
-    noStroke();
-    fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.BACKGROUND);
-    box(barWidth, barHeight, 5);
-    pop();
-    
-    // Only draw health bar if there's health to show
-    if (healthPercent > 0) {
-      // Draw health (filled portion)
-      push();
-      translate(-barWidth/2 + (barWidth * healthPercent)/2, barY, 0);
-      
-      // Color based on health percentage using config values
-      if (healthPercent > 0.6) {
-        fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.HIGH);
-      } else if (healthPercent > 0.3) {
-        fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.MEDIUM);
-      } else {
-        fill(...CONFIG.ENEMY_HEALTH_BAR.COLORS.LOW);
-      }
-      
-      noStroke();
-      box(barWidth * healthPercent, barHeight, 6); // Slightly in front of background
-      pop();
     }
   }
 
