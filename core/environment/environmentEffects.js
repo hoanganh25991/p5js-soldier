@@ -234,12 +234,23 @@ function drawRain(gameState) {
   stroke(200, 200, 255, 150);
   strokeWeight(1);
   
+  // Only draw rain particles that are close to the player for better performance
+  const playerX = gameState.player.x;
+  const playerZ = gameState.player.z;
+  const visibleRange = 500; // Reduced visible range for rain
+  
   // Draw each rain drop
   for (let i = 0; i < gameState.rainParticles.length; i++) {
     const drop = gameState.rainParticles[i];
     
-    // Draw rain drop as a line
-    line(drop.x, drop.y, drop.z, drop.x, drop.y + drop.length, drop.z);
+    // Only draw drops that are within visible range of player
+    const distToPlayer = Math.sqrt((drop.x - playerX) * (drop.x - playerX) + 
+                                   (drop.z - playerZ) * (drop.z - playerZ));
+    
+    if (distToPlayer < visibleRange) {
+      // Draw rain drop as a line
+      line(drop.x, drop.y, drop.z, drop.x, drop.y + drop.length, drop.z);
+    }
     
     // Update position
     drop.y += drop.speed;

@@ -30,9 +30,9 @@ export class PowerUp {
     this.collected = false;
     this.pulseSize = 0;
     
-    // Create particles for visual effect
+    // Create fewer particles for better performance
     this.particles = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 5; i++) { // Reduced from 20 to 5
       this.particles.push({
         angle: random(TWO_PI),
         radius: random(30, 50),
@@ -108,34 +108,10 @@ export class PowerUp {
   }
   
   show() {
-    // Draw orbiting particles first (behind the power-up)
-    push();
-    noStroke();
-    
-    // Draw particles
-    for (let i = 0; i < this.particles.length; i++) {
-      const particle = this.particles[i];
-      const particleX = this.x + cos(particle.angle) * particle.radius;
-      const particleY = this.y + particle.yOffset;
-      const particleZ = this.z + sin(particle.angle) * particle.radius;
-      
-      push();
-      translate(particleX, particleY, particleZ);
-      
-      // Particle glow
-      pointLight(this.color[0], this.color[1], this.color[2], 0, 0, 0);
-      
-      // Draw particle
-      fill(this.color[0], this.color[1], this.color[2], 150 + sin(frameCount * 0.1 + i) * 100);
-      sphere(particle.size);
-      pop();
-    }
-    pop();
-    
-    // Draw beam of light from ground to power-up
+    // Draw beam of light from ground to power-up (simplified)
     push();
     stroke(this.color[0], this.color[1], this.color[2], 100);
-    strokeWeight(5 + sin(frameCount * 0.1) * 2);
+    strokeWeight(3);
     line(this.x, 0, this.z, this.x, this.y + this.floatOffset, this.z);
     pop();
     
@@ -144,132 +120,52 @@ export class PowerUp {
     translate(this.x, this.y + this.floatOffset, this.z);
     rotateY(this.rotationY);
     
-    // Glow effect - create a stronger glow for better visibility
-    ambientLight(this.color[0]/2, this.color[1]/2, this.color[2]/2);
+    // Use a single light instead of multiple lights
+    // Removed ambientLight and using only one pointLight
     pointLight(this.color[0], this.color[1], this.color[2], 0, 0, 0);
     
-    // Draw power-up with emissive material for better visibility
+    // Draw power-up with simpler material settings
     noStroke();
-    specularMaterial(this.color[0], this.color[1], this.color[2]);
-    emissive(this.color[0]/2, this.color[1]/2, this.color[2]/2);
-    shininess(100);
+    fill(this.color[0], this.color[1], this.color[2]);
     
     // Make power-ups larger for better visibility
     const displaySize = this.size * 2 + this.pulseSize;
     
-    // Different shapes for different power-ups
+    // Simplified shapes for different power-ups
     switch(this.type) {
       case POWER_UP_TYPES.HEALTH:
-        // Heart shape (simplified as a sphere with texture)
+        // Heart shape (simplified as a sphere)
         sphere(displaySize);
-        // Add a cross on top for health symbol
-        push();
-        fill(255, 255, 255, 200);
-        translate(0, -displaySize/4, 0);
-        rotateX(PI/2);
-        cylinder(displaySize/10, displaySize/2);
-        rotateX(PI/2);
-        cylinder(displaySize/10, displaySize/2);
-        pop();
         break;
         
       case POWER_UP_TYPES.DAMAGE_BOOST:
         // Sword shape (simplified as a box)
         box(displaySize, displaySize*1.5, displaySize/3);
-        // Add a handle
-        push();
-        fill(100, 50, 0);
-        translate(0, displaySize*0.8, 0);
-        box(displaySize/2, displaySize/3, displaySize/3);
-        pop();
         break;
         
       case POWER_UP_TYPES.SPEED_BOOST:
         // Lightning bolt (simplified as a cone)
         cone(displaySize, displaySize*1.5);
-        // Add lightning symbol
-        push();
-        fill(255, 255, 255, 200);
-        translate(0, -displaySize/2, 0);
-        rotateX(PI);
-        beginShape();
-        vertex(0, 0, 0);
-        vertex(displaySize/3, displaySize/3, 0);
-        vertex(0, displaySize/3, 0);
-        vertex(displaySize/3, displaySize*2/3, 0);
-        endShape(CLOSE);
-        pop();
         break;
         
       case POWER_UP_TYPES.COOLDOWN_RESET:
         // Clock (simplified as a torus)
         torus(displaySize*0.7, displaySize/4);
-        // Add clock hands
-        push();
-        fill(255, 255, 255, 200);
-        rotateX(PI/2);
-        cylinder(displaySize/20, displaySize*0.6);
-        rotateZ(PI/2);
-        cylinder(displaySize/20, displaySize*0.4);
-        pop();
         break;
         
       case POWER_UP_TYPES.SHIELD:
-        // Shield (simplified as a half sphere)
-        push();
-        translate(0, 0, -displaySize/4);
+        // Shield (simplified as a sphere)
         sphere(displaySize);
-        pop();
-        // Add shield front
-        push();
-        fill(this.color[0], this.color[1], this.color[2], 150);
-        translate(0, 0, displaySize/2);
-        rotateX(PI/2);
-        arc(0, 0, displaySize*2, displaySize*2, 0, PI, CHORD);
-        pop();
         break;
         
       case POWER_UP_TYPES.MULTI_SHOT:
-        // Multiple bullets (simplified as multiple small spheres)
-        for (let i = 0; i < 3; i++) {
-          push();
-          translate(cos(i * TWO_PI/3) * displaySize, 0, sin(i * TWO_PI/3) * displaySize);
-          sphere(displaySize/2);
-          pop();
-        }
-        // Connect with lines
-        push();
-        stroke(this.color[0], this.color[1], this.color[2]);
-        strokeWeight(displaySize/10);
-        for (let i = 0; i < 3; i++) {
-          let x1 = cos(i * TWO_PI/3) * displaySize;
-          let z1 = sin(i * TWO_PI/3) * displaySize;
-          let x2 = cos(((i+1) % 3) * TWO_PI/3) * displaySize;
-          let z2 = sin(((i+1) % 3) * TWO_PI/3) * displaySize;
-          line(x1, 0, z1, x2, 0, z2);
-        }
-        pop();
+        // Multiple bullets (simplified as a single sphere)
+        sphere(displaySize);
         break;
         
       case POWER_UP_TYPES.XP_BOOST:
         // Star (simplified as an octahedron)
-        push();
-        rotateY(frameCount * 0.02);
-        rotateX(frameCount * 0.01);
         octahedron(displaySize);
-        pop();
-        // Add sparkle effect
-        push();
-        for (let i = 0; i < 3; i++) {
-          rotateX(frameCount * 0.01 + i * TWO_PI/3);
-          rotateY(frameCount * 0.02 + i * TWO_PI/3);
-          stroke(255, 255, 255, 150);
-          strokeWeight(2);
-          line(-displaySize*1.2, 0, 0, displaySize*1.2, 0, 0);
-          line(0, -displaySize*1.2, 0, 0, displaySize*1.2, 0);
-          line(0, 0, -displaySize*1.2, 0, 0, displaySize*1.2);
-        }
-        pop();
         break;
         
       default:
@@ -277,14 +173,18 @@ export class PowerUp {
         box(displaySize);
     }
     
-    // Add a pulsing ring around the power-up for better visibility
-    push();
-    noFill();
-    stroke(this.color[0], this.color[1], this.color[2], 150 + sin(frameCount * 0.1) * 100);
-    strokeWeight(2);
-    rotateX(PI/2);
-    circle(0, 0, displaySize * 3 + sin(frameCount * 0.1) * displaySize);
-    pop();
+    // Draw particles (simplified)
+    for (let i = 0; i < this.particles.length; i++) {
+      const particle = this.particles[i];
+      const particleX = cos(particle.angle) * particle.radius;
+      const particleZ = sin(particle.angle) * particle.radius;
+      
+      push();
+      translate(particleX, particle.yOffset, particleZ);
+      fill(this.color[0], this.color[1], this.color[2], 150);
+      sphere(particle.size);
+      pop();
+    }
     
     pop();
   }
