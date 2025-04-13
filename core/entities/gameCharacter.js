@@ -260,15 +260,8 @@ export class GameCharacter {
       const fillWidth = barWidth * healthPercent;
       translate(-barWidth/2 + fillWidth/2, 0, 4); // Position at left edge + half of fill width
       
-      // Determine color based on health percentage
-      let baseColor;
-      if (healthPercent > 0.6) {
-        baseColor = [0, 255, 0]; // Green for high health
-      } else if (healthPercent > 0.3) {
-        baseColor = [255, 255, 0]; // Yellow for medium health
-      } else {
-        baseColor = [255, 0, 0]; // Red for low health
-      }
+      // Use a fixed color for health bar that doesn't match character colors
+      const baseColor = [200, 200, 200]; // Light gray for all health bars
       
       // Create a glowing 3D health bar with multiple layers
       
@@ -324,24 +317,6 @@ export class GameCharacter {
     fill(80, 80, 80);
     rotateY(PI/2);
     cylinder(barHeight/2, 5);
-    pop();
-    
-    // Small indicator lights on the frame
-    push();
-    translate(-barWidth/2 - 3, -barHeight/2 - 3, 0);
-    fill(255, 0, 0);
-    sphere(2);
-    pop();
-    
-    push();
-    translate(barWidth/2 + 3, -barHeight/2 - 3, 0);
-    // Blinking light effect
-    if (frameCount % 30 < 15) {
-      fill(255, 0, 0);
-    } else {
-      fill(100, 0, 0);
-    }
-    sphere(2);
     pop();
     
     pop(); // End of health bar group
