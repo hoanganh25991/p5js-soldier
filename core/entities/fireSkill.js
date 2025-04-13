@@ -37,6 +37,10 @@ export class FireSkill {
   }
   
   initializeSkill() {
+    // Set Y position to ground level for all fire effects
+    // This ensures effects appear on the ground and behind characters
+    this.effectY = -50; // Ground level
+    
     switch (this.type) {
       case 'FIREBALL':
         // Fireball doesn't need initialization, it's cast on update
@@ -44,17 +48,17 @@ export class FireSkill {
         break;
         
       case 'FLAME_SHIELD':
-        // Create initial shield wave
+        // Create initial shield wave at ground level
         this.createShieldWave();
         break;
         
       case 'INFERNO_BLAST':
-        // Create initial blast wave
+        // Create initial blast wave at ground level
         this.createBlastWave();
         break;
         
       case 'PHOENIX_REBIRTH':
-        // Create phoenix effect and heal player
+        // Create phoenix effect at ground level and heal player
         this.createPhoenixEffect();
         // Heal the player
         if (this.gameState.player && this.gameState.player.health) {
@@ -190,12 +194,12 @@ export class FireSkill {
       
       // Never let meteors hit the ground - they should always explode in mid-air
       if (distToTarget < 20 || heightPastTarget || meteor.y >= -150) {
-        // Create impact wave - more dramatic for mid-air explosions
+        // Create impact wave at ground level
         if (this.gameState.waves) {
-          // Main explosion wave
+          // Main explosion wave at ground level
           const impactWave = new Wave(
             meteor.x,
-            meteor.y,
+            this.effectY, // Use ground level Y position
             meteor.z,
             this.typeConfig.METEOR_SIZE * 2,
             [...this.typeConfig.COLOR, 200] // More opaque
@@ -203,12 +207,16 @@ export class FireSkill {
           impactWave.growthRate = 8; // Faster growth
           impactWave.maxRadius = this.typeConfig.METEOR_SIZE * 6; // Larger
           impactWave.lifespan = 25; // Longer lasting
+          
+          // Set height to create a flat wave on the ground
+          impactWave.height = 5; // Small height to create a flat disc effect
+          
           this.gameState.waves.push(impactWave);
           
-          // Secondary explosion wave (different color)
+          // Secondary explosion wave at ground level (different color)
           const secondaryWave = new Wave(
             meteor.x,
-            meteor.y,
+            this.effectY, // Use ground level Y position
             meteor.z,
             this.typeConfig.METEOR_SIZE * 1.5,
             [255, 255, 100, 180] // Yellow-orange
@@ -216,25 +224,28 @@ export class FireSkill {
           secondaryWave.growthRate = 6;
           secondaryWave.maxRadius = this.typeConfig.METEOR_SIZE * 4;
           secondaryWave.lifespan = 20;
+          
+          // Set height to create a flat wave on the ground
+          secondaryWave.height = 5; // Small height to create a flat disc effect
+          
           this.gameState.waves.push(secondaryWave);
         }
         
         // Damage enemies near impact
-        this.damageNearbyEnemies(this.typeConfig.METEOR_SIZE * 3, this.damage, meteor.x, meteor.y, meteor.z);
+        this.damageNearbyEnemies(this.typeConfig.METEOR_SIZE * 3, this.damage, meteor.x, this.effectY, meteor.z);
         
-        // Create additional fire particles for a more dramatic mid-air explosion
+        // Create additional fire particles for a ground-level explosion
         if (this.gameState.waves) {
           // More particles for a bigger explosion
           for (let j = 0; j < 15; j++) {
-            // Create particles in a 3D sphere around the explosion point
+            // Create particles in a 2D circle on the ground
             const particleAngle = random(TWO_PI);
-            const particleElevation = random(-PI/2, PI/2);
             const particleRadius = random(10, 50);
             
-            // Calculate 3D position using spherical coordinates
-            const particleX = meteor.x + cos(particleAngle) * cos(particleElevation) * particleRadius;
-            const particleY = meteor.y + sin(particleElevation) * particleRadius;
-            const particleZ = meteor.z + sin(particleAngle) * cos(particleElevation) * particleRadius;
+            // Calculate position on the ground
+            const particleX = meteor.x + cos(particleAngle) * particleRadius;
+            const particleY = this.effectY; // Ground level
+            const particleZ = meteor.z + sin(particleAngle) * particleRadius;
             
             // Randomize colors for more variety
             const colorVariation = floor(random(3));
@@ -263,6 +274,9 @@ export class FireSkill {
             fireParticle.growthRate = random(2, 6);
             fireParticle.maxRadius = random(20, 60);
             fireParticle.lifespan = random(15, 40);
+            
+            // Make particles flat on the ground
+            fireParticle.height = random(2, 5); // Small height for flat effect
             
             // Some particles rise
             if (random() < 0.4) {
@@ -401,10 +415,10 @@ export class FireSkill {
     // Calculate angle to target
     const angleToTarget = atan2(target.z - this.z, target.x - this.x);
     
-    // Create fireball projectile
+    // Create fireball projectile - start at ground level
     const fireball = new Projectile(
       this.x,
-      this.y - 20, // Start above ground
+      this.effectY, // Use ground level Y position
       this.z,
       angleToTarget,
       'FIRE_FIREBALL',
@@ -425,7 +439,7 @@ export class FireSkill {
     // Also add to gameState bullets for backward compatibility
     const fireballBullet = new Bullet(
       this.x, 
-      this.y - 20, 
+      this.effectY, // Use ground level Y position
       this.z, 
       angleToTarget, 
       target, 
@@ -447,11 +461,11 @@ export class FireSkill {
     
     this.gameState.bullets.push(fireballBullet);
     
-    // Create cast effect
+    // Create cast effect at ground level
     if (this.gameState.waves) {
       const castWave = new Wave(
         this.x,
-        this.y - 20,
+        this.effectY, // Use ground level Y position
         this.z,
         30,
         [...this.typeConfig.COLOR, 150]
@@ -466,10 +480,10 @@ export class FireSkill {
   createShieldWave() {
     if (!this.gameState.waves) return;
     
-    // Create a shield wave
+    // Create a shield wave at ground level
     const shieldWave = new Wave(
       this.x,
-      this.y - 20,
+      this.effectY, // Use ground level Y position
       this.z,
       this.typeConfig.RADIUS,
       [...this.typeConfig.COLOR, 150]
@@ -483,12 +497,17 @@ export class FireSkill {
   
   drawFlameShield() {
     push();
-    translate(this.x, this.y - 20, this.z);
+    translate(this.x, this.effectY, this.z); // Use ground level Y position
     
-    // Shield effect
+    // Shield effect - flattened to be on the ground
     noStroke();
     fill(...this.typeConfig.COLOR, 50 + sin(frameCount * this.typeConfig.PULSE_RATE) * 30);
+    
+    // Use a flattened ellipsoid instead of sphere to make it appear on the ground
+    push();
+    scale(1, 0.2, 1); // Flatten the sphere vertically
     sphere(this.typeConfig.RADIUS * (0.9 + sin(frameCount * this.typeConfig.PULSE_RATE) * 0.1));
+    pop();
     
     // Get enemies for targeting flame particles
     const enemies = this.gameState.enemyController ? this.gameState.enemyController.getEnemies() : [];
@@ -523,11 +542,17 @@ export class FireSkill {
         z = sin(angle) * this.typeConfig.RADIUS;
       }
       
-      const y = sin(frameCount * 0.1 + i) * 20;
+      // Keep y value low to stay close to ground
+      const y = sin(frameCount * 0.1 + i) * 5; // Reduced height variation
       
       translate(x, y, z);
       fill(...this.typeConfig.COLOR, 150);
+      
+      // Use flattened spheres for ground-level effect
+      push();
+      scale(1, 0.4, 1); // Flatten vertically
       sphere(5 + sin(frameCount * 0.2 + i) * 3);
+      pop();
       
       // Add a small flame trail pointing outward
       push();
@@ -535,7 +560,13 @@ export class FireSkill {
       const outwardZ = z * 0.3;
       translate(outwardX, 0, outwardZ);
       fill(...this.typeConfig.COLOR, 100);
+      
+      // Flatten this sphere too
+      push();
+      scale(1, 0.4, 1);
       sphere(3 + sin(frameCount * 0.3 + i) * 2);
+      pop();
+      
       pop();
       
       pop();
@@ -553,10 +584,10 @@ export class FireSkill {
     // Calculate radius based on progress
     const radius = this.typeConfig.RADIUS * (progress || 0.2);
     
-    // Create the main blast wave
+    // Create the main blast wave at ground level
     const blastWave = new Wave(
       this.x,
-      this.y - 20,
+      this.effectY, // Use ground level Y position
       this.z,
       radius,
       [...this.typeConfig.COLOR, 180]
@@ -565,6 +596,10 @@ export class FireSkill {
     blastWave.maxRadius = radius * 1.5;
     blastWave.lifespan = 20;
     blastWave.damage = this.damage / 5; // Damage over time
+    
+    // Set height to create a flat wave on the ground
+    blastWave.height = 5; // Small height to create a flat disc effect
+    
     this.gameState.waves.push(blastWave);
     
     // Create additional targeted blast waves toward enemies (30% chance)
@@ -592,7 +627,7 @@ export class FireSkill {
       
       const targetedWave = new Wave(
         midpointX,
-        this.y - 20,
+        this.effectY, // Use ground level Y position
         midpointZ,
         radius * 0.7, // Slightly smaller
         [...this.typeConfig.COLOR, 200] // More opaque
@@ -601,6 +636,10 @@ export class FireSkill {
       targetedWave.maxRadius = radius * 1.2;
       targetedWave.lifespan = 15;
       targetedWave.damage = this.damage / 4; // Slightly more damage
+      
+      // Set height to create a flat wave on the ground
+      targetedWave.height = 5; // Small height to create a flat disc effect
+      
       this.gameState.waves.push(targetedWave);
     }
   }
@@ -608,10 +647,10 @@ export class FireSkill {
   createPhoenixEffect() {
     if (!this.gameState.waves) return;
     
-    // Create initial phoenix wave
+    // Create initial phoenix wave at ground level
     const phoenixWave = new Wave(
       this.x,
-      this.y - 20,
+      this.effectY, // Use ground level Y position
       this.z,
       this.typeConfig.RADIUS,
       [...this.typeConfig.COLOR, 200]
@@ -619,6 +658,10 @@ export class FireSkill {
     phoenixWave.growthRate = 5;
     phoenixWave.maxRadius = this.typeConfig.RADIUS * 1.5;
     phoenixWave.lifespan = 30;
+    
+    // Set height to create a flat wave on the ground
+    phoenixWave.height = 5; // Small height to create a flat disc effect
+    
     this.gameState.waves.push(phoenixWave);
     
     // Create rising particles
@@ -628,7 +671,7 @@ export class FireSkill {
   createPhoenixParticles() {
     if (!this.gameState.waves) return;
     
-    // Create rising phoenix particles
+    // Create rising phoenix particles starting from ground level
     for (let i = 0; i < 10; i++) {
       const angle = random(TWO_PI);
       const radius = random(this.typeConfig.RADIUS * 0.2, this.typeConfig.RADIUS * 0.8);
@@ -637,7 +680,7 @@ export class FireSkill {
       
       const particle = new Wave(
         x,
-        this.y - random(10, 50),
+        this.effectY, // Start at ground level
         z,
         random(10, 30),
         [...this.typeConfig.COLOR, random(150, 200)]
@@ -646,90 +689,107 @@ export class FireSkill {
       particle.maxRadius = random(20, 40);
       particle.riseSpeed = this.typeConfig.RISE_SPEED * random(0.8, 1.2);
       particle.lifespan = random(20, 40);
+      
+      // Make particles flatter at the start
+      particle.height = random(2, 5); // Start with a small height
+      
       this.gameState.waves.push(particle);
     }
   }
   
   drawPhoenix() {
     push();
-    translate(this.x, this.y - 100, this.z);
+    // Position phoenix at ground level with a slight elevation
+    translate(this.x, this.effectY - 10, this.z);
     
-    // Phoenix body
+    // Phoenix body - flattened to appear more like a ground effect
     noStroke();
     
-    // Wings
+    // Create a flattened phoenix silhouette on the ground
     push();
-    const wingSpread = sin(frameCount * 0.05) * 0.5 + 0.5;
+    // Rotate to lay flat on the ground
+    rotateX(PI/2);
+    
+    // Phoenix body outline
+    fill(...this.typeConfig.COLOR, 150);
+    
+    // Draw a flattened phoenix shape
+    beginShape();
+    // Body
+    vertex(0, 0, 0);
     
     // Left wing
-    push();
-    rotateZ(PI/4 - wingSpread);
-    rotateX(PI/6);
-    fill(...this.typeConfig.COLOR, 150);
-    
-    beginShape();
-    vertex(0, 0, 0);
-    vertex(-100, -50, 0);
-    vertex(-150, 0, 0);
-    vertex(-100, 50, 0);
-    endShape(CLOSE);
-    pop();
-    
-    // Right wing
-    push();
-    rotateZ(-PI/4 + wingSpread);
-    rotateX(PI/6);
-    fill(...this.typeConfig.COLOR, 150);
-    
-    beginShape();
-    vertex(0, 0, 0);
-    vertex(100, -50, 0);
-    vertex(150, 0, 0);
-    vertex(100, 50, 0);
-    endShape(CLOSE);
-    pop();
-    
-    pop();
-    
-    // Body
-    fill(...this.typeConfig.COLOR, 180);
-    ellipsoid(30, 60, 20);
-    
-    // Head
-    push();
-    translate(0, -70, 0);
-    fill(...this.typeConfig.COLOR, 200);
-    sphere(20);
-    
-    // Beak
-    push();
-    translate(0, 0, 20);
-    fill(255, 200, 0);
-    cone(5, 15);
-    pop();
-    pop();
+    const wingSpread = sin(frameCount * 0.05) * 0.3 + 0.7;
+    vertex(-80 * wingSpread, -30, 0);
+    vertex(-120 * wingSpread, 0, 0);
+    vertex(-80 * wingSpread, 30, 0);
     
     // Tail
-    push();
-    translate(0, 80, 0);
-    fill(...this.typeConfig.COLOR, 150);
+    vertex(-30, 100, 0);
+    vertex(0, 120, 0);
+    vertex(30, 100, 0);
     
-    // Tail feathers
-    for (let i = -2; i <= 2; i++) {
+    // Right wing
+    vertex(80 * wingSpread, 30, 0);
+    vertex(120 * wingSpread, 0, 0);
+    vertex(80 * wingSpread, -30, 0);
+    
+    // Head
+    vertex(0, -80, 0);
+    
+    endShape(CLOSE);
+    
+    // Inner glow
+    fill(...this.typeConfig.COLOR, 100);
+    
+    // Draw a smaller phoenix shape for inner glow
+    beginShape();
+    // Body
+    vertex(0, 0, 0);
+    
+    // Left wing (smaller)
+    vertex(-60 * wingSpread, -20, 0);
+    vertex(-90 * wingSpread, 0, 0);
+    vertex(-60 * wingSpread, 20, 0);
+    
+    // Tail (smaller)
+    vertex(-20, 70, 0);
+    vertex(0, 90, 0);
+    vertex(20, 70, 0);
+    
+    // Right wing (smaller)
+    vertex(60 * wingSpread, 20, 0);
+    vertex(90 * wingSpread, 0, 0);
+    vertex(60 * wingSpread, -20, 0);
+    
+    // Head (smaller)
+    vertex(0, -60, 0);
+    
+    endShape(CLOSE);
+    pop();
+    
+    // Add some rising flame particles
+    for (let i = 0; i < 5; i++) {
       push();
-      translate(i * 10, 0, 0);
-      rotateX(PI/6);
-      rotateY(i * PI/12);
+      // Random position within the phoenix silhouette
+      const angle = random(TWO_PI);
+      const dist = random(50);
+      const x = cos(angle) * dist;
+      const z = sin(angle) * dist;
       
-      beginShape();
-      vertex(0, 0, 0);
-      vertex(-10, 50, 0);
-      vertex(0, 80, 0);
-      vertex(10, 50, 0);
-      endShape(CLOSE);
+      translate(x, random(-5, 5), z);
+      
+      // Flame particle
+      fill(...this.typeConfig.COLOR, random(100, 150));
+      
+      // Flattened flame
+      push();
+      scale(1, 0.3, 1); // Flatten vertically
+      sphere(random(5, 15));
+      pop();
+      
       pop();
     }
-    pop();
     
     pop();
   }
