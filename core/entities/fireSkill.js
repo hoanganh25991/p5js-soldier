@@ -184,47 +184,91 @@ export class FireSkill {
       meteor.y += meteor.vy;
       meteor.z += meteor.vz;
       
-      // Check if meteor reached its target position or went below ground
+      // Check if meteor reached its target position
       const distToTarget = dist(meteor.x, meteor.z, meteor.targetX, meteor.targetZ);
       const heightPastTarget = meteor.y > meteor.targetY;
       
-      if (distToTarget < 20 || heightPastTarget || meteor.y >= -50) {
-        // Create impact wave
+      // Never let meteors hit the ground - they should always explode in mid-air
+      if (distToTarget < 20 || heightPastTarget || meteor.y >= -150) {
+        // Create impact wave - more dramatic for mid-air explosions
         if (this.gameState.waves) {
+          // Main explosion wave
           const impactWave = new Wave(
             meteor.x,
             meteor.y,
             meteor.z,
             this.typeConfig.METEOR_SIZE * 2,
-            [...this.typeConfig.COLOR, 180]
+            [...this.typeConfig.COLOR, 200] // More opaque
           );
-          impactWave.growthRate = 5;
-          impactWave.maxRadius = this.typeConfig.METEOR_SIZE * 5;
+          impactWave.growthRate = 8; // Faster growth
+          impactWave.maxRadius = this.typeConfig.METEOR_SIZE * 6; // Larger
+          impactWave.lifespan = 25; // Longer lasting
           this.gameState.waves.push(impactWave);
+          
+          // Secondary explosion wave (different color)
+          const secondaryWave = new Wave(
+            meteor.x,
+            meteor.y,
+            meteor.z,
+            this.typeConfig.METEOR_SIZE * 1.5,
+            [255, 255, 100, 180] // Yellow-orange
+          );
+          secondaryWave.growthRate = 6;
+          secondaryWave.maxRadius = this.typeConfig.METEOR_SIZE * 4;
+          secondaryWave.lifespan = 20;
+          this.gameState.waves.push(secondaryWave);
         }
         
         // Damage enemies near impact
         this.damageNearbyEnemies(this.typeConfig.METEOR_SIZE * 3, this.damage, meteor.x, meteor.y, meteor.z);
         
-        // Create additional fire particles
+        // Create additional fire particles for a more dramatic mid-air explosion
         if (this.gameState.waves) {
-          for (let j = 0; j < 8; j++) {
+          // More particles for a bigger explosion
+          for (let j = 0; j < 15; j++) {
+            // Create particles in a 3D sphere around the explosion point
             const particleAngle = random(TWO_PI);
-            const particleRadius = random(10, 30);
-            const particleX = meteor.x + cos(particleAngle) * particleRadius;
-            const particleY = meteor.y;
-            const particleZ = meteor.z + sin(particleAngle) * particleRadius;
+            const particleElevation = random(-PI/2, PI/2);
+            const particleRadius = random(10, 50);
+            
+            // Calculate 3D position using spherical coordinates
+            const particleX = meteor.x + cos(particleAngle) * cos(particleElevation) * particleRadius;
+            const particleY = meteor.y + sin(particleElevation) * particleRadius;
+            const particleZ = meteor.z + sin(particleAngle) * cos(particleElevation) * particleRadius;
+            
+            // Randomize colors for more variety
+            const colorVariation = floor(random(3));
+            let particleColor;
+            
+            if (colorVariation === 0) {
+              // Orange-red
+              particleColor = [255, random(50, 150), 0, random(150, 200)];
+            } else if (colorVariation === 1) {
+              // Yellow
+              particleColor = [255, 255, random(0, 100), random(150, 200)];
+            } else {
+              // Red
+              particleColor = [255, random(0, 50), 0, random(150, 200)];
+            }
             
             const fireParticle = new Wave(
               particleX,
               particleY,
               particleZ,
-              random(5, 15),
-              [255, random(50, 150), 0, random(150, 200)]
+              random(5, 20),
+              particleColor
             );
-            fireParticle.growthRate = random(2, 4);
-            fireParticle.maxRadius = random(20, 40);
-            fireParticle.lifespan = random(15, 30);
+            
+            // Some particles grow faster than others
+            fireParticle.growthRate = random(2, 6);
+            fireParticle.maxRadius = random(20, 60);
+            fireParticle.lifespan = random(15, 40);
+            
+            // Some particles rise
+            if (random() < 0.4) {
+              fireParticle.riseSpeed = random(1, 3);
+            }
+            
             this.gameState.waves.push(fireParticle);
           }
         }
@@ -249,14 +293,26 @@ export class FireSkill {
       push();
       translate(meteor.x, meteor.y, meteor.z);
       
-      // Meteor trail
+      // Meteor rotation for more dynamic appearance
+      const rotationSpeed = frameCount * 0.05;
+      rotateX(rotationSpeed + (meteor.rotation || 0));
+      rotateY(rotationSpeed * 0.7);
+      
+      // Enhanced meteor trail
       push();
       noStroke();
-      for (let i = 0; i < 5; i++) {
-        const trailSize = this.typeConfig.METEOR_SIZE * (1 - i * 0.15);
-        const alpha = 200 - i * 40;
-        fill(this.typeConfig.COLOR[0], this.typeConfig.COLOR[1], this.typeConfig.COLOR[2], alpha);
-        translate(-meteor.vx * 2, -meteor.vy * 2, -meteor.vz * 2);
+      for (let i = 0; i < 8; i++) { // Longer trail
+        const trailSize = this.typeConfig.METEOR_SIZE * (1 - i * 0.1);
+        const alpha = 200 - i * 25;
+        
+        // Alternate colors in the trail for fire effect
+        if (i % 2 === 0) {
+          fill(this.typeConfig.COLOR[0], this.typeConfig.COLOR[1], this.typeConfig.COLOR[2], alpha);
+        } else {
+          fill(255, 255, 100, alpha); // Yellow for fire effect
+        }
+        
+        translate(-meteor.vx * 1.5, -meteor.vy * 1.5, -meteor.vz * 1.5);
         sphere(trailSize);
       }
       pop();
@@ -266,12 +322,37 @@ export class FireSkill {
       fill(this.typeConfig.COLOR);
       sphere(this.typeConfig.METEOR_SIZE);
       
-      // Meteor glow
+      // Inner glow
       push();
       noStroke();
-      fill(255, 255, 200, 100);
-      sphere(this.typeConfig.METEOR_SIZE * 1.3);
+      fill(255, 255, 200, 150);
+      sphere(this.typeConfig.METEOR_SIZE * 0.7);
       pop();
+      
+      // Outer glow
+      push();
+      noStroke();
+      fill(255, 200, 50, 80);
+      sphere(this.typeConfig.METEOR_SIZE * 1.5);
+      pop();
+      
+      // Small particles around the meteor
+      for (let i = 0; i < 5; i++) {
+        push();
+        const particleAngle = random(TWO_PI);
+        const particleElevation = random(PI);
+        const particleRadius = this.typeConfig.METEOR_SIZE * 1.8;
+        
+        const px = cos(particleAngle) * sin(particleElevation) * particleRadius;
+        const py = cos(particleElevation) * particleRadius;
+        const pz = sin(particleAngle) * sin(particleElevation) * particleRadius;
+        
+        translate(px, py, pz);
+        noStroke();
+        fill(255, random(100, 255), 0, random(100, 200));
+        sphere(random(2, 5));
+        pop();
+      }
       
       pop();
     }
@@ -684,8 +765,8 @@ export class FireSkill {
       targetZ = sin(targetAngle) * targetRadius;
     }
     
-    // Set target Y to be above ground level so meteors don't hit the ground
-    const targetY = -100 - random(50); // Above ground level
+    // Set target Y to be well above ground level so meteors never hit the ground
+    const targetY = -200 - random(100); // Well above ground level
     
     // Calculate velocity
     const dx = targetX - meteorX;
