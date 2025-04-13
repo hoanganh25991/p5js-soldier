@@ -37,9 +37,9 @@ export class FireSkill {
   }
   
   initializeSkill() {
-    // Set Y position to ground level for all fire effects
-    // This ensures effects appear on the ground and behind characters
-    this.effectY = -50; // Ground level
+    // Set Y position to slightly above ground level for all fire effects
+    // This ensures effects appear on the ground and behind characters but are still visible
+    this.effectY = -48; // Slightly above ground level to ensure visibility
     
     switch (this.type) {
       case 'FIREBALL':
@@ -208,8 +208,9 @@ export class FireSkill {
           impactWave.maxRadius = this.typeConfig.METEOR_SIZE * 6; // Larger
           impactWave.lifespan = 25; // Longer lasting
           
-          // Set height to create a flat wave on the ground
-          impactWave.height = 5; // Small height to create a flat disc effect
+          // Set height to create a 3D effect that rises from the ground
+          impactWave.height = 30; // Taller height for 3D effect
+          impactWave.riseSpeed = 1.5; // Make the wave rise slowly
           
           this.gameState.waves.push(impactWave);
           
@@ -225,8 +226,9 @@ export class FireSkill {
           secondaryWave.maxRadius = this.typeConfig.METEOR_SIZE * 4;
           secondaryWave.lifespan = 20;
           
-          // Set height to create a flat wave on the ground
-          secondaryWave.height = 5; // Small height to create a flat disc effect
+          // Set height to create a 3D effect that rises from the ground
+          secondaryWave.height = 20; // Shorter than primary wave but still 3D
+          secondaryWave.riseSpeed = 1.2; // Slightly slower rise
           
           this.gameState.waves.push(secondaryWave);
         }
@@ -275,13 +277,11 @@ export class FireSkill {
             fireParticle.maxRadius = random(20, 60);
             fireParticle.lifespan = random(15, 40);
             
-            // Make particles flat on the ground
-            fireParticle.height = random(2, 5); // Small height for flat effect
+            // Make particles rise from the ground with 3D effect
+            fireParticle.height = random(15, 35); // Taller height for 3D effect
             
-            // Some particles rise
-            if (random() < 0.4) {
-              fireParticle.riseSpeed = random(1, 3);
-            }
+            // All particles rise at different speeds
+            fireParticle.riseSpeed = random(0.8, 2.5);
             
             this.gameState.waves.push(fireParticle);
           }
@@ -473,6 +473,8 @@ export class FireSkill {
       castWave.growthRate = 3;
       castWave.maxRadius = 50;
       castWave.lifespan = 15;
+      castWave.height = 25; // Add height for 3D effect
+      castWave.riseSpeed = 1.8; // Make it rise quickly
       this.gameState.waves.push(castWave);
     }
   }
@@ -492,6 +494,8 @@ export class FireSkill {
     shieldWave.maxRadius = this.typeConfig.RADIUS * 1.1;
     shieldWave.lifespan = 30;
     shieldWave.damage = this.damage / 10; // Small damage over time
+    shieldWave.height = 40; // Taller height for 3D effect
+    shieldWave.riseSpeed = 0.8; // Slow rise for shield effect
     this.gameState.waves.push(shieldWave);
   }
   
@@ -597,8 +601,9 @@ export class FireSkill {
     blastWave.lifespan = 20;
     blastWave.damage = this.damage / 5; // Damage over time
     
-    // Set height to create a flat wave on the ground
-    blastWave.height = 5; // Small height to create a flat disc effect
+    // Set height to create a 3D effect that rises from the ground
+    blastWave.height = 35; // Taller height for 3D effect
+    blastWave.riseSpeed = 1.2; // Make the wave rise slowly
     
     this.gameState.waves.push(blastWave);
     
@@ -637,8 +642,9 @@ export class FireSkill {
       targetedWave.lifespan = 15;
       targetedWave.damage = this.damage / 4; // Slightly more damage
       
-      // Set height to create a flat wave on the ground
-      targetedWave.height = 5; // Small height to create a flat disc effect
+      // Set height to create a 3D effect that rises from the ground
+      targetedWave.height = 25; // Taller height for 3D effect
+      targetedWave.riseSpeed = 1.5; // Make the wave rise quickly
       
       this.gameState.waves.push(targetedWave);
     }
@@ -659,8 +665,9 @@ export class FireSkill {
     phoenixWave.maxRadius = this.typeConfig.RADIUS * 1.5;
     phoenixWave.lifespan = 30;
     
-    // Set height to create a flat wave on the ground
-    phoenixWave.height = 5; // Small height to create a flat disc effect
+    // Set height to create a 3D effect that rises from the ground
+    phoenixWave.height = 50; // Taller height for phoenix effect
+    phoenixWave.riseSpeed = 2; // Make the wave rise quickly for phoenix rebirth effect
     
     this.gameState.waves.push(phoenixWave);
     
@@ -690,8 +697,8 @@ export class FireSkill {
       particle.riseSpeed = this.typeConfig.RISE_SPEED * random(0.8, 1.2);
       particle.lifespan = random(20, 40);
       
-      // Make particles flatter at the start
-      particle.height = random(2, 5); // Start with a small height
+      // Make particles have 3D height for better visual effect
+      particle.height = random(15, 30); // Taller height for 3D effect
       
       this.gameState.waves.push(particle);
     }

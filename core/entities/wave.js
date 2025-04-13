@@ -63,10 +63,10 @@ export class Wave {
   }
 
   show() {
-    // Skip rendering ground-level waves/auras to improve performance
-    // This addresses the FPS drop issue mentioned in requirements
-    if (this.y >= -51 && this.y <= -49) {
-      return; // Don't render waves at ground level (around y = -50)
+    // Only skip rendering if the wave is exactly at ground level and has no rise speed
+    // This allows rising waves to be visible while still optimizing flat ground waves
+    if (this.y >= -51 && this.y <= -49 && this.riseSpeed <= 0 && this.height <= 5) {
+      return; // Don't render flat waves at ground level with no rise
     }
     
     push();
