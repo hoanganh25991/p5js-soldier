@@ -9,6 +9,18 @@ const CONFIG = {
   TOWER_HEIGHT: 100,
   PLAYER_HEALTH: 100,
   VICTORY_KILLS: 1000,
+  
+  // Camera settings
+  CAMERA: {
+    VERTICAL_OFFSET: 600, // Camera height above player
+    HORIZONTAL_OFFSET: 0, // Horizontal offset from calculated position
+    DEPTH_OFFSET: 100, // Camera depth offset behind player
+    LOOK_AT: {
+      X: 0, // Horizontal look target
+      Y_OFFSET: 200, // Vertical look target relative to player
+      Z: -400, // Forward look distance
+    },
+  },
 
   // Player settings
   PLAYER_WIDTH: 20,

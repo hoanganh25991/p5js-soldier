@@ -1,6 +1,8 @@
 // Camera Manager
 // Handles camera positioning, rotation, and zoom
 
+import CONFIG from '../config.js';
+
 /**
  * Initialize camera settings
  * @param {Object} gameState - The global game state
@@ -37,17 +39,17 @@ export function updateCamera(gameState) {
   let camX = sin(gameState.cameraRotationY) * currentDistance;
   let camZ = cos(gameState.cameraRotationY) * currentDistance;
 
-  // Position camera behind player
+  // Position camera behind player using config values
   gameState.camera.setPosition(
-    camX, // Keep player centered horizontally
-    gameState.player.y - 600, // Camera slightly above player
-    camZ + 100 // Camera behind player
+    camX + CONFIG.CAMERA.HORIZONTAL_OFFSET, // Apply horizontal offset from config
+    gameState.player.y - CONFIG.CAMERA.VERTICAL_OFFSET, // Camera height from config
+    camZ + CONFIG.CAMERA.DEPTH_OFFSET // Camera depth from config
   );
 
-  // Look at point in front of player with better sky visibility
+  // Look at point in front of player with better sky visibility using config values
   gameState.camera.lookAt(
-    0, // Keep centered horizontally
-    gameState.player.y + 200, // Look more level to see sky
-    -400 // Look ahead of player
+    CONFIG.CAMERA.LOOK_AT.X, // Horizontal look target from config
+    gameState.player.y + CONFIG.CAMERA.LOOK_AT.Y_OFFSET, // Vertical look target from config
+    CONFIG.CAMERA.LOOK_AT.Z // Forward look distance from config
   );
 }
