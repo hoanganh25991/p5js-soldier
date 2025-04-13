@@ -6,6 +6,7 @@ import { createMenuUI } from './menuUI.js';
 import { createPauseMenu } from './pauseMenu.js';
 import { createGameOverScreen, showGameOverScreen } from './gameOverScreen.js';
 import { showCooldownMessage } from './cooldownPopup.js';
+import { createVirtualKeyboard, updateVirtualKeyboard } from './virtualKeyboard.js';
 
 export {
   createStatusBoard,
@@ -14,5 +15,7 @@ export {
   createPauseMenu,
   createGameOverScreen,
   showGameOverScreen,
-  showCooldownMessage
+  showCooldownMessage,
+  createVirtualKeyboard,
+  updateVirtualKeyboard
 };

@@ -6,7 +6,7 @@ import CONFIG from './config.js';
 import { gameState, resetGameState } from './gameState.js';
 import { setupMouseHandlers, handleMouseWheel, handleMousePressed, handleMouseReleased } from './controls/mouseControls.js';
 import { handleKeyPressed } from './controls/keyboardControls.js';
-import { createStatusBoard, updateStatusBoard, createMenuUI, createPauseMenu, createGameOverScreen, showGameOverScreen, showCooldownMessage } from './ui/index.js';
+import { createStatusBoard, updateStatusBoard, createMenuUI, createPauseMenu, createGameOverScreen, showGameOverScreen, showCooldownMessage, createVirtualKeyboard, updateVirtualKeyboard } from './ui/index.js';
 import { initializeUpgrades, applyUpgrades, awardXP, checkLevelUp, updateCombo, incrementCombo } from './progression.js';
 import { updateSkillStates } from './skills.js';
 
@@ -49,9 +49,13 @@ function setup() {
   gameState.ui.menuScreen = createMenuUI();
   gameState.ui.pauseMenu = createPauseMenu();
   gameState.ui.gameOverScreen = createGameOverScreen();
+  gameState.ui.virtualKeyboard = createVirtualKeyboard();
   
   // Setup mouse handlers
   setupMouseHandlers(window, gameState);
+  
+  // Make gameState available globally for the virtual keyboard
+  window.gameState = gameState;
   
   // Make showCooldownMessage available globally for other modules
   window.showCooldownMessage = showCooldownMessage;
@@ -106,8 +110,9 @@ function draw() {
         }
       }
       
-      // Update status board
+      // Update UI elements
       updateStatusBoard();
+      updateVirtualKeyboard(gameState);
       
       // Check win/lose conditions
       checkGameEndConditions(gameState);
