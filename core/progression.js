@@ -351,7 +351,7 @@ export function checkLevelUp(gameState) {
     
     // Show level up message
     if (window.showCooldownMessage) {
-      window.showCooldownMessage(`Level Up! Now level ${gameState.level}`, 0);
+      // window.showCooldownMessage(`Level Up! Now level ${gameState.level}`, 0);
     }
     
     // Show level up screen
@@ -439,7 +439,7 @@ export function updateCombo(gameState) {
       
       // Show combo end message
       if (window.showCooldownMessage) {
-        window.showCooldownMessage(`Combo x${gameState.combo} ended! +${comboXP} XP`, 0);
+        // window.showCooldownMessage(`Combo x${gameState.combo} ended! +${comboXP} XP`, 0);
       }
       
       // Reset combo
@@ -464,7 +464,7 @@ export function incrementCombo(gameState) {
   // Show combo message for significant combos
   if (gameState.combo >= 5 && gameState.combo % 5 === 0) {
     if (window.showCooldownMessage) {
-      window.showCooldownMessage(`Combo x${gameState.combo}!`, 0);
+      // window.showCooldownMessage(`Combo x${gameState.combo}!`, 0);
     }
   }
 }

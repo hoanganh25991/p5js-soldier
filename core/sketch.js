@@ -6,7 +6,7 @@ import CONFIG from './config.js';
 import { gameState, resetGameState } from './gameState.js';
 import { setupMouseHandlers, handleMouseWheel, handleMousePressed, handleMouseReleased } from './controls/mouseControls.js';
 import { handleKeyPressed } from './controls/keyboardControls.js';
-import { createStatusBoard, updateStatusBoard, createMenuUI, createPauseMenu, createGameOverScreen, showGameOverScreen, showCooldownMessage } from './ui.js';
+import { createStatusBoard, updateStatusBoard, createMenuUI, createPauseMenu, createGameOverScreen, showGameOverScreen, showCooldownMessage } from './ui/index.js';
 import { initializeUpgrades, applyUpgrades, awardXP, checkLevelUp, updateCombo, incrementCombo } from './progression.js';
 import { updateSkillStates } from './skills.js';
 
