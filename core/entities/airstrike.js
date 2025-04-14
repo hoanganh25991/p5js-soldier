@@ -62,24 +62,25 @@ export class Airstrike {
     if (this.trailTimer >= this.trailInterval) {
       this.trailTimer = 0;
       
-      // Calculate exhaust offset based on rotation
-      const exhaustOffsetX = -5 * cos(this.rotation);
-      const exhaustOffsetZ = -5 * sin(this.rotation);
+      // Calculate direction vector for exhaust (opposite to movement direction)
+      const exhaustDirX = -this.directionX;
+      const exhaustDirZ = -this.directionZ;
       
       // Calculate perpendicular vector for engine positions
-      const perpX = -sin(this.rotation);
-      const perpZ = cos(this.rotation);
+      // This creates a vector perpendicular to the direction of travel
+      const perpX = -this.directionZ; // Perpendicular to direction
+      const perpZ = this.directionX;  // Perpendicular to direction
       
-      // Left engine exhaust
+      // Left engine exhaust - positioned to the left of the aircraft
       particleManager.createParticle(
-        this.x + exhaustOffsetX + perpX * 40, 
+        this.x + perpX * 30, 
         this.y + 5, 
-        this.z + exhaustOffsetZ + perpZ * 40,
+        this.z + perpZ * 30,
         'SMOKE',
         {
-          vx: -this.directionX * this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
+          vx: exhaustDirX * this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
           vy: (Math.random() - 0.5) * 0.2,
-          vz: -this.directionZ * this.speed * 0.5 + (Math.random() - 0.5) * 0.2,
+          vz: exhaustDirZ * this.speed * 0.5 + (Math.random() - 0.5) * 0.2,
           size: 8 + Math.random() * 4,
           color: [200, 200, 200],
           alpha: 150,
@@ -87,16 +88,16 @@ export class Airstrike {
         }
       );
       
-      // Right engine exhaust
+      // Right engine exhaust - positioned to the right of the aircraft
       particleManager.createParticle(
-        this.x + exhaustOffsetX - perpX * 40, 
+        this.x - perpX * 30, 
         this.y + 5, 
-        this.z + exhaustOffsetZ - perpZ * 40,
+        this.z - perpZ * 30,
         'SMOKE',
         {
-          vx: -this.directionX * this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
+          vx: exhaustDirX * this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
           vy: (Math.random() - 0.5) * 0.2,
-          vz: -this.directionZ * this.speed * 0.5 + (Math.random() - 0.5) * 0.2,
+          vz: exhaustDirZ * this.speed * 0.5 + (Math.random() - 0.5) * 0.2,
           size: 8 + Math.random() * 4,
           color: [200, 200, 200],
           alpha: 150,
@@ -155,15 +156,23 @@ export class Airstrike {
   show() {
     push();
     translate(this.x, this.y, this.z);
-    rotateY(this.rotation); // Rotate to face direction of travel
-    rotateZ(this.wingTilt); // Apply subtle banking effect
+    
+    // First rotate to align with direction of travel
+    rotateY(this.rotation);
+    
+    // Then apply banking effect
+    rotateZ(this.wingTilt);
+    
+    // Apply a 90-degree rotation to fix the orientation
+    // This makes the aircraft fly with its nose pointing in the direction of travel
+    rotateY(PI/2);
     
     // Main body - fuselage
     fill(150, 150, 180);
     stroke(100);
     strokeWeight(0.5);
     push();
-    box(100, 15, 20);
+    box(20, 15, 100); // Swapped width and depth to align with direction
     pop();
     
     // Bomb bay doors
@@ -173,30 +182,32 @@ export class Airstrike {
       
       // Left door
       push();
-      translate(0, 0, -10);
+      translate(-10, 0, 0);
       rotateZ(this.bombBayOpenAmount * PI/3); // Wider opening angle
       fill(120, 120, 150);
-      box(60, 1, 20); // Larger doors for bigger bombs
+      box(20, 1, 60); // Adjusted for new orientation
       pop();
       
       // Right door
       push();
-      translate(0, 0, 10);
+      translate(10, 0, 0);
       rotateZ(-this.bombBayOpenAmount * PI/3); // Wider opening angle
       fill(120, 120, 150);
-      box(60, 1, 20); // Larger doors for bigger bombs
+      box(20, 1, 60); // Adjusted for new orientation
       pop();
       
       // Door details - hinges
       push();
-      translate(0, 0, -20);
+      translate(-20, 0, 0);
       fill(80, 80, 80);
+      rotateZ(PI/2);
       cylinder(2, 22);
       pop();
       
       push();
-      translate(0, 0, 20);
+      translate(20, 0, 0);
       fill(80, 80, 80);
+      rotateZ(PI/2);
       cylinder(2, 22);
       pop();
       
@@ -205,23 +216,23 @@ export class Airstrike {
         push();
         translate(0, -5, 0);
         fill(60, 60, 60);
-        box(55, 10, 35);
+        box(35, 10, 55);
         
         // Bomb rack details
         fill(40, 40, 40);
         push();
-        translate(-20, 0, 0);
-        box(2, 8, 30);
+        translate(0, 0, -20);
+        box(30, 8, 2);
         pop();
         
         push();
         translate(0, 0, 0);
-        box(2, 8, 30);
+        box(30, 8, 2);
         pop();
         
         push();
-        translate(20, 0, 0);
-        box(2, 8, 30);
+        translate(0, 0, 20);
+        box(30, 8, 2);
         pop();
         pop();
       }
@@ -232,25 +243,24 @@ export class Airstrike {
     // Wings
     fill(120, 120, 150);
     push();
-    rotateY(PI/2);
     
     // Main wings
     push();
     translate(0, 5, 0);
     // Add subtle wing flex
-    rotateX(sin(this.gameState.frameCount * 0.02) * 0.03);
+    rotateZ(sin(this.gameState.frameCount * 0.02) * 0.03);
     box(80, 5, 30);
     
     // Wing details - flaps
     push();
-    translate(-25, 0, 0);
+    translate(0, 0, -25);
     fill(100, 100, 130);
-    box(20, 3, 28);
+    box(28, 3, 20);
     pop();
     
     // Wing lights
     push();
-    translate(-35, -2, 35);
+    translate(35, -2, -35);
     fill(255, 0, 0);
     sphere(2);
     pop();
@@ -265,21 +275,21 @@ export class Airstrike {
     
     // Tail wings
     push();
-    translate(-35, 0, 0);
-    box(20, 5, 15);
+    translate(0, 0, -35);
+    box(15, 5, 20);
     pop();
     
     // Vertical stabilizer
     push();
-    translate(-40, -10, 0);
-    box(15, 20, 3);
+    translate(0, -10, -40);
+    box(3, 20, 15);
     pop();
     pop();
     
     // Cockpit
     fill(200, 200, 255, 150);
     push();
-    translate(30, -5, 0);
+    translate(0, -5, 30);
     scale(1, 0.7, 1);
     sphere(10);
     
@@ -287,7 +297,7 @@ export class Airstrike {
     push();
     translate(0, 0, 0);
     fill(50, 50, 80);
-    rotateX(PI/2);
+    rotateZ(PI/2);
     cylinder(8, 2);
     pop();
     pop();
@@ -295,20 +305,20 @@ export class Airstrike {
     // Engines
     fill(80);
     push();
-    translate(0, 5, -30);
-    rotateX(PI/2);
+    translate(-30, 5, 0);
+    rotateZ(PI/2);
     cylinder(5, 20);
     
     // Rotating propellers
     push();
     translate(0, -15, 0);
-    rotateY(this.propellerRotation);
+    rotateX(this.propellerRotation);
     fill(50);
     
     // Propeller blades
     for (let i = 0; i < 4; i++) {
       push();
-      rotateY(i * PI/2);
+      rotateX(i * PI/2);
       translate(0, 0, 10);
       box(1, 2, 20);
       pop();
@@ -331,20 +341,20 @@ export class Airstrike {
     
     // Second engine
     push();
-    translate(0, 5, 30);
-    rotateX(PI/2);
+    translate(30, 5, 0);
+    rotateZ(PI/2);
     cylinder(5, 20);
     
     // Rotating propellers
     push();
     translate(0, -15, 0);
-    rotateY(-this.propellerRotation); // Rotate opposite direction
+    rotateX(-this.propellerRotation); // Rotate opposite direction
     fill(50);
     
     // Propeller blades
     for (let i = 0; i < 4; i++) {
       push();
-      rotateY(i * PI/2);
+      rotateX(i * PI/2);
       translate(0, 0, 10);
       box(1, 2, 20);
       pop();
@@ -368,16 +378,16 @@ export class Airstrike {
     // Nose cone
     fill(100, 100, 130);
     push();
-    translate(50, 0, 0);
-    rotateZ(PI/2);
+    translate(0, 0, 50);
+    rotateX(PI/2);
     cone(10, 20);
     pop();
     
     // Tail cone
     fill(100, 100, 130);
     push();
-    translate(-50, 0, 0);
-    rotateZ(-PI/2);
+    translate(0, 0, -50);
+    rotateX(-PI/2);
     cone(10, 15);
     pop();
 

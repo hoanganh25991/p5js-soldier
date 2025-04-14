@@ -67,6 +67,9 @@ export class Bomb {
     // Add tumbling rotation for realistic falling motion
     this.rotationX += this.rotationSpeed;
     
+    // Add slight wobble for more realistic falling motion
+    this.rotationZ += sin(this.gameState.frameCount * 0.05) * 0.01;
+    
     // Add trail particles using particle manager
     this.trailTimer++;
     if (this.particleManager && this.trailTimer >= this.trailInterval) {
@@ -307,16 +310,21 @@ export class Bomb {
     push();
     noStroke();
     translate(this.x, this.y, this.z);
-    rotateX(this.rotationX);
+    
+    // Apply rotations to make the bomb point in the direction it's moving
+    // First rotate around Z axis to align with horizontal direction
     rotateZ(this.rotationZ);
     
-    // Main bomb body
+    // Then apply tumbling rotation for falling effect
+    rotateX(this.rotationX);
+    
+    // Main bomb body - elongated in the direction of travel
     fill(40, 40, 40);
     push();
     ellipsoid(this.size / 6, this.size / 3, this.size / 6);
     pop();
     
-    // Nose cone
+    // Nose cone - pointing in the direction of travel
     fill(60, 60, 60);
     push();
     translate(0, -this.size / 3, 0);
@@ -386,6 +394,28 @@ export class Bomb {
       pop();
     }
     pop();
+    
+    // Add a small flame effect at the tail for visual interest
+    if (this.particleManager) {
+      // Only add flame effect occasionally to avoid too many particles
+      if (this.gameState.frameCount % 5 === 0) {
+        this.particleManager.createParticle(
+          this.x - this.vx * 0.5, 
+          this.y - this.vy * 0.5, 
+          this.z - this.vz * 0.5,
+          'FIRE',
+          {
+            vx: -this.vx * 0.2 + (Math.random() - 0.5) * 0.2,
+            vy: -this.vy * 0.2 + (Math.random() - 0.5) * 0.2,
+            vz: -this.vz * 0.2 + (Math.random() - 0.5) * 0.2,
+            size: this.size / 12 + Math.random() * 2,
+            color: [255, 100 + Math.random() * 100, 0],
+            alpha: 150,
+            lifespan: 5 + Math.floor(Math.random() * 5)
+          }
+        );
+      }
+    }
     
     pop();
   }
