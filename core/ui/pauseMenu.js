@@ -3,147 +3,175 @@
 
 import { gameState } from '../gameState.js';
 import { resetGame } from '../managers/gameManager.js';
+import { 
+  createOverlay, 
+  createTitle, 
+  createStyledButton, 
+  applyStyles, 
+  styles 
+} from './uiUtils.js';
 
-// Create pause menu
+// Volume container styles
+const volumeContainerStyles = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  marginTop: '20px',
+  marginBottom: '20px',
+  width: '80%',
+  maxWidth: '300px'
+};
+
+// Volume label styles
+const volumeLabelStyles = {
+  color: 'white',
+  fontFamily: 'Arial, sans-serif',
+  marginBottom: '10px'
+};
+
+// Volume value styles
+const volumeValueStyles = {
+  color: 'white',
+  fontFamily: 'Arial, sans-serif',
+  marginTop: '5px'
+};
+
+// Smaller button styles for mute button
+const smallButtonStyles = {
+  ...styles.button,
+  padding: '10px 20px',
+  fontSize: '16px'
+};
+
+/**
+ * Create pause menu
+ * @returns {Element} The pause menu element
+ */
 export function createPauseMenu() {
-  const pauseMenu = createElement('div');
-  pauseMenu.id('pause-menu');
-  pauseMenu.style('position', 'fixed');
-  pauseMenu.style('top', '0');
-  pauseMenu.style('left', '0');
-  pauseMenu.style('width', '100%');
-  pauseMenu.style('height', '100%');
-  pauseMenu.style('display', 'none');
-  pauseMenu.style('flex-direction', 'column');
-  pauseMenu.style('justify-content', 'center');
-  pauseMenu.style('align-items', 'center');
-  pauseMenu.style('background', 'rgba(0, 0, 0, 0.7)');
-  pauseMenu.style('z-index', '300');
+  // Create the main overlay
+  const pauseMenu = createOverlay('pause-menu');
   
   // Title
-  const title = createElement('h1', 'Game Paused');
-  title.style('color', 'white');
-  title.style('font-family', 'Arial, sans-serif');
-  title.style('margin-bottom', '40px');
+  const title = createTitle('Game Paused');
   pauseMenu.child(title);
   
   // Resume button
-  const resumeButton = createButton('Resume Game');
-  resumeButton.style('padding', '15px 30px');
-  resumeButton.style('font-size', '20px');
-  resumeButton.style('margin-bottom', '20px');
-  resumeButton.style('cursor', 'pointer');
-  resumeButton.style('background', '#4CAF50');
-  resumeButton.style('color', 'white');
-  resumeButton.style('border', 'none');
-  resumeButton.style('border-radius', '5px');
-  resumeButton.mousePressed(() => {
-    gameState.currentState = 'playing';
-    pauseMenu.style('display', 'none');
-    loop();
-  });
+  const resumeButton = createStyledButton(
+    'Resume Game', 
+    styles.buttonColors.primary, 
+    () => {
+      gameState.currentState = 'playing';
+      pauseMenu.style('display', 'none');
+      loop();
+    }
+  );
   pauseMenu.child(resumeButton);
   
   // Restart button
-  const restartButton = createButton('Restart Game');
-  restartButton.style('padding', '15px 30px');
-  restartButton.style('font-size', '20px');
-  restartButton.style('margin-bottom', '20px');
-  restartButton.style('cursor', 'pointer');
-  restartButton.style('background', '#2196F3');
-  restartButton.style('color', 'white');
-  restartButton.style('border', 'none');
-  restartButton.style('border-radius', '5px');
-  restartButton.mousePressed(() => {
-    resetGame();
-    gameState.currentState = 'playing';
-    pauseMenu.style('display', 'none');
-    loop();
-  });
+  const restartButton = createStyledButton(
+    'Restart Game', 
+    styles.buttonColors.secondary, 
+    () => {
+      resetGame();
+      gameState.currentState = 'playing';
+      pauseMenu.style('display', 'none');
+      loop();
+    }
+  );
   pauseMenu.child(restartButton);
   
-  // Volume control
+  // Volume control container
   const volumeContainer = createElement('div');
-  volumeContainer.style('display', 'flex');
-  volumeContainer.style('flex-direction', 'column');
-  volumeContainer.style('align-items', 'center');
-  volumeContainer.style('margin-top', '20px');
-  volumeContainer.style('margin-bottom', '20px');
-  volumeContainer.style('width', '80%');
-  volumeContainer.style('max-width', '300px');
+  applyStyles(volumeContainer, volumeContainerStyles);
   
+  // Volume label
   const volumeLabel = createElement('div', 'Sound Volume');
-  volumeLabel.style('color', 'white');
-  volumeLabel.style('font-family', 'Arial, sans-serif');
-  volumeLabel.style('margin-bottom', '10px');
+  applyStyles(volumeLabel, volumeLabelStyles);
   volumeContainer.child(volumeLabel);
   
   // Create volume slider
   const volumeSlider = createSlider(0, 100, gameState.masterVolume * 100);
   volumeSlider.style('width', '100%');
-  volumeSlider.input(() => {
-    // Update master volume
-    const newVolume = volumeSlider.value() / 100;
-    gameState.masterVolume = newVolume;
-    
-    // Update all sound volumes through the sound manager
-    gameState.soundManager.setMasterVolume(newVolume);
-    
-    // Update volume display
-    volumeValue.html(`${Math.round(newVolume * 100)}%`);
-  });
-  volumeContainer.child(volumeSlider);
   
   // Volume value display
   const volumeValue = createElement('div', `${Math.round(gameState.masterVolume * 100)}%`);
-  volumeValue.style('color', 'white');
-  volumeValue.style('font-family', 'Arial, sans-serif');
-  volumeValue.style('margin-top', '5px');
-  volumeContainer.child(volumeValue);
+  applyStyles(volumeValue, volumeValueStyles);
   
+  // Set up volume slider event handler
+  volumeSlider.input(() => {
+    const newVolume = volumeSlider.value() / 100;
+    updateVolume(newVolume, volumeValue);
+  });
+  
+  volumeContainer.child(volumeSlider);
+  volumeContainer.child(volumeValue);
   pauseMenu.child(volumeContainer);
   
-  // Mute button
-  const muteButton = createButton('Mute Sound');
-  muteButton.style('padding', '10px 20px');
-  muteButton.style('font-size', '16px');
-  muteButton.style('margin-bottom', '20px');
-  muteButton.style('cursor', 'pointer');
-  muteButton.style('background', '#FF5722');
-  muteButton.style('color', 'white');
-  muteButton.style('border', 'none');
-  muteButton.style('border-radius', '5px');
-  
-  // Store previous volume for unmuting
+  // Initialize mute state
   gameState.previousVolume = gameState.masterVolume;
   gameState.isMuted = false;
   
+  // Mute button
+  const muteButton = createButton('Mute Sound');
+  applyStyles(muteButton, smallButtonStyles);
+  muteButton.style('background', styles.buttonColors.warning);
+  
   muteButton.mousePressed(() => {
-    if (gameState.isMuted) {
-      // Unmute
-      gameState.masterVolume = gameState.previousVolume;
-      muteButton.html('Mute Sound');
-      muteButton.style('background', '#FF5722');
-    } else {
-      // Mute
-      gameState.previousVolume = gameState.masterVolume;
-      gameState.masterVolume = 0;
-      muteButton.html('Unmute Sound');
-      muteButton.style('background', '#4CAF50');
-    }
-    
-    // Toggle mute state
-    gameState.isMuted = !gameState.isMuted;
-    
-    // Update all sound volumes through the sound manager
-    gameState.soundManager.setMasterVolume(gameState.masterVolume);
-    
-    // Update slider
-    volumeSlider.value(gameState.masterVolume * 100);
-    volumeValue.html(`${Math.round(gameState.masterVolume * 100)}%`);
+    toggleMute(muteButton, volumeSlider, volumeValue);
   });
   
   pauseMenu.child(muteButton);
   
   return pauseMenu;
+}
+
+/**
+ * Update volume settings
+ * @param {number} volume - New volume value (0-1)
+ * @param {Element} volumeDisplay - Volume display element to update
+ */
+function updateVolume(volume, volumeDisplay) {
+  // Update game state
+  gameState.masterVolume = volume;
+  
+  // Update sound manager
+  if (gameState.soundManager) {
+    gameState.soundManager.setMasterVolume(volume);
+  }
+  
+  // Update display
+  volumeDisplay.html(`${Math.round(volume * 100)}%`);
+}
+
+/**
+ * Toggle mute state
+ * @param {Element} muteButton - The mute button element
+ * @param {Element} volumeSlider - The volume slider element
+ * @param {Element} volumeDisplay - The volume display element
+ */
+function toggleMute(muteButton, volumeSlider, volumeDisplay) {
+  if (gameState.isMuted) {
+    // Unmute
+    gameState.masterVolume = gameState.previousVolume;
+    muteButton.html('Mute Sound');
+    muteButton.style('background', styles.buttonColors.warning);
+  } else {
+    // Mute
+    gameState.previousVolume = gameState.masterVolume;
+    gameState.masterVolume = 0;
+    muteButton.html('Unmute Sound');
+    muteButton.style('background', styles.buttonColors.primary);
+  }
+  
+  // Toggle mute state
+  gameState.isMuted = !gameState.isMuted;
+  
+  // Update sound manager
+  if (gameState.soundManager) {
+    gameState.soundManager.setMasterVolume(gameState.masterVolume);
+  }
+  
+  // Update UI
+  volumeSlider.value(gameState.masterVolume * 100);
+  volumeDisplay.html(`${Math.round(gameState.masterVolume * 100)}%`);
 }
