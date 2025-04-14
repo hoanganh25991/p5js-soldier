@@ -1,8 +1,8 @@
 // Touch Controls for the game
 // Handles touch input and displays virtual keys for mobile devices
 
-import { SKILLS, SKILL_KEYS, SKILL_NAMES } from '../skills.js';
-import { handleKeyPressed } from './keyboardControls.js';
+import { SKILLS } from '../skills.js';
+import { activateSkillByName, isTouchDevice, isLandscape } from './controlsInterface.js';
 
 /**
  * Create virtual touch keys for mobile devices
@@ -36,16 +36,12 @@ export function createVirtualTouchKeys() {
   const virtualTouchKeys = createElement('div');
   virtualTouchKeys.id('virtual-touch-keys');
   virtualTouchKeys.style('position', 'fixed');
-  
-  // Always use landscape positioning (bottom right)
   virtualTouchKeys.style('right', '20px');
   virtualTouchKeys.style('bottom', '20px');
-  
   virtualTouchKeys.style('display', 'flex');
   virtualTouchKeys.style('flex-direction', 'column');
   virtualTouchKeys.style('gap', getButtonSizeForOrientation().rowGap);
   virtualTouchKeys.style('z-index', '100');
-  // Prevent text selection and double-tap zoom
   virtualTouchKeys.style('user-select', 'none');
   virtualTouchKeys.style('-webkit-user-select', 'none');
   virtualTouchKeys.style('-moz-user-select', 'none');
@@ -67,8 +63,6 @@ export function createVirtualTouchKeys() {
   // Create rows with 4 keys per row
   const keysPerRow = 4;
   const rows = Math.ceil(skillEntries.length / keysPerRow);
-  
-  // Get size based on current orientation
   const sizeConfig = getButtonSizeForOrientation();
   
   for (let i = 0; i < rows; i++) {
@@ -88,12 +82,7 @@ export function createVirtualTouchKeys() {
       const buttonWrapper = createElement('div');
       buttonWrapper.class('touch-key-wrapper');
       
-      // Calculate larger touch area dimensions (50% larger than visible button)
-      const touchWidth = parseInt(sizeConfig.width) * 1.5 + 'px';
-      const touchHeight = parseInt(sizeConfig.height) * 1.5 + 'px';
-      
-      // Style the wrapper to have a larger touch area but be visually transparent
-      // Use the same dimensions as the button to avoid adding extra padding
+      // Style the wrapper
       buttonWrapper.style('width', sizeConfig.width);
       buttonWrapper.style('height', sizeConfig.height);
       buttonWrapper.style('position', 'relative');
@@ -104,11 +93,11 @@ export function createVirtualTouchKeys() {
       
       // Create the visible button inside the wrapper
       const keyButton = createElement('button', skill.key);
-      keyButton.class('touch-key');
+      keyButton.class('touch-key touch-area');
       keyButton.attribute('data-skill', skill.skillName);
       keyButton.attribute('title', skill.name);
       
-      // Style the button based on orientation
+      // Style the button
       keyButton.style('width', sizeConfig.width);
       keyButton.style('height', sizeConfig.height);
       keyButton.style('border-radius', '50%');
@@ -125,17 +114,11 @@ export function createVirtualTouchKeys() {
       keyButton.style('position', 'relative');
       keyButton.style('touch-action', 'manipulation');
       
-      // Add a pseudo-element for larger touch area without affecting layout
-      const buttonElement = keyButton.elt;
-      buttonElement.style.position = 'relative';
-      
-      // Add the touch-area class to the button
-      keyButton.class('touch-key touch-area');
-      
       // Add the button to the wrapper
       buttonWrapper.child(keyButton);
       
-      // Handle touch events directly on the button
+      // Handle touch events
+      const buttonElement = keyButton.elt;
       buttonElement.addEventListener('touchstart', function(e) {
         e.preventDefault();
         
@@ -144,10 +127,10 @@ export function createVirtualTouchKeys() {
           return; // Don't process touch events when disabled
         }
         
-        // Simulate key press by calling the same handler used for keyboard
-        window.gameState && handleKeyPressed(window.gameState, skill.key);
+        // Activate skill directly using the common interface
+        window.gameState && activateSkillByName(window.gameState, skill.skillName);
         
-        // Visual feedback on the button
+        // Visual feedback
         keyButton.style('background', 'rgba(255, 255, 255, 0.7)');
         keyButton.style('color', 'black');
         
@@ -158,26 +141,21 @@ export function createVirtualTouchKeys() {
         }, 100);
       }, { passive: false });
       
-      // Also prevent default on touchend to be thorough
+      // Prevent default on touchend
       buttonElement.addEventListener('touchend', function(e) {
         e.preventDefault();
       }, { passive: false });
       
-      // Keep the mouse event for desktop testing
+      // Mouse event for desktop testing
       keyButton.mousePressed(() => {
-        // Check if the skill is on cooldown
-        if (keyButton.attribute('disabled')) {
-          return; // Don't process mouse events when disabled
-        }
+        if (keyButton.attribute('disabled')) return;
         
-        // Simulate key press by calling the same handler used for keyboard
-        window.gameState && handleKeyPressed(window.gameState, skill.key);
+        window.gameState && activateSkillByName(window.gameState, skill.skillName);
         
         // Visual feedback
         keyButton.style('background', 'rgba(255, 255, 255, 0.7)');
         keyButton.style('color', 'black');
         
-        // Reset button style after a short delay
         setTimeout(() => {
           keyButton.style('background', 'rgba(0, 0, 0, 0.7)');
           keyButton.style('color', 'white');
@@ -214,7 +192,7 @@ export function updateVirtualTouchKeys(gameState) {
         button.style('opacity', '0.5');
         button.attribute('disabled', '');
         
-        // Optional: Show cooldown timer on the button
+        // Show cooldown timer on the button
         if (cooldown >= 1) {
           button.html(Math.ceil(cooldown));
         }
@@ -229,30 +207,10 @@ export function updateVirtualTouchKeys(gameState) {
 }
 
 /**
- * Check if the device supports touch
- * @returns {boolean} True if the device supports touch
- */
-function isTouchDevice() {
-  return true;
-  // return (('ontouchstart' in window) ||
-  //    (navigator.maxTouchPoints > 0) ||
-  //    (navigator.msMaxTouchPoints > 0));
-}
-
-/**
- * Check if the device is in landscape orientation
- * @returns {boolean} True if the device is in landscape orientation
- */
-function isLandscape() {
-  return window.innerWidth > window.innerHeight;
-}
-
-/**
- * Get button size configuration
+ * Get button size configuration based on device orientation
  * @returns {Object} Object containing width, height, fontSize, and gap values
  */
 function getButtonSizeForOrientation() {
-  // Always use landscape mode sizing (smaller buttons)
   return {
     width: '40px',
     height: '40px',
@@ -263,8 +221,7 @@ function getButtonSizeForOrientation() {
 }
 
 /**
- * Add special touch controls for movement and actions
- * This can be expanded to add virtual joysticks or other touch controls
+ * Set up touch controls for the game
  * @param {Object} gameState - The current game state
  */
 export function setupTouchControls(gameState) {
@@ -332,8 +289,7 @@ function setupGlobalTouchHandlers() {
   if (canvas) {
     // Prevent default touch actions on canvas
     canvas.addEventListener('touchstart', function(e) {
-      // Allow default for game mechanics that need it
-      // but prevent double-tap zoom
+      // Prevent double-tap zoom but allow single touches
       if (e.touches.length > 1) {
         e.preventDefault();
       }
