@@ -1,7 +1,7 @@
 // Boss Module
 // Represents a boss enemy with advanced properties, attacks, and visuals
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { Enemy } from './enemy.js';
 import { HealthBar } from './healthBar.js';
 import { Wave } from './wave.js';

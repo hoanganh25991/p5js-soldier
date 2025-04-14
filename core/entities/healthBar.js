@@ -1,7 +1,7 @@
 // Health Bar Module
 // Implements a reusable 3D health bar that can be used by different entities
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 
 export class HealthBar {
   constructor(options = {}) {

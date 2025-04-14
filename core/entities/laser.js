@@ -1,6 +1,6 @@
 // Laser Module
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 
 export class Laser {
   constructor(gameState) {

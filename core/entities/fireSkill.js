@@ -1,7 +1,7 @@
 // Fire Skill Module
 // Implements various fire-based skills
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { Wave } from './wave.js';
 import { Projectile } from './projectile.js';
 import { Bullet } from './bullet.js';

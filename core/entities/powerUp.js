@@ -1,7 +1,7 @@
 // Power-Up System
 // Defines different types of power-ups that can spawn in the game
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 
 // Power-up types
 export const POWER_UP_TYPES = {

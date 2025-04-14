@@ -1,6 +1,6 @@
 // Clone Module
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { findNearestEnemies } from '../utils.js';
 import { Bullet } from './bullet.js';
 

@@ -1,7 +1,7 @@
 // Skills System Module
 // Defines skill enums, configurations, and key mappings
 
-import CONFIG from './config.js';
+import CONFIG from '../../config.js';
 
 // Skill name enum - maps keys to skill names
 export const SKILL_NAMES = {

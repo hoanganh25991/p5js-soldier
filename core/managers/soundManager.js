@@ -1,7 +1,7 @@
 // Sound Manager Module
 // Handles sound loading, playback, batching, and memory management
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 
 class SoundManager {
   constructor() {

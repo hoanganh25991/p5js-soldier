@@ -1,7 +1,7 @@
 // Utility Module
 // Utility functions used across the game
 
-import CONFIG from './config.js';
+import CONFIG from '../config.js';
 import { Bullet } from './entities/bullet.js';
 
 // Update entity height based on tower height

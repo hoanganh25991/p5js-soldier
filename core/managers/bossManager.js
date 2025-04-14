@@ -1,7 +1,7 @@
 // Boss Manager Module
 // Handles boss spawning, updates, and special effects
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { Boss } from '../entities/boss.js';
 import { Wave } from '../entities/wave.js';
 

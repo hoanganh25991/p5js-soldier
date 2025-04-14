@@ -1,7 +1,7 @@
 // Enemy Module
 // Represents an enemy entity with properties and rendering
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { GameBoyAdvanced } from './gameBoyAdvanced.js';
 import { HealthBar } from './healthBar.js';
 

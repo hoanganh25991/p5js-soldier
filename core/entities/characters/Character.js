@@ -1,7 +1,7 @@
 // Base Character Class
 // Provides common functionality for all game characters
 
-import CONFIG from '../../config.js';
+import CONFIG from '../../../config.js';
 import { Bullet } from '../bullet.js';
 import { Wave } from '../wave.js';
 import { Projectile } from '../projectile.js';

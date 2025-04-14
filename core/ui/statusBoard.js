@@ -1,7 +1,7 @@
 // Status Board UI Component
 // Displays game stats and skill cooldowns
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { gameState } from '../gameState.js';
 
 // Create the status board UI element

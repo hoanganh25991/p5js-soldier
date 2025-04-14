@@ -8,7 +8,7 @@ import { Turret } from '../entities/turret.js';
 import { Airstrike } from '../entities/airstrike.js';
 import { Laser } from '../entities/laser.js';
 import { GameBoyAdvanced } from '../entities/gameBoyAdvanced.js';
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 
 /**
  * Handle pause and menu navigation keys

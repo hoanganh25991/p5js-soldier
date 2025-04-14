@@ -1,7 +1,7 @@
 // Environment Module
 // Handles drawing the ground, grid, and other environmental elements
 
-import CONFIG from './config.js';
+import CONFIG from '../config.js';
 
 /**
  * Draws the ground plane with a grid pattern

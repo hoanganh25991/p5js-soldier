@@ -1,6 +1,6 @@
 // Turret Module
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { findNearestEnemies, showAimLine, autoShoot, updateHeight } from '../utils.js';
 
 export class Turret {

@@ -1,6 +1,6 @@
 // Wave Module
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 
 export class Wave {
   constructor(x, y, z, initialRadius = 0, color = [255, 255, 255, 200], gameState = null) {

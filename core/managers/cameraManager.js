@@ -1,7 +1,7 @@
 // Camera Manager
 // Handles camera positioning, rotation, and zoom
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 
 /**
  * Calculate dynamic camera height based on screen dimensions

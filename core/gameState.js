@@ -1,7 +1,7 @@
 // Game State Module
 // Centralizes game state management
 
-import CONFIG from './config.js';
+import CONFIG from '../../config.js';
 import { initializeSkillState } from './skills.js';
 import { showPopupMessage } from './ui/cooldownPopup.js';
 

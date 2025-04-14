@@ -1,7 +1,7 @@
 // Enemy Controller Module
 // Handles enemy spawning, updating, and management
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { Enemy } from '../entities/enemy.js';
 import { Boss } from '../entities/boss.js';
 import { Wave } from '../entities/wave.js';

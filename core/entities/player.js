@@ -1,6 +1,6 @@
 // Player Module
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { updateHeight, showAimLine, autoShoot, findNearestEnemies } from '../utils.js';
 import { Bullet } from './bullet.js';
 
@@ -16,6 +16,25 @@ export class Player {
     this.rotation = 0;
     this.targetEnemy = null;
     this.updateHeight(); // Initialize height
+  }
+  
+  // Add takeDamage method to handle damage from boss projectiles
+  takeDamage(amount) {
+    // Reduce player health in the game state
+    this.gameState.playerHealth -= amount;
+    
+    // Ensure health doesn't go below 0
+    if (this.gameState.playerHealth < 0) {
+      this.gameState.playerHealth = 0;
+    }
+    
+    // Play hit sound if available
+    if (this.gameState.soundManager && this.gameState.soundManager.play) {
+      this.gameState.soundManager.play('hit', {
+        priority: this.gameState.soundManager.PRIORITY.HIGH,
+        sourceType: 'player'
+      });
+    }
   }
 
   show() {

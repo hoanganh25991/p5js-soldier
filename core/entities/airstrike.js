@@ -1,6 +1,6 @@
 // Airstrike Module
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { Bullet } from './bullet.js';
 
 export class Airstrike {

@@ -1,7 +1,7 @@
 // Projectile Module
 // Implements visible projectiles for game characters
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { Wave } from './wave.js';
 
 export class Projectile {

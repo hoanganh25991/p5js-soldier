@@ -1,7 +1,7 @@
 // Game Manager
 // Handles game state, win/lose conditions, and game reset
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { resetGameState } from '../gameState.js';
 import { Player } from '../entities/player.js';
 import { Tower } from '../entities/tower.js';

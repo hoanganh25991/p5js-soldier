@@ -1,6 +1,6 @@
 // Bullet Module
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { Airstrike } from './airstrike.js';
 import { Turret } from './turret.js';
 import { Wave } from './wave.js';

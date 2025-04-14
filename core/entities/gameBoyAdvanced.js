@@ -1,7 +1,7 @@
 // Game Boy Advanced Module
 // Implements a throwable GBA that spawns random game characters
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { GameCharacter } from './gameCharacter.js';
 import { updateHeight } from '../utils.js';
 import { Wave } from './wave.js';

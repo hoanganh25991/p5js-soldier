@@ -2,7 +2,7 @@
 // Handles setup, draw, and main game loop
 
 // Import modules
-import CONFIG from './config.js';
+import CONFIG from '../../config.js';
 import { gameState, resetGameState } from './gameState.js';
 import { setupMouseHandlers, handleMouseWheel, handleMousePressed, handleMouseReleased } from './controls/mouseControls.js';
 import { handleKeyPressed } from './controls/keyboardControls.js';

@@ -1,7 +1,7 @@
 // Gas Lighter Module
 // Implements a throwable Gas Lighter that casts random fire skills
 
-import CONFIG from '../config.js';
+import CONFIG from '../../config.js';
 import { Wave } from './wave.js';
 import { FireSkill } from './fireSkill.js';
 
