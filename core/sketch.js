@@ -13,7 +13,6 @@ import { createMenuUI } from './ui/menuUI.js';
 import { createPauseMenu } from './ui/pauseMenu.js';
 import { createGameOverScreen, showGameOverScreen } from './ui/gameOverScreen.js';
 import { showCooldownMessage } from './ui/cooldownPopup.js';
-import { createZoomControls, updateZoomControlsVisibility } from './ui/zoomControls.js';
 import { initializeUpgrades, applyUpgrades, awardXP, checkLevelUp, updateCombo, incrementCombo } from './progression.js';
 import { updateSkillStates } from './skills.js';
 
