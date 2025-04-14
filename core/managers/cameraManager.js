@@ -64,9 +64,13 @@ export function initializeCamera(gameState) {
   gameState.cameraRotationY = 0;
   gameState.baseCameraDistance = 500; // Further increased base distance for wider view
   gameState.zoomLevel = 3.5; // Increased zoom level to see more enemies on the ground
+  gameState.fieldOfView = PI / 3; // 60 degrees field of view (default is PI/3)
   
   // Store the dynamic camera parameters
   gameState.dynamicCameraParams = calculateDynamicCameraParams(windowWidth, windowHeight);
+  
+  // Set perspective with a wider field of view
+  perspective(gameState.fieldOfView, width / height, 0.1, 5000);
 }
 
 /**
@@ -75,6 +79,9 @@ export function initializeCamera(gameState) {
  */
 export function updateCameraOnResize(gameState) {
   gameState.dynamicCameraParams = calculateDynamicCameraParams(windowWidth, windowHeight);
+  
+  // Reset perspective with the current field of view when window is resized
+  perspective(gameState.fieldOfView, width / height, 0.1, 5000);
 }
 
 /**
@@ -82,6 +89,11 @@ export function updateCameraOnResize(gameState) {
  * @param {Object} gameState - The global game state
  */
 export function updateCamera(gameState) {
+  // Ensure perspective settings are applied each frame
+  if (gameState.fieldOfView) {
+    perspective(gameState.fieldOfView, width / height, 0.1, 5000);
+  }
+
   // Update camera rotation when dragging
   if (gameState.isDragging) {
     let deltaX = (mouseX - gameState.lastMouseX) * 0.01;
