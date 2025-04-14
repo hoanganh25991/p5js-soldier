@@ -3,6 +3,7 @@
 
 import { spawnRandomPowerUp } from '../entities/powerUp.js';
 import { updateBossSpawning, updateBosses, drawBosses, checkBulletBossCollisions } from './bossManager.js';
+import { Wave } from '../entities/wave.js';
 
 /**
  * Update and show all game entities
@@ -158,12 +159,31 @@ function updateWaves(gameState) {
       continue;
     }
     
-    if (typeof gameState.waves[i].update !== 'function') {
+    // Check if this is a particle object mistakenly added to waves array
+    // Particles have properties like vx, vy, vz, size, life, decay, type
+    const obj = gameState.waves[i];
+    if (typeof obj.update !== 'function' && 
+        obj.vx !== undefined && obj.vy !== undefined && obj.vz !== undefined && 
+        obj.life !== undefined && obj.decay !== undefined) {
+      
+      // This is a particle object, convert it to a Wave object
+      console.log('Converting particle to Wave at index', i);
+      
+      // Create a proper Wave object with the particle's properties
+      const wave = new Wave(obj.x, obj.y, obj.z, obj.size || 5, obj.color || [255, 255, 255, 200], gameState);
+      wave.lifespan = obj.life || 30;
+      wave.growthRate = obj.decay || 1;
+      
+      // Replace the particle with the Wave
+      gameState.waves[i] = wave;
+      continue;
+    }
+    else if (typeof obj.update !== 'function') {
       console.warn('Invalid wave object found at index', i);
-      console.warn('Object type:', typeof gameState.waves[i]);
-      console.warn('Object constructor:', gameState.waves[i].constructor ? gameState.waves[i].constructor.name : 'unknown');
-      console.warn('Object properties:', Object.keys(gameState.waves[i]));
-      console.warn('Object value:', JSON.stringify(gameState.waves[i]));
+      console.warn('Object type:', typeof obj);
+      console.warn('Object constructor:', obj.constructor ? obj.constructor.name : 'unknown');
+      console.warn('Object properties:', Object.keys(obj));
+      console.warn('Object value:', JSON.stringify(obj));
       
       // Remove the invalid wave
       gameState.waves.splice(i, 1);

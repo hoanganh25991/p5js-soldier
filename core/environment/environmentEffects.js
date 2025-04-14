@@ -288,19 +288,43 @@ function drawFog(gameState) {
   // Skip fog rendering if density is very low
   if (gameState.fogDensity < 0.1) return;
   
+  // Initialize fog update timer if it doesn't exist
+  if (gameState.fogUpdateTimer === undefined) {
+    gameState.fogUpdateTimer = 0;
+    gameState.lastFogUpdate = {
+      planes: [],
+      opacity: 0,
+      playerZ: 0
+    };
+  }
+  
+  // Update fog only every 5 seconds (300 frames at 60fps)
+  if (gameState.fogUpdateTimer <= 0) {
+    // Reset timer
+    gameState.fogUpdateTimer = 300;
+    
+    // Update fog data
+    gameState.lastFogUpdate.opacity = gameState.fogDensity * 150;
+    gameState.lastFogUpdate.playerZ = gameState.player.z;
+    
+    // Generate new fog planes
+    const playerZ = gameState.player.z;
+    gameState.lastFogUpdate.planes = [-800, -400, 0, 400, 800].map(offset => playerZ + offset);
+  } else {
+    // Decrease timer
+    gameState.fogUpdateTimer--;
+  }
+  
+  // Draw fog using the last updated values
   push();
   noStroke();
   
   // Semi-transparent white for fog
-  fill(255, 255, 255, gameState.fogDensity * 150);
+  fill(255, 255, 255, gameState.lastFogUpdate.opacity);
   
-  // Draw fewer fog planes for better performance
-  // Just 5 planes instead of 10+
-  const playerZ = gameState.player.z;
-  const fogPlanes = [-800, -400, 0, 400, 800];
-  
-  for (let i = 0; i < fogPlanes.length; i++) {
-    const z = playerZ + fogPlanes[i];
+  // Draw fog planes
+  for (let i = 0; i < gameState.lastFogUpdate.planes.length; i++) {
+    const z = gameState.lastFogUpdate.planes[i];
     push();
     translate(0, 0, z);
     plane(2000, 2000);

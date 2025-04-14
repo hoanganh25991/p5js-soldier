@@ -47,6 +47,20 @@ export function createStatusBoard() {
   killsDiv.child(killsSpan);
   statusBoard.child(killsDiv);
   
+  // Create wave display
+  const waveDiv = createElement('div', 'Wave: ');
+  const waveSpan = createElement('span', '1');
+  waveSpan.id('current-wave');
+  waveDiv.child(waveSpan);
+  statusBoard.child(waveDiv);
+  
+  // Create wave progress display
+  const waveProgressDiv = createElement('div', 'Next Wave: ');
+  const waveProgressSpan = createElement('span', '0/30');
+  waveProgressSpan.id('wave-progress');
+  waveProgressDiv.child(waveProgressSpan);
+  statusBoard.child(waveProgressDiv);
+  
   // Create boss information display (hidden by default)
   const bossDiv = createElement('div');
   bossDiv.id('boss-info');
@@ -126,9 +140,31 @@ export function updateStatusBoard() {
   select('#tower-height').html(Math.ceil(gameState.towerHeight));
   select('#health').html(Math.ceil(gameState.playerHealth));
   
-  // Get kills from enemy controller
+  // Get kills and wave information from enemy controller
   if (gameState.enemyController) {
+    // Update total kills
     select('#kills').html(gameState.enemyController.getEnemiesKilled());
+    
+    // Update wave information
+    const currentWave = gameState.enemyController.getCurrentWave();
+    select('#current-wave').html(currentWave);
+    
+    // Update wave progress
+    const killsInWave = gameState.enemyController.getKillsInCurrentWave();
+    const enemiesPerWave = gameState.enemyController.enemiesPerWave;
+    select('#wave-progress').html(`${killsInWave}/${enemiesPerWave}`);
+    
+    // Color the wave progress based on percentage
+    const progressPercent = (killsInWave / enemiesPerWave) * 100;
+    if (progressPercent > 75) {
+      select('#wave-progress').style('color', '#00ff00'); // Green
+    } else if (progressPercent > 50) {
+      select('#wave-progress').style('color', '#ffff00'); // Yellow
+    } else if (progressPercent > 25) {
+      select('#wave-progress').style('color', '#ff9900'); // Orange
+    } else {
+      select('#wave-progress').style('color', '#ff0000'); // Red
+    }
   }
   
   // Update boss information if there's an active boss

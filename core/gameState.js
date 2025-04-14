@@ -3,6 +3,7 @@
 
 import CONFIG from './config.js';
 import { initializeSkillState } from './skills.js';
+import { showPopupMessage } from './ui/cooldownPopup.js';
 
 // Create the game state object
 const gameState = {
@@ -90,11 +91,19 @@ const gameState = {
   cloneSound: null,
   
   // Camera
-  camera: null
+  camera: null,
+  
+  // Add a message to the cooldown popup
+  addCooldownMessage: function(message) {
+    showPopupMessage(message);
+  }
 };
 
 // Reset game state to initial values
 function resetGameState() {
+  // Store the addCooldownMessage function
+  const addCooldownMessage = gameState.addCooldownMessage;
+  
   gameState.frameCount = 0;
   gameState.currentState = 'menu';
   gameState.previousState = null;
@@ -122,6 +131,8 @@ function resetGameState() {
   gameState.rainParticles = [];
   gameState.ambientLight = 100;
   gameState.fogDensity = 0;
+  gameState.fogUpdateTimer = 0; // Reset fog update timer
+  gameState.lastFogUpdate = { planes: [], opacity: 0, playerZ: 0 }; // Reset last fog update data
   
   // Reset skills
   gameState.skills = initializeSkillState();
@@ -154,6 +165,9 @@ function resetGameState() {
   gameState.gasLighters = [];
   gameState.fireSkills = [];
   gameState.powerUps = [];
+  
+  // Restore the addCooldownMessage function
+  gameState.addCooldownMessage = addCooldownMessage;
 }
 
 export { gameState, resetGameState };

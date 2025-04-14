@@ -1,19 +1,35 @@
 // Cooldown Popup UI Component
-// Shows temporary messages when skills are on cooldown
+// Shows temporary messages when skills are on cooldown or for game events
 
 import { gameState } from '../gameState.js';
 
 // Show cooldown message in the popup
 export function showCooldownMessage(skillName, cooldown) {
+  // Create a message object and pass it to the general message function
+  const message = {
+    text: cooldown === 0 ? `${skillName}` : `${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`,
+    color: [255, 255, 255], // White color for cooldown messages
+    duration: 180 // 3 seconds at 60fps
+  };
+  
+  showPopupMessage(message);
+}
+
+// Show a general popup message
+export function showPopupMessage(message) {
   const popupContainer = select('#cooldown-popup');
   
   // Create a new message element
   const messageElement = createElement('div');
-  messageElement.class('cooldown-message');
+  messageElement.class('popup-message');
   
   // Style the message
   messageElement.style('background', 'rgba(0, 0, 0, 0.6)');
-  messageElement.style('color', 'white');
+  
+  // Set text color based on message configuration
+  const color = message.color || [255, 255, 255]; // Default to white
+  messageElement.style('color', `rgb(${color[0]}, ${color[1]}, ${color[2]})`);
+  
   messageElement.style('padding', '8px 15px');
   messageElement.style('border-radius', '5px');
   messageElement.style('font-family', 'Arial, sans-serif');
@@ -26,14 +42,13 @@ export function showCooldownMessage(skillName, cooldown) {
   messageElement.style('margin-bottom', '5px');
   
   // Set the message content
-  if (cooldown === 0) {
-    messageElement.html(`${skillName}`);
-  } else {
-    messageElement.html(`${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`);
-  }
+  messageElement.html(message.text);
   
   // Add the message to the container
   popupContainer.child(messageElement);
+  
+  // Calculate display duration (default to 3 seconds if not specified)
+  const displayDuration = message.duration ? message.duration / 60 * 1000 : 3000;
   
   // Set a timer to remove this specific message
   setTimeout(() => {
@@ -44,5 +59,10 @@ export function showCooldownMessage(skillName, cooldown) {
     setTimeout(() => {
       messageElement.remove();
     }, 300); // Match the transition time
-  }, 3000);
+  }, displayDuration);
+}
+
+// Add a message to the game state for display
+export function addCooldownMessage(message) {
+  showPopupMessage(message);
 }

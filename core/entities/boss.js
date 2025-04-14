@@ -537,36 +537,46 @@ export class Boss extends Enemy {
   }
   
   drawNecromancerShape() {
-    // Draw main body (thinner)
+    // Main body - centered at origin
     push();
+    
+    // Draw main body (thinner)
     box(this.width * 0.8, this.height, this.depth * 0.8);
     
     // Draw robe-like bottom (wider at bottom)
+    push();
     translate(0, this.height * 0.3, 0);
+    fill(this.baseColor); // Ensure we're using the boss color
     cone(this.width * 1.2, this.height * 0.6, 4); // Square-based cone for robe
+    pop();
     
     // Draw head (skull-like)
-    translate(0, -this.height * 0.6, 0);
+    push();
+    translate(0, -this.height * 0.3, 0); // Move up from center
+    fill(220, 220, 220); // Skull-like color
     sphere(this.width * 0.3);
+    
+    // Draw hood over the head
+    fill(30, 30, 30); // Dark hood
+    translate(0, -this.height * 0.1, 0);
+    rotateX(PI/4); // Tilt hood forward slightly
+    cone(this.width * 0.4, this.height * 0.3);
+    pop();
     
     // Draw staff
     push();
-    translate(this.width * 0.6, 0, 0);
-    rotateZ(PI/6);
+    translate(this.width * 0.6, 0, 0); // Position to the right
+    rotateZ(PI/6); // Tilt staff
+    fill(120, 60, 20); // Brown staff
     cylinder(this.width * 0.05, this.height * 1.2);
     
     // Staff orb
-    translate(0, -this.height * 0.6, 0);
+    translate(0, -this.height * 0.6, 0); // Position orb at top of staff
     fill(150, 0, 150, 200); // Purple orb
     sphere(this.width * 0.2);
     pop();
     
-    // Draw hood
-    translate(0, -this.height * 0.1, 0);
-    rotateX(PI);
-    cone(this.width * 0.4, this.height * 0.3);
-    
-    pop();
+    pop(); // End main body
   }
   
   drawJuggernautShape() {
