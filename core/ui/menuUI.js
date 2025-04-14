@@ -2,53 +2,50 @@
 // Displays the main menu with game title, start button and instructions
 
 import { gameState } from '../gameState.js';
+import { 
+  createOverlay, 
+  createTitle, 
+  createStyledButton, 
+  applyStyles, 
+  styles 
+} from './uiUtils.js';
 
-// Create menu UI
+// Instruction styles
+const instructionStyles = {
+  color: 'white',
+  fontFamily: 'Arial, sans-serif',
+  width: '60%',
+  textAlign: 'center',
+  lineHeight: '1.5'
+};
+
+/**
+ * Create main menu UI
+ * @returns {Element} The menu container element
+ */
 export function createMenuUI() {
-  const menuContainer = createElement('div');
-  menuContainer.id('menu-container');
-  menuContainer.style('position', 'fixed');
-  menuContainer.style('top', '0');
-  menuContainer.style('left', '0');
-  menuContainer.style('width', '100%');
-  menuContainer.style('height', '100%');
-  menuContainer.style('display', 'flex');
-  menuContainer.style('flex-direction', 'column');
-  menuContainer.style('justify-content', 'center');
-  menuContainer.style('align-items', 'center');
-  menuContainer.style('background', 'rgba(0, 0, 0, 0.8)');
-  menuContainer.style('z-index', '300');
+  // Create the main overlay with initial display set to 'flex'
+  const menuContainer = createOverlay('menu-container', 'flex');
   
   // Title
-  const title = createElement('h1', 'Soldier Tower');
-  title.style('color', 'white');
-  title.style('font-family', 'Arial, sans-serif');
-  title.style('margin-bottom', '40px');
+  const title = createTitle('Soldier Tower');
   menuContainer.child(title);
   
   // Start button
-  const startButton = createButton('Start Game');
-  startButton.style('padding', '15px 30px');
-  startButton.style('font-size', '20px');
-  startButton.style('margin-bottom', '20px');
-  startButton.style('cursor', 'pointer');
-  startButton.style('background', '#4CAF50');
-  startButton.style('color', 'white');
-  startButton.style('border', 'none');
-  startButton.style('border-radius', '5px');
-  startButton.mousePressed(() => {
-    gameState.currentState = 'playing';
-    menuContainer.style('display', 'none');
-  });
+  const startButton = createStyledButton(
+    'Start Game', 
+    styles.buttonColors.primary, 
+    () => {
+      gameState.currentState = 'playing';
+      menuContainer.style('display', 'none');
+    }
+  );
   menuContainer.child(startButton);
   
-  // Instructions
+  // Instructions (commented out in original code)
+  // Keeping this for future reference but maintaining the commented state
   const instructions = createElement('div');
-  instructions.style('color', 'white');
-  instructions.style('font-family', 'Arial, sans-serif');
-  instructions.style('width', '60%');
-  instructions.style('text-align', 'center');
-  instructions.style('line-height', '1.5');
+  applyStyles(instructions, instructionStyles);
   
   const instructionsText = `
     <h2>How to Play</h2>
@@ -68,6 +65,7 @@ export function createMenuUI() {
     <p>↑ / ↓ Buttons - Rotate Camera Up/Down</p>
   `;
   
+  // Keeping these commented as they were in the original
   // instructions.html(instructionsText);
   // menuContainer.child(instructions);
   

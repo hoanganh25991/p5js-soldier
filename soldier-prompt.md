@@ -25,7 +25,5 @@ Game Character
 
 
 review "core/controls" do we have any duplicate
-
 remove complexity
-
 refactor for readable

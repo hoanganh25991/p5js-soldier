@@ -2,44 +2,65 @@
 // Shows temporary messages when skills are on cooldown or for game events
 
 import { gameState } from '../gameState.js';
+import { applyStyles } from './uiUtils.js';
 
-// Show cooldown message in the popup
+// Default message styles
+const messageStyles = {
+  background: 'rgba(0, 0, 0, 0.6)',
+  padding: '8px 15px',
+  borderRadius: '5px',
+  fontFamily: 'Arial, sans-serif',
+  fontSize: '16px',
+  fontWeight: 'bold',
+  textAlign: 'center',
+  boxShadow: '0 0 10px rgba(0, 0, 0, 0.5)',
+  opacity: '0.8',
+  transition: 'opacity 0.3s',
+  marginBottom: '5px'
+};
+
+// Constants
+const DEFAULT_DURATION_FRAMES = 180; // 3 seconds at 60fps
+const FADE_TRANSITION_MS = 300;
+
+/**
+ * Show cooldown message in the popup
+ * @param {string} skillName - Name of the skill
+ * @param {number} cooldown - Cooldown time in frames
+ */
 export function showCooldownMessage(skillName, cooldown) {
-  // Create a message object and pass it to the general message function
-  const message = {
-    text: cooldown === 0 ? `${skillName}` : `${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`,
+  const text = cooldown === 0 
+    ? skillName 
+    : `${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`;
+    
+  showPopupMessage({
+    text,
     color: [255, 255, 255], // White color for cooldown messages
-    duration: 180 // 3 seconds at 60fps
-  };
-  
-  showPopupMessage(message);
+    duration: DEFAULT_DURATION_FRAMES
+  });
 }
 
-// Show a general popup message
+/**
+ * Show a general popup message
+ * @param {Object} message - Message configuration object
+ * @param {string} message.text - Message text content
+ * @param {number[]} [message.color] - RGB color array [r,g,b]
+ * @param {number} [message.duration] - Duration in frames
+ */
 export function showPopupMessage(message) {
   const popupContainer = select('#cooldown-popup');
+  if (!popupContainer) return;
   
   // Create a new message element
   const messageElement = createElement('div');
   messageElement.class('popup-message');
   
-  // Style the message
-  messageElement.style('background', 'rgba(0, 0, 0, 0.6)');
+  // Apply default styles
+  applyStyles(messageElement, messageStyles);
   
   // Set text color based on message configuration
   const color = message.color || [255, 255, 255]; // Default to white
   messageElement.style('color', `rgb(${color[0]}, ${color[1]}, ${color[2]})`);
-  
-  messageElement.style('padding', '8px 15px');
-  messageElement.style('border-radius', '5px');
-  messageElement.style('font-family', 'Arial, sans-serif');
-  messageElement.style('font-size', '16px'); // Smaller font size
-  messageElement.style('font-weight', 'bold');
-  messageElement.style('text-align', 'center');
-  messageElement.style('box-shadow', '0 0 10px rgba(0, 0, 0, 0.5)');
-  messageElement.style('opacity', '0.8');
-  messageElement.style('transition', 'opacity 0.3s');
-  messageElement.style('margin-bottom', '5px');
   
   // Set the message content
   messageElement.html(message.text);
@@ -48,7 +69,9 @@ export function showPopupMessage(message) {
   popupContainer.child(messageElement);
   
   // Calculate display duration (default to 3 seconds if not specified)
-  const displayDuration = message.duration ? message.duration / 60 * 1000 : 3000;
+  const displayDuration = message.duration 
+    ? message.duration / 60 * 1000 
+    : 3000;
   
   // Set a timer to remove this specific message
   setTimeout(() => {
@@ -58,11 +81,9 @@ export function showPopupMessage(message) {
     // Remove from DOM after fade completes
     setTimeout(() => {
       messageElement.remove();
-    }, 300); // Match the transition time
+    }, FADE_TRANSITION_MS);
   }, displayDuration);
 }
 
-// Add a message to the game state for display
-export function addCooldownMessage(message) {
-  showPopupMessage(message);
-}
+// Alias for showPopupMessage for backward compatibility
+export const addCooldownMessage = showPopupMessage;

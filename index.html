@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <script src="pwa/p5.min.js"></script>
     <script src="pwa/p5.sound.min.js"></script>
-    <link rel="manifest" href="pwa/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <style>
         body {
             margin: 0;
@@ -85,7 +85,7 @@
     <script>
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", function () {
-                navigator.serviceWorker.register("pwa/service-worker.js").then(
+                navigator.serviceWorker.register("service-worker.js").then(
                     function (registration) {
                         console.log(
                             "Service Worker registered with scope:",

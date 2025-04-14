@@ -3,99 +3,99 @@
 
 import { gameState } from '../gameState.js';
 import { resetGame } from '../managers/gameManager.js';
+import { 
+  createOverlay, 
+  createTitle, 
+  createStyledButton, 
+  applyStyles, 
+  styles 
+} from './uiUtils.js';
 
-// Create game over screen
+// Stats display styles
+const statsStyles = {
+  color: 'white',
+  fontFamily: 'Arial, sans-serif',
+  fontSize: '20px',
+  marginBottom: '40px',
+  textAlign: 'center'
+};
+
+/**
+ * Create game over screen
+ * @returns {Element} The game over screen element
+ */
 export function createGameOverScreen() {
-  const gameOverScreen = createElement('div');
-  gameOverScreen.id('game-over-screen');
-  gameOverScreen.style('position', 'fixed');
-  gameOverScreen.style('top', '0');
-  gameOverScreen.style('left', '0');
-  gameOverScreen.style('width', '100%');
-  gameOverScreen.style('height', '100%');
-  gameOverScreen.style('display', 'none');
-  gameOverScreen.style('flex-direction', 'column');
-  gameOverScreen.style('justify-content', 'center');
-  gameOverScreen.style('align-items', 'center');
-  gameOverScreen.style('background', 'rgba(0, 0, 0, 0.8)');
-  gameOverScreen.style('z-index', '300');
+  // Create the main overlay
+  const gameOverScreen = createOverlay('game-over-screen');
   
   // Title (will be set dynamically)
-  const title = createElement('h1', '');
+  const title = createTitle('');
   title.id('game-over-title');
-  title.style('color', 'white');
-  title.style('font-family', 'Arial, sans-serif');
-  title.style('margin-bottom', '20px');
   gameOverScreen.child(title);
   
   // Stats
   const stats = createElement('div');
   stats.id('game-over-stats');
-  stats.style('color', 'white');
-  stats.style('font-family', 'Arial, sans-serif');
-  stats.style('font-size', '20px');
-  stats.style('margin-bottom', '40px');
-  stats.style('text-align', 'center');
+  applyStyles(stats, statsStyles);
   gameOverScreen.child(stats);
   
   // Restart button
-  const restartButton = createButton('Play Again');
-  restartButton.style('padding', '15px 30px');
-  restartButton.style('font-size', '20px');
-  restartButton.style('margin-bottom', '20px');
-  restartButton.style('cursor', 'pointer');
-  restartButton.style('background', '#4CAF50');
-  restartButton.style('color', 'white');
-  restartButton.style('border', 'none');
-  restartButton.style('border-radius', '5px');
-  restartButton.mousePressed(() => {
-    resetGame();
-    gameState.currentState = 'playing';
-    gameOverScreen.style('display', 'none');
-    loop();
-  });
+  const restartButton = createStyledButton(
+    'Play Again', 
+    styles.buttonColors.primary, 
+    () => {
+      resetGame();
+      gameState.currentState = 'playing';
+      gameOverScreen.style('display', 'none');
+      loop();
+    }
+  );
   gameOverScreen.child(restartButton);
   
   // Menu button
-  const menuButton = createButton('Main Menu');
-  menuButton.style('padding', '15px 30px');
-  menuButton.style('font-size', '20px');
-  menuButton.style('cursor', 'pointer');
-  menuButton.style('background', '#2196F3');
-  menuButton.style('color', 'white');
-  menuButton.style('border', 'none');
-  menuButton.style('border-radius', '5px');
-  menuButton.mousePressed(() => {
-    resetGame();
-    gameState.currentState = 'menu';
-    gameOverScreen.style('display', 'none');
-    document.getElementById('menu-container').style.display = 'flex';
-    loop();
-  });
+  const menuButton = createStyledButton(
+    'Main Menu', 
+    styles.buttonColors.secondary, 
+    () => {
+      resetGame();
+      gameState.currentState = 'menu';
+      gameOverScreen.style('display', 'none');
+      document.getElementById('menu-container').style.display = 'flex';
+      loop();
+    }
+  );
   gameOverScreen.child(menuButton);
   
   return gameOverScreen;
 }
 
-// Show game over screen
+/**
+ * Show game over screen with updated stats
+ * @param {boolean} isVictory - Whether the player won
+ */
 export function showGameOverScreen(isVictory) {
   const gameOverScreen = select('#game-over-screen');
   const title = select('#game-over-title');
   const stats = select('#game-over-stats');
   
+  if (!gameOverScreen || !title || !stats) return;
+  
+  // Set title based on game outcome
   if (isVictory) {
     title.html('Victory!');
-    title.style('color', '#4CAF50');
+    title.style('color', styles.buttonColors.primary); // Green for victory
   } else {
     title.html('Game Over');
-    title.style('color', '#F44336');
+    title.style('color', styles.buttonColors.danger); // Red for defeat
   }
   
+  // Update stats
   stats.html(`
     <p>Enemies Killed: ${gameState.enemiesKilled}</p>
     <p>Tower Height: ${Math.ceil(gameState.towerHeight)}</p>
     <p>Health Remaining: ${Math.ceil(gameState.playerHealth)}</p>
   `);
   
+  // Show the screen
   gameOverScreen.style('display', 'flex');
 }
