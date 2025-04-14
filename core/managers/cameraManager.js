@@ -123,8 +123,8 @@ export function updateCamera(gameState) {
     let deltaY = (mouseY - gameState.lastMouseY) * 0.01;
 
     gameState.cameraRotationY += deltaX;
-    // Allow for a much less steep angle for a more horizontal view
-    gameState.cameraRotationX = constrain(gameState.cameraRotationX + deltaY, -PI / 2, -0.15);
+    // No constraints on camera rotation
+    gameState.cameraRotationX += deltaY;
 
     gameState.lastMouseX = mouseX;
     gameState.lastMouseY = mouseY;

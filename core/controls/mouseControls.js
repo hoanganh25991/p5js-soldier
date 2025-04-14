@@ -17,14 +17,16 @@ function handleMouseWheel(event, gameState) {
     // Adjust field of view with mouse wheel when shift is pressed
     // Rolling forward (negative delta) decreases FOV (narrower view)
     // Rolling backward (positive delta) increases FOV (wider view)
-    gameState.fieldOfView = constrain(gameState.fieldOfView + (event.delta * 0.0005), PI/6, PI/2);
+    // No constraints on field of view
+    gameState.fieldOfView = gameState.fieldOfView + (event.delta * 0.0005);
     
     // Update perspective with new field of view
     perspective(gameState.fieldOfView, width / height, 0.1, 5000);
   } else {
     // Regular zoom with mouse wheel - rolling forward (negative delta) decreases zoom level (zooms in)
     // rolling backward (positive delta) increases zoom level (zooms out)
-    gameState.zoomLevel = constrain(gameState.zoomLevel + (event.delta * 0.001), 0.2, 15.0);
+    // No constraints on zoom level
+    gameState.zoomLevel = gameState.zoomLevel + (event.delta * 0.001);
   }
   
   return false; // Prevent default scrolling

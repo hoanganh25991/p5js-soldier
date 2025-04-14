@@ -62,6 +62,10 @@ export function createMenuUI() {
     <p>F - Throw Gas Lighter (casts fire skills)</p>
     <p>Middle Mouse - Rotate Camera</p>
     <p>Mouse Wheel - Zoom In/Out</p>
+    <p><strong>Camera Controls (top right):</strong></p>
+    <p>+ / - Buttons - Zoom In/Out</p>
+    <p>← / → Buttons - Rotate Camera Left/Right</p>
+    <p>↑ / ↓ Buttons - Rotate Camera Up/Down</p>
   `;
   
   instructions.html(instructionsText);

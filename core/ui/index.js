@@ -7,6 +7,7 @@ import { createPauseMenu } from './pauseMenu.js';
 import { createGameOverScreen, showGameOverScreen } from './gameOverScreen.js';
 import { showCooldownMessage } from './cooldownPopup.js';
 import { createVirtualKeyboard, updateVirtualKeyboard } from './virtualKeyboard.js';
+import { createZoomControls, updateZoomControlsVisibility } from './zoomControls.js';
 
 export {
   createStatusBoard,
@@ -17,5 +18,7 @@ export {
   showGameOverScreen,
   showCooldownMessage,
   createVirtualKeyboard,
-  updateVirtualKeyboard
+  updateVirtualKeyboard,
+  createZoomControls,
+  updateZoomControlsVisibility
 };

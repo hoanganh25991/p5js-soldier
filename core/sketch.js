@@ -7,7 +7,17 @@ import { gameState, resetGameState } from './gameState.js';
 import { setupMouseHandlers, handleMouseWheel, handleMousePressed, handleMouseReleased } from './controls/mouseControls.js';
 import { handleKeyPressed } from './controls/keyboardControls.js';
 import { setupTouchControls, updateVirtualTouchKeys } from './controls/touchControls.js';
-import { createStatusBoard, updateStatusBoard, createMenuUI, createPauseMenu, createGameOverScreen, showGameOverScreen, showCooldownMessage } from './ui/index.js';
+import { 
+  createStatusBoard, 
+  updateStatusBoard, 
+  createMenuUI, 
+  createPauseMenu, 
+  createGameOverScreen, 
+  showGameOverScreen, 
+  showCooldownMessage,
+  createZoomControls,
+  updateZoomControlsVisibility
+} from './ui/index.js';
 import { initializeUpgrades, applyUpgrades, awardXP, checkLevelUp, updateCombo, incrementCombo } from './progression.js';
 import { updateSkillStates } from './skills.js';
 
@@ -50,6 +60,7 @@ function setup() {
   gameState.ui.menuScreen = createMenuUI();
   gameState.ui.pauseMenu = createPauseMenu();
   gameState.ui.gameOverScreen = createGameOverScreen();
+  gameState.ui.zoomControls = createZoomControls(gameState);
   
   // Setup controls
   setupMouseHandlers(window, gameState);
@@ -114,6 +125,7 @@ function draw() {
       // Update UI elements
       updateStatusBoard();
       updateVirtualTouchKeys(gameState);
+      updateZoomControlsVisibility(gameState);
       
       // Check win/lose conditions
       checkGameEndConditions(gameState);
