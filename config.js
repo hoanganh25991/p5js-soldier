@@ -21,12 +21,12 @@ const CONFIG = {
   
   // Skill key mappings
   SKILL_KEYS: {
-    CLONE: 'c',
-    TURRET: 't',
-    AIRSTRIKE: 'a',
-    LASER: 'l',
-    GBA: 'g',
-    GAS_LIGHTER: 'f'
+    CLONE: 'a',
+    TURRET: 's',
+    AIRSTRIKE: 'd',
+    LASER: 'f',
+    GBA: 'q',
+    GAS_LIGHTER: 'w'
   },
   
   // World settings
