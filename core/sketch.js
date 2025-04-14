@@ -64,9 +64,20 @@ function setup() {
   soundManager.setMasterVolume(gameState.masterVolume);
   
   // Initialize performance optimization managers
-  performanceManager.updateSettings();
-  gpuManager.initialize(drawingContext);
-  particleManager.updateSettings();
+  performanceManager.update();
+  
+  // Initialize GPU manager with WebGL context (after canvas is created)
+  // We need to wait until the next frame to get the GL context
+  setTimeout(() => {
+    if (window._renderer && window._renderer.GL) {
+      gpuManager.initialize(window._renderer);
+      console.log('[GPU Manager] Initialized with p5 WebGL renderer');
+    } else {
+      console.warn('[GPU Manager] Could not access WebGL context');
+    }
+  }, 100);
+  
+  particleManager.update();
   
   // Store managers in gameState for easy access
   gameState.performanceManager = performanceManager;

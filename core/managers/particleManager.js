@@ -62,7 +62,7 @@ class ParticleManager {
   }
   
   // Update particle manager settings from performance manager
-  updateSettings() {
+  updatePerformanceSettings() {
     if (CONFIG.PERFORMANCE) {
       this.maxParticles = CONFIG.PERFORMANCE.PARTICLE_LIMIT;
       this.useInstancing = CONFIG.PERFORMANCE.USE_INSTANCING && gpuManager.supportsInstancing();
@@ -193,7 +193,7 @@ class ParticleManager {
   // Update all active particles
   update() {
     // Update settings from performance manager
-    this.updateSettings();
+    this.updatePerformanceSettings();
     
     // Reset active count
     this.activeParticles = 0;

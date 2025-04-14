@@ -48,7 +48,7 @@ class CollisionManager {
   }
   
   // Update settings from performance manager
-  updateSettings() {
+  updatePerformanceSettings() {
     if (CONFIG.PERFORMANCE) {
       this.checkFrequency = CONFIG.PERFORMANCE.COLLISION_CHECK_FREQUENCY || 1;
     }
@@ -183,7 +183,7 @@ class CollisionManager {
   // Process collisions for all entities
   processCollisions(gameState) {
     // Update settings
-    this.updateSettings();
+    this.updatePerformanceSettings();
     
     // Increment frame counter
     this.frameCounter++;
