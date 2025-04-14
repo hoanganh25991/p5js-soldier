@@ -159,11 +159,21 @@ export class EnemyManager {
   // Create death effect for an enemy
   createEnemyDeathEffect(enemy) {
     // Use particle manager for death effects if available
-    if (particleManager) {
-      particleManager.createParticleExplosion(
+    if (particleManager && this.gameState.particleManager) {
+      // Use the particle manager from gameState if available (it's initialized)
+      const pm = this.gameState.particleManager || particleManager;
+      
+      // Check if we're on mobile or low performance mode
+      const isMobile = this.gameState.performanceManager && 
+                       this.gameState.performanceManager.isMobile;
+      
+      // Create fewer particles on mobile
+      const particleCount = isMobile ? 5 : 10;
+      
+      pm.createParticleExplosion(
         enemy.x, enemy.y, enemy.z, 
         'EXPLOSION', 
-        10, // Fewer particles for better performance
+        particleCount,
         {
           color: [255, 100, 0],
           size: 8,
@@ -253,12 +263,22 @@ export class EnemyManager {
   // Create visual effects for boss spawn
   createBossSpawnEffect(boss) {
     // Use particle manager for boss spawn effects if available
-    if (particleManager) {
+    if (particleManager && this.gameState.particleManager) {
+      // Use the particle manager from gameState if available (it's initialized)
+      const pm = this.gameState.particleManager || particleManager;
+      
+      // Check if we're on mobile or low performance mode
+      const isMobile = this.gameState.performanceManager && 
+                       this.gameState.performanceManager.isMobile;
+      
+      // Create fewer particles on mobile
+      const particleCount = isMobile ? 15 : 30;
+      
       // Create a shockwave effect
-      particleManager.createParticleExplosion(
+      pm.createParticleExplosion(
         boss.x, boss.y, boss.z, 
         'EXPLOSION', 
-        30, 
+        particleCount, 
         {
           color: [255, 0, 0],
           size: 15,
@@ -266,6 +286,12 @@ export class EnemyManager {
           speed: 3
         }
       );
+      
+      // Add a wave effect regardless of platform
+      const shockwave = new Wave(boss.x, boss.y, boss.z, 0, [255, 0, 0, 150], this.gameState);
+      shockwave.maxRadius = 300;
+      shockwave.lifespan = 60;
+      this.gameState.waves.push(shockwave);
     } else {
       // Fallback to using Wave class directly
       // Create a shockwave effect

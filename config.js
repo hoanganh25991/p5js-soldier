@@ -19,6 +19,16 @@ const CONFIG = {
     USE_INSTANCING: true
   },
   
+  // Skill key mappings
+  SKILL_KEYS: {
+    CLONE: 'c',
+    TURRET: 't',
+    AIRSTRIKE: 'a',
+    LASER: 'l',
+    GBA: 'g',
+    GAS_LIGHTER: 'f'
+  },
+  
   // World settings
   WORLD_RADIUS: 1500,
   MAX_ENEMIES: 30, // Reduced from 50 to improve performance
