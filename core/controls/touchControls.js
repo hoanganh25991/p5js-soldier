@@ -133,7 +133,6 @@ export function createVirtualTouchKeys() {
       buttonWrapper.child(keyButton);
       
       // Handle touch events directly on the button
-      const buttonElement = keyButton.elt;
       buttonElement.addEventListener('touchstart', function(e) {
         e.preventDefault();
         

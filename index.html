@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Bul Soldier</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -21,6 +22,7 @@
             /* Prevent double-tap zoom */
             touch-action: manipulation;
         }
+
         canvas {
             margin: 0;
             padding: 0;
@@ -28,21 +30,26 @@
             /* Prevent double-tap zoom on canvas */
             touch-action: manipulation;
         }
+
         /* Virtual Touch Keys Styles */
         #virtual-touch-keys {
             pointer-events: auto;
         }
+
         .touch-key-row {
             margin-bottom: 10px;
         }
+
         .touch-key {
             transition: all 0.1s ease;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
+
         .touch-key:active {
             transform: scale(0.95);
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
         }
+
         /* Media queries for different screen sizes */
         @media (max-width: 768px) {
             .touch-key {
@@ -51,24 +58,47 @@
                 font-size: 18px !important;
             }
         }
+
         @media (max-width: 480px) {
             .touch-key {
                 width: 40px !important;
                 height: 40px !important;
                 font-size: 16px !important;
             }
+
             #virtual-touch-keys {
                 right: 10px !important;
                 bottom: 10px !important;
             }
+
             .touch-key-row {
                 margin-bottom: 5px;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Main Game (as module) - This will import all other modules -->
     <script type="module" src="core/sketch.js"></script>
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function () {
+                navigator.serviceWorker.register("pwa/service-worker.js").then(
+                    function (registration) {
+                        console.log(
+                            "Service Worker registered with scope:",
+                            registration.scope
+                        );
+                    },
+                    function (err) {
+                        console.log("Service Worker registration failed:", err);
+                    }
+                );
+            });
+        }
+    </script>
 </body>
+
 </html>
