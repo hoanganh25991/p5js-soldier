@@ -541,39 +541,225 @@ export class Boss extends Enemy {
     push();
     
     // Draw main body (thinner)
+    fill(30, 10, 40); // Dark purple-black for the main robe
     box(this.width * 0.8, this.height, this.depth * 0.8);
     
     // Draw robe-like bottom (wider at bottom)
     push();
     translate(0, this.height * 0.3, 0);
-    fill(this.baseColor); // Ensure we're using the boss color
+    fill(40, 0, 60); // Darker purple for the bottom of the robe
     cone(this.width * 1.2, this.height * 0.6, 4); // Square-based cone for robe
+    pop();
+    
+    // Add robe details - belt
+    push();
+    translate(0, this.height * 0.05, 0);
+    fill(100, 0, 0); // Dark red for belt
+    rotateX(PI/2);
+    cylinder(this.width * 0.5, this.height * 0.05);
+    
+    // Belt buckle
+    translate(0, 0, -this.height * 0.03);
+    fill(150, 120, 0); // Gold color
+    box(this.width * 0.2, this.width * 0.2, this.height * 0.02);
+    pop();
+    
+    // Add shoulder pads
+    push();
+    translate(0, -this.height * 0.2, 0);
+    fill(60, 0, 80); // Purple for shoulder pads
+    
+    // Left shoulder pad
+    push();
+    translate(-this.width * 0.5, 0, 0);
+    rotateZ(PI/4);
+    box(this.width * 0.4, this.height * 0.1, this.depth * 0.3);
+    
+    // Shoulder spike
+    translate(-this.width * 0.2, 0, 0);
+    rotateZ(-PI/4);
+    fill(80, 0, 100);
+    cone(this.width * 0.1, this.height * 0.2);
+    pop();
+    
+    // Right shoulder pad
+    push();
+    translate(this.width * 0.5, 0, 0);
+    rotateZ(-PI/4);
+    box(this.width * 0.4, this.height * 0.1, this.depth * 0.3);
+    
+    // Shoulder spike
+    translate(this.width * 0.2, 0, 0);
+    rotateZ(PI/4);
+    fill(80, 0, 100);
+    cone(this.width * 0.1, this.height * 0.2);
+    pop();
     pop();
     
     // Draw head (skull-like)
     push();
-    translate(0, -this.height * 0.3, 0); // Move up from center
+    translate(0, -this.height * 0.35, 0); // Move up from center
+    
+    // Skull base
     fill(220, 220, 220); // Skull-like color
     sphere(this.width * 0.3);
     
+    // Eye sockets
+    fill(0, 0, 0); // Black for eye sockets
+    push();
+    translate(-this.width * 0.1, -this.width * 0.05, -this.width * 0.2);
+    sphere(this.width * 0.08);
+    pop();
+    
+    push();
+    translate(this.width * 0.1, -this.width * 0.05, -this.width * 0.2);
+    sphere(this.width * 0.08);
+    pop();
+    
+    // Glowing eyes inside sockets
+    fill(200, 0, 0, 150); // Glowing red
+    push();
+    translate(-this.width * 0.1, -this.width * 0.05, -this.width * 0.22);
+    sphere(this.width * 0.05);
+    pop();
+    
+    push();
+    translate(this.width * 0.1, -this.width * 0.05, -this.width * 0.22);
+    sphere(this.width * 0.05);
+    pop();
+    
+    // Jaw
+    fill(200, 200, 200);
+    push();
+    translate(0, this.width * 0.1, -this.width * 0.05);
+    rotateX(PI/20);
+    box(this.width * 0.25, this.width * 0.1, this.width * 0.3);
+    pop();
+    
     // Draw hood over the head
-    fill(30, 30, 30); // Dark hood
+    fill(20, 0, 30); // Very dark purple hood
     translate(0, -this.height * 0.1, 0);
     rotateX(PI/4); // Tilt hood forward slightly
-    cone(this.width * 0.4, this.height * 0.3);
+    cone(this.width * 0.45, this.height * 0.35, 8); // More detailed cone
     pop();
     
     // Draw staff
     push();
     translate(this.width * 0.6, 0, 0); // Position to the right
     rotateZ(PI/6); // Tilt staff
-    fill(120, 60, 20); // Brown staff
+    
+    // Staff body
+    fill(80, 40, 10); // Dark brown staff
     cylinder(this.width * 0.05, this.height * 1.2);
+    
+    // Staff details - rings
+    for (let i = 0; i < 3; i++) {
+      push();
+      translate(0, -this.height * 0.2 * i, 0);
+      fill(150, 120, 0); // Gold rings
+      rotateX(PI/2);
+      torus(this.width * 0.08, this.width * 0.02);
+      pop();
+    }
     
     // Staff orb
     translate(0, -this.height * 0.6, 0); // Position orb at top of staff
+    
+    // Orb holder (claw-like)
+    push();
+    fill(100, 80, 0); // Gold-bronze
+    
+    // Draw 3 claws around the orb
+    for (let i = 0; i < 3; i++) {
+      push();
+      rotateY(i * TWO_PI/3);
+      translate(this.width * 0.15, 0, 0);
+      rotateZ(PI/2);
+      cone(this.width * 0.04, this.width * 0.3);
+      pop();
+    }
+    pop();
+    
+    // The orb itself
     fill(150, 0, 150, 200); // Purple orb
     sphere(this.width * 0.2);
+    
+    // Inner glow
+    fill(200, 100, 255, 150); // Lighter purple for inner glow
+    sphere(this.width * 0.15);
+    
+    // Core
+    fill(255, 200, 255, 200); // Bright core
+    sphere(this.width * 0.08);
+    pop();
+    
+    // Add floating rune circles around the necromancer
+    push();
+    noFill();
+    stroke(150, 0, 150, 150); // Purple glow
+    strokeWeight(2);
+    
+    // Horizontal rune circle
+    rotateX(PI/2);
+    circle(0, 0, this.width * 2.2);
+    
+    // Add rune symbols
+    for (let i = 0; i < 8; i++) {
+      push();
+      const angle = i * TWO_PI / 8;
+      const x = cos(angle) * this.width * 1.1;
+      const y = sin(angle) * this.width * 1.1;
+      translate(x, y, 0);
+      rotateX(-PI/2); // Rotate to face outward
+      fill(150, 0, 150, 150 + sin(frameCount * 0.05 + i) * 50); // Pulsing glow
+      
+      // Draw a simple rune symbol
+      beginShape();
+      vertex(-this.width * 0.05, -this.width * 0.05);
+      vertex(this.width * 0.05, -this.width * 0.05);
+      vertex(0, this.width * 0.05);
+      endShape(CLOSE);
+      pop();
+    }
+    pop();
+    
+    // Add chains hanging from the robe
+    push();
+    stroke(150, 150, 150);
+    strokeWeight(2);
+    noFill();
+    
+    // Left side chain
+    push();
+    translate(-this.width * 0.4, this.height * 0.1, -this.depth * 0.2);
+    
+    // Draw chain links
+    for (let i = 0; i < 5; i++) {
+      const yOffset = i * this.height * 0.06;
+      // Alternate horizontal and vertical links
+      if (i % 2 === 0) {
+        ellipse(0, yOffset, this.width * 0.08, this.width * 0.04);
+      } else {
+        ellipse(0, yOffset, this.width * 0.04, this.width * 0.08);
+      }
+    }
+    pop();
+    
+    // Right side chain
+    push();
+    translate(this.width * 0.4, this.height * 0.1, -this.depth * 0.2);
+    
+    // Draw chain links
+    for (let i = 0; i < 5; i++) {
+      const yOffset = i * this.height * 0.06;
+      // Alternate horizontal and vertical links
+      if (i % 2 === 0) {
+        ellipse(0, yOffset, this.width * 0.08, this.width * 0.04);
+      } else {
+        ellipse(0, yOffset, this.width * 0.04, this.width * 0.08);
+      }
+    }
+    pop();
     pop();
     
     pop(); // End main body
