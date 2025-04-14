@@ -72,8 +72,9 @@ export function createVirtualTouchKeys() {
       const touchHeight = parseInt(sizeConfig.height) * 1.5 + 'px';
       
       // Style the wrapper to have a larger touch area but be visually transparent
-      buttonWrapper.style('width', touchWidth);
-      buttonWrapper.style('height', touchHeight);
+      // Use the same dimensions as the button to avoid adding extra padding
+      buttonWrapper.style('width', sizeConfig.width);
+      buttonWrapper.style('height', sizeConfig.height);
       buttonWrapper.style('position', 'relative');
       buttonWrapper.style('display', 'flex');
       buttonWrapper.style('align-items', 'center');
