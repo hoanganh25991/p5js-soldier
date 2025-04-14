@@ -12,21 +12,26 @@ export class Enemy {
     this.z = z;
     this.y = 0;
 
+    // Get wave multiplier from attributes or default to 1
+    const waveMultiplier = attributes.waveMultiplier || 1;
+
     // Random attributes with multipliers
     let sizeMultiplier = attributes.sizeMultiplier || 1;
     this.width = CONFIG.ENEMY_WIDTH * sizeMultiplier;
     this.height = CONFIG.ENEMY_HEIGHT * sizeMultiplier;
     this.depth = CONFIG.ENEMY_DEPTH * sizeMultiplier;
 
-    // Health scales with size
-    this.maxHealth = CONFIG.ENEMY_HEALTH * (sizeMultiplier * 1.5);
+    // Health scales with size and wave
+    this.maxHealth = CONFIG.ENEMY_HEALTH * (sizeMultiplier * 1.5) * waveMultiplier;
     this.health = this.maxHealth;
 
-    // Bigger enemies are slower
-    this.speed = CONFIG.ENEMY_SPEED / sizeMultiplier;
+    // Bigger enemies are slower, but higher waves make them faster
+    // This ensures enemies don't get too slow as they get bigger in later waves
+    const speedAdjustment = Math.min(1, 0.7 + (waveMultiplier * 0.1)); // Cap at 1 for max speed
+    this.speed = (CONFIG.ENEMY_SPEED / sizeMultiplier) * speedAdjustment;
 
-    // Damage scales with size
-    this.damageMultiplier = sizeMultiplier;
+    // Damage scales with size and wave
+    this.damageMultiplier = sizeMultiplier * waveMultiplier;
 
     this.rotation = 0;
 
@@ -41,6 +46,9 @@ export class Enemy {
       useEntityWidth: true,     // Use enemy width for health bar width
       verticalOffset: CONFIG.ENEMY_HEALTH_BAR.OFFSET // Use config offset
     });
+    
+    // Store the wave number for reference
+    this.waveNumber = gameState.enemyController ? gameState.enemyController.getCurrentWave() : 1;
   }
 
   static spawnRandom(gameState) {
@@ -49,16 +57,40 @@ export class Enemy {
     let x = cos(angle) * radius;
     let z = sin(angle) * radius;
 
-    // Random attributes
-    let sizeMultiplier = random(0.7, 1.5); // Size variation
+    // Get current wave for difficulty scaling
+    const currentWave = gameState.enemyController ? gameState.enemyController.getCurrentWave() : 1;
+    
+    // Calculate wave-based difficulty multipliers
+    // Every 5 waves, enemies get stronger
+    const waveMultiplier = 1 + (Math.floor(currentWave / 5) * 0.2); // +20% per 5 waves
+    
+    // Random attributes with wave-based scaling
+    let sizeMultiplier = random(0.7, 1.5) * (1 + (currentWave * 0.02)); // Size increases slightly with each wave
     let colorBlend = random(); // How much damage color to show
+    
+    // For waves 10+, add some special coloring
+    let baseColor = color(255, 0, 0); // Base red
+    let damageColor = color(255, 165, 0); // Orange for damage
+    
+    if (currentWave >= 10) {
+      // More menacing colors for higher waves
+      baseColor = color(150, 0, 0); // Darker red
+      damageColor = color(255, 100, 0); // More reddish orange
+    }
+    
+    if (currentWave >= 20) {
+      // Even more menacing for very high waves
+      baseColor = color(100, 0, 50); // Dark purple-red
+      damageColor = color(200, 0, 100); // Magenta
+    }
 
-    // Different enemy types
+    // Different enemy types with wave-based attributes
     let attributes = {
       sizeMultiplier: sizeMultiplier,
-      baseColor: color(255, 0, 0), // Base red
-      damageColor: color(255, 165, 0), // Orange for damage
-      colorBlend: colorBlend
+      baseColor: baseColor,
+      damageColor: damageColor,
+      colorBlend: colorBlend,
+      waveMultiplier: waveMultiplier // Store the wave multiplier for damage calculations
     };
 
     return new Enemy(x, z, attributes, gameState);
