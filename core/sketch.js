@@ -87,7 +87,6 @@ function setup() {
   gameState.ui.menuScreen = createMenuUI();
   gameState.ui.pauseMenu = createPauseMenu();
   gameState.ui.gameOverScreen = createGameOverScreen();
-  gameState.ui.zoomControls = createZoomControls(gameState);
   
   // Setup controls
   setupMouseHandlers(window, gameState);
@@ -168,7 +167,6 @@ function draw() {
       // Update UI elements
       updateStatusBoard();
       updateVirtualTouchKeys(gameState);
-      updateZoomControlsVisibility(gameState);
       
       // Check win/lose conditions
       checkGameEndConditions(gameState);

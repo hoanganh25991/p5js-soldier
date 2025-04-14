@@ -37,18 +37,9 @@ export function createVirtualTouchKeys() {
   virtualTouchKeys.id('virtual-touch-keys');
   virtualTouchKeys.style('position', 'fixed');
   
-  // Position differently based on orientation
-  const isLandscapeMode = isLandscape();
-  if (isLandscapeMode) {
-    // In landscape, keep at bottom right
-    virtualTouchKeys.style('right', '20px');
-    virtualTouchKeys.style('bottom', '20px');
-  } else {
-    // In portrait, position closer to the center-bottom for easier thumb reach
-    virtualTouchKeys.style('right', '50%');
-    virtualTouchKeys.style('transform', 'translateX(50%)'); // Center horizontally
-    virtualTouchKeys.style('bottom', '40px'); // Slightly higher from bottom
-  }
+  // Always use landscape positioning (bottom right)
+  virtualTouchKeys.style('right', '20px');
+  virtualTouchKeys.style('bottom', '20px');
   
   virtualTouchKeys.style('display', 'flex');
   virtualTouchKeys.style('flex-direction', 'column');
@@ -257,31 +248,18 @@ function isLandscape() {
 }
 
 /**
- * Get the appropriate button size based on orientation
+ * Get button size configuration
  * @returns {Object} Object containing width, height, fontSize, and gap values
  */
 function getButtonSizeForOrientation() {
-  const isLandscapeMode = isLandscape();
-  
-  if (isLandscapeMode) {
-    // Landscape mode - smaller buttons (1/2 size)
-    return {
-      width: '40px',
-      height: '40px',
-      fontSize: '18px',
-      gap: '8px',
-      rowGap: '8px'
-    };
-  } else {
-    // Portrait mode - larger buttons (2x size)
-    return {
-      width: '100px',
-      height: '100px',
-      fontSize: '32px',
-      gap: '15px',
-      rowGap: '15px'
-    };
-  }
+  // Always use landscape mode sizing (smaller buttons)
+  return {
+    width: '40px',
+    height: '40px',
+    fontSize: '18px',
+    gap: '8px',
+    rowGap: '8px'
+  };
 }
 
 /**
@@ -327,19 +305,6 @@ function updateTouchControlsForOrientation(gameState) {
     
     // Get new size configuration
     const sizeConfig = getButtonSizeForOrientation();
-    
-    // Update position based on new orientation
-    if (newOrientation === 'landscape') {
-      // In landscape, position at bottom right
-      touchKeys.style('right', '20px');
-      touchKeys.style('bottom', '20px');
-      touchKeys.style('transform', 'none'); // Remove any transform
-    } else {
-      // In portrait, position closer to center-bottom for easier thumb reach
-      touchKeys.style('right', '50%');
-      touchKeys.style('transform', 'translateX(50%)'); // Center horizontally
-      touchKeys.style('bottom', '40px'); // Slightly higher from bottom
-    }
     
     // Update container gap
     touchKeys.style('gap', sizeConfig.rowGap);
