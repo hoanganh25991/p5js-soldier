@@ -73,7 +73,7 @@ self.addEventListener("install", function (event) {
         // PWA resources
         "pwa/p5.min.js",
         "pwa/p5.sound.min.js",
-        "pwa/manifest.json",
+        "manifest.json",
         "favicon.ico"
       ];
 
