@@ -145,8 +145,7 @@ const CONFIG = {
 
   // Skill settings
   CLONE: {
-    // COOLDOWN: 60,
-    COOLDOWN: 0,
+    COOLDOWN: 60,
     DURATION: 8 * 60,
     FIRE_RATE: 30, // Shoot as fast as player
     DAMAGE: 15,
@@ -154,8 +153,7 @@ const CONFIG = {
   },
 
   TURRET: {
-    // COOLDOWN: 5 * 60, // 5 seconds cooldown
-    COOLDOWN: 30, // 5 seconds cooldown
+    COOLDOWN: 5 * 60, // 5 seconds cooldown
     DURATION: 3 * 60, // 3 seconds duration
     FIRE_RATE: 15, // Twice as fast as clone
     DAMAGE: 15,
@@ -165,8 +163,7 @@ const CONFIG = {
   },
 
   AIRSTRIKE: {
-    // COOLDOWN: 60,
-    COOLDOWN: 30,
+    COOLDOWN: 5 * 60,
     SPEED: 3,
     BOMB_RATE: 100,
     BOMB_SIZE: 100,
@@ -175,7 +172,6 @@ const CONFIG = {
   },
 
   LASER: {
-    // COOLDOWN: 60,
     COOLDOWN: 30,
     DURATION: 5 * 60,
     DAMAGE: 80,
@@ -184,7 +180,7 @@ const CONFIG = {
 
   // Game Boy Advanced skill
   GBA: {
-    COOLDOWN: 0,
+    COOLDOWN: 120,
     THROW_SPEED: 8, // Slower speed to make the throw more visible
     THROW_DISTANCE: 150 * 5, // Maximum throw distance
     CHARACTER_DURATION: 200 * 60, // 20 seconds (increased from 10)
@@ -238,7 +234,7 @@ const CONFIG = {
     
     // Gas Lighter skill
     GAS_LIGHTER: {
-        COOLDOWN: 0,
+        COOLDOWN: 120,
         THROW_SPEED: 10, // Slightly faster than GBA
         THROW_DISTANCE: 150 * 5, // Maximum throw distance
         FIRE_SKILL_DURATION: 60 * 2, // 2 minutes duration
