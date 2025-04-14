@@ -61,18 +61,11 @@ export class Player {
       // Create bullet
       this.gameState.bullets.push(new Bullet(gunX, gunY, gunZ, angle, target, this, this.gameState));
       
-      // Play shoot sound at reduced volume
-      if (this.gameState.shootSound) {
-        // Save current volume
-        const currentVolume = this.gameState.shootSound.getVolume();
-        // Set to lower volume (0.2 = 20% of original volume)
-        this.gameState.shootSound.setVolume(this.gameState.masterVolume * 0.2);
-        this.gameState.shootSound.play();
-        // Reset to original volume after playing
-        setTimeout(() => {
-          this.gameState.shootSound.setVolume(currentVolume);
-        }, 100);
-      }
+      // Play shoot sound at reduced volume using sound manager
+      this.gameState.soundManager.playWithTempVolume('shoot', this.gameState.masterVolume * 0.2, {
+        priority: this.gameState.soundManager.PRIORITY.HIGH,
+        sourceType: 'player'
+      });
     }
   }
 

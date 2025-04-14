@@ -63,10 +63,8 @@ export function handleSoundKeys(gameState, key) {
     // Update mute state
     gameState.isMuted = !gameState.isMuted;
     
-    // Update all sound volumes
-    if (gameState.shootSound) gameState.shootSound.setVolume(gameState.masterVolume);
-    if (gameState.cloneSound) gameState.cloneSound.setVolume(gameState.masterVolume);
-    if (gameState.spawnSound) gameState.spawnSound.setVolume(gameState.masterVolume);
+    // Update all sound volumes through the sound manager
+    gameState.soundManager.setMasterVolume(gameState.masterVolume);
     
     // Show message
     window.showCooldownMessage(gameState.isMuted ? "Sound Muted" : "Sound Unmuted", 0);
@@ -149,8 +147,12 @@ function handleCloneSkill(gameState) {
   let cloneZ = gameState.player.z + sin(cloneAngle) * cloneRadius;
   gameState.clones.push(new Clone(cloneX, gameState.player.y, cloneZ, gameState));
   
-  // Play woosh sound
-  gameState.cloneSound.play();
+  // Play clone sound with sound manager
+  gameState.soundManager.play('clone', {
+    priority: gameState.soundManager.PRIORITY.HIGH,
+    sourceType: 'skill',
+    sourceId: 'clone'
+  });
   
   // Optional: Limit max number of clones to avoid overwhelming
   const maxClones = SKILLS[SKILL_NAMES.CLONE].maxCount + (gameState.cloneMaxCountBonus || 0);
@@ -260,13 +262,12 @@ function handleGBASkill(gameState) {
     }
   }
   
-  // Play throw sound
-  if (gameState.throwSound) {
-    gameState.throwSound.play();
-  } else if (gameState.spawnSound) {
-    // Fallback to spawn sound if throw sound doesn't exist
-    gameState.spawnSound.play();
-  }
+  // Play throw sound using sound manager
+  gameState.soundManager.play('spawn', {
+    priority: gameState.soundManager.PRIORITY.MEDIUM,
+    sourceType: 'skill',
+    sourceId: 'gba'
+  });
 }
 
 /**
@@ -350,13 +351,12 @@ function handleGasLighterSkill(gameState) {
       }
     }
     
-    // Play throw sound
-    if (gameState.throwSound) {
-      gameState.throwSound.play();
-    } else if (gameState.spawnSound) {
-      // Fallback to spawn sound if throw sound doesn't exist
-      gameState.spawnSound.play();
-    }
+    // Play throw sound using sound manager
+    gameState.soundManager.play('spawn', {
+      priority: gameState.soundManager.PRIORITY.MEDIUM,
+      sourceType: 'skill',
+      sourceId: 'gas-lighter'
+    });
   });
 }
 
