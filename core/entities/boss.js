@@ -508,32 +508,349 @@ export class Boss extends Enemy {
   }
   
   drawTitanShape() {
-    // Draw main body
+    // Main body structure
     push();
-    box(this.width, this.height, this.depth);
+    
+    // Draw torso - muscular body
+    fill(80, 60, 40); // Stone-like color
+    box(this.width, this.height * 0.6, this.depth);
+    
+    // Add chest details - armor plates
+    push();
+    translate(0, -this.height * 0.1, this.depth * 0.4);
+    fill(100, 80, 60); // Lighter stone color
+    box(this.width * 0.8, this.height * 0.3, this.depth * 0.1);
+    
+    // Add central gem
+    translate(0, 0, this.depth * 0.06);
+    fill(200, 50, 0, 200); // Glowing red gem
+    sphere(this.width * 0.1);
+    pop();
+    
+    // Draw waist and belt
+    push();
+    translate(0, this.height * 0.2, 0);
+    fill(60, 40, 20); // Darker stone
+    box(this.width * 0.8, this.height * 0.1, this.depth * 0.8);
+    
+    // Belt buckle
+    translate(0, 0, this.depth * 0.4);
+    fill(150, 120, 0); // Gold color
+    box(this.width * 0.3, this.height * 0.05, this.depth * 0.05);
+    pop();
+    
+    // Draw legs
+    push();
+    translate(0, this.height * 0.4, 0);
+    
+    // Left leg
+    push();
+    translate(-this.width * 0.25, 0, 0);
+    fill(70, 50, 30); // Stone color
+    box(this.width * 0.3, this.height * 0.4, this.depth * 0.3);
+    
+    // Knee armor
+    translate(0, this.height * 0.1, this.depth * 0.15);
+    fill(100, 80, 60); // Lighter stone
+    sphere(this.width * 0.12);
+    pop();
+    
+    // Right leg
+    push();
+    translate(this.width * 0.25, 0, 0);
+    fill(70, 50, 30); // Stone color
+    box(this.width * 0.3, this.height * 0.4, this.depth * 0.3);
+    
+    // Knee armor
+    translate(0, this.height * 0.1, this.depth * 0.15);
+    fill(100, 80, 60); // Lighter stone
+    sphere(this.width * 0.12);
+    pop();
+    pop();
     
     // Draw shoulders (wider than body)
+    push();
     translate(0, -this.height * 0.25, 0);
+    fill(90, 70, 50); // Stone color
     box(this.width * 1.5, this.height * 0.2, this.depth * 0.8);
     
+    // Left shoulder spike
+    push();
+    translate(-this.width * 0.7, -this.height * 0.05, 0);
+    fill(60, 40, 20); // Darker stone
+    rotateZ(-PI/6);
+    cone(this.width * 0.15, this.height * 0.3, 4); // Square spike
+    pop();
+    
+    // Right shoulder spike
+    push();
+    translate(this.width * 0.7, -this.height * 0.05, 0);
+    fill(60, 40, 20); // Darker stone
+    rotateZ(PI/6);
+    cone(this.width * 0.15, this.height * 0.3, 4); // Square spike
+    pop();
+    pop();
+    
+    // Draw arms
+    push();
+    // Left arm
+    push();
+    translate(-this.width * 0.7, 0, 0);
+    rotateZ(PI/8);
+    
+    // Upper arm
+    fill(80, 60, 40); // Stone color
+    box(this.width * 0.25, this.height * 0.4, this.depth * 0.25);
+    
+    // Elbow joint
+    translate(0, this.height * 0.25, 0);
+    fill(100, 80, 60); // Lighter stone
+    sphere(this.width * 0.15);
+    
+    // Forearm - larger for weapon
+    translate(0, this.height * 0.2, 0);
+    rotateZ(-PI/4);
+    fill(70, 50, 30); // Stone color
+    box(this.width * 0.3, this.height * 0.4, this.depth * 0.3);
+    
+    // Weapon - giant hammer
+    translate(0, this.height * 0.3, 0);
+    
+    // Hammer handle
+    push();
+    fill(60, 30, 10); // Dark wood color
+    rotateX(PI/2);
+    cylinder(this.width * 0.05, this.height * 0.6);
+    
+    // Hammer head
+    translate(0, -this.height * 0.3, 0);
+    fill(50, 50, 60); // Dark metal
+    box(this.width * 0.4, this.width * 0.4, this.height * 0.3);
+    
+    // Hammer details
+    push();
+    translate(0, 0, this.height * 0.15);
+    fill(150, 120, 0); // Gold accents
+    box(this.width * 0.3, this.width * 0.3, this.height * 0.02);
+    pop();
+    
+    push();
+    translate(0, 0, -this.height * 0.15);
+    fill(150, 120, 0); // Gold accents
+    box(this.width * 0.3, this.width * 0.3, this.height * 0.02);
+    pop();
+    pop();
+    pop();
+    
+    // Right arm
+    push();
+    translate(this.width * 0.7, 0, 0);
+    rotateZ(-PI/8);
+    
+    // Upper arm
+    fill(80, 60, 40); // Stone color
+    box(this.width * 0.25, this.height * 0.4, this.depth * 0.25);
+    
+    // Elbow joint
+    translate(0, this.height * 0.25, 0);
+    fill(100, 80, 60); // Lighter stone
+    sphere(this.width * 0.15);
+    
+    // Forearm with shield
+    translate(0, this.height * 0.2, 0);
+    rotateZ(PI/4);
+    fill(70, 50, 30); // Stone color
+    box(this.width * 0.3, this.height * 0.4, this.depth * 0.3);
+    
+    // Shield
+    translate(0, this.height * 0.1, this.depth * 0.2);
+    rotateX(PI/6);
+    fill(50, 50, 60); // Dark metal
+    
+    // Shield base
+    box(this.width * 0.5, this.height * 0.6, this.depth * 0.05);
+    
+    // Shield boss (center)
+    translate(0, 0, this.depth * 0.03);
+    fill(150, 120, 0); // Gold
+    sphere(this.width * 0.1);
+    
+    // Shield rim
+    translate(0, 0, -this.depth * 0.03);
+    noFill();
+    stroke(150, 120, 0); // Gold
+    strokeWeight(this.width * 0.03);
+    rect(0, 0, this.width * 0.5, this.height * 0.6);
+    noStroke();
+    pop();
+    pop();
+    
+    // Draw neck
+    push();
+    translate(0, -this.height * 0.3, 0);
+    fill(70, 50, 30); // Stone color
+    cylinder(this.width * 0.2, this.height * 0.1);
+    pop();
+    
     // Draw head
-    translate(0, -this.height * 0.2, 0);
+    push();
+    translate(0, -this.height * 0.45, 0);
+    
+    // Base head
+    fill(90, 70, 50); // Stone color
     sphere(this.width * 0.4);
     
+    // Face details
+    
+    // Eyes - glowing
+    push();
+    // Left eye
+    translate(-this.width * 0.15, -this.width * 0.05, this.width * 0.3);
+    fill(200, 50, 0, 200); // Glowing red
+    sphere(this.width * 0.08);
+    
+    // Right eye
+    translate(this.width * 0.3, 0, 0);
+    sphere(this.width * 0.08);
+    pop();
+    
+    // Mouth - jagged
+    push();
+    translate(0, this.width * 0.15, this.width * 0.3);
+    fill(30, 20, 10); // Dark crevice
+    box(this.width * 0.3, this.width * 0.05, this.width * 0.1);
+    
+    // Teeth
+    fill(200, 200, 180); // Bone color
+    for (let i = -2; i <= 2; i++) {
+      push();
+      translate(i * this.width * 0.06, -this.width * 0.03, 0);
+      box(this.width * 0.04, this.width * 0.08, this.width * 0.04);
+      pop();
+    }
+    pop();
+    
+    // Brow ridge
+    push();
+    translate(0, -this.width * 0.15, this.width * 0.25);
+    fill(60, 40, 20); // Darker stone
+    box(this.width * 0.5, this.width * 0.08, this.width * 0.15);
+    pop();
+    
     // Draw horns
+    // Left horn
     push();
     translate(-this.width * 0.3, -this.height * 0.1, 0);
     rotateZ(-PI/4);
-    cone(this.width * 0.1, this.height * 0.3);
+    
+    // Base of horn
+    fill(60, 40, 20); // Darker stone
+    cylinder(this.width * 0.1, this.height * 0.1);
+    
+    // Horn segments - getting narrower
+    for (let i = 0; i < 3; i++) {
+      translate(0, -this.height * 0.1, 0);
+      rotateZ(-PI/16); // Slight curve
+      fill(70 + i*10, 50 + i*10, 30 + i*10); // Gradually lighter
+      cylinder(this.width * (0.08 - i*0.02), this.height * 0.1);
+    }
+    
+    // Horn tip
+    translate(0, -this.height * 0.1, 0);
+    fill(100, 80, 60); // Lighter stone
+    cone(this.width * 0.04, this.height * 0.15);
     pop();
     
+    // Right horn
     push();
     translate(this.width * 0.3, -this.height * 0.1, 0);
     rotateZ(PI/4);
-    cone(this.width * 0.1, this.height * 0.3);
+    
+    // Base of horn
+    fill(60, 40, 20); // Darker stone
+    cylinder(this.width * 0.1, this.height * 0.1);
+    
+    // Horn segments - getting narrower
+    for (let i = 0; i < 3; i++) {
+      translate(0, -this.height * 0.1, 0);
+      rotateZ(PI/16); // Slight curve
+      fill(70 + i*10, 50 + i*10, 30 + i*10); // Gradually lighter
+      cylinder(this.width * (0.08 - i*0.02), this.height * 0.1);
+    }
+    
+    // Horn tip
+    translate(0, -this.height * 0.1, 0);
+    fill(100, 80, 60); // Lighter stone
+    cone(this.width * 0.04, this.height * 0.15);
     pop();
     
+    // Crown/helmet
+    push();
+    translate(0, -this.width * 0.2, 0);
+    fill(150, 120, 0); // Gold
+    
+    // Crown base
+    cylinder(this.width * 0.42, this.height * 0.1);
+    
+    // Crown spikes
+    for (let i = 0; i < 8; i++) {
+      push();
+      const angle = i * TWO_PI / 8;
+      rotateY(angle);
+      translate(0, -this.height * 0.05, this.width * 0.4);
+      fill(180, 150, 20); // Brighter gold
+      cone(this.width * 0.05, this.height * 0.15, 3); // Triangular spikes
+      pop();
+    }
     pop();
+    
+    pop(); // End head
+    
+    // Add floating rocks orbiting the Titan
+    push();
+    for (let i = 0; i < 5; i++) {
+      push();
+      const angle = frameCount * 0.01 + i * TWO_PI / 5;
+      const orbitRadius = this.width * 1.5;
+      const x = cos(angle) * orbitRadius;
+      const y = sin(angle * 0.5) * this.height * 0.5 - this.height * 0.2;
+      const z = sin(angle) * orbitRadius;
+      
+      translate(x, y, z);
+      rotateX(frameCount * 0.02 + i);
+      rotateY(frameCount * 0.03 + i);
+      
+      // Random rock shape
+      fill(80 + i*10, 60 + i*5, 40 + i*5);
+      if (i % 3 === 0) {
+        box(this.width * 0.2, this.width * 0.15, this.width * 0.15);
+      } else if (i % 3 === 1) {
+        sphere(this.width * 0.12);
+      } else {
+        cone(this.width * 0.1, this.width * 0.2, 5);
+      }
+      pop();
+    }
+    pop();
+    
+    // Ground crack effect
+    push();
+    translate(0, this.height * 0.5, 0);
+    rotateX(PI/2);
+    
+    // Crack lines
+    stroke(200, 50, 0, 150); // Glowing red
+    strokeWeight(3);
+    for (let i = 0; i < 8; i++) {
+      const angle = i * TWO_PI / 8;
+      const len = this.width * (1.2 + sin(frameCount * 0.05 + i) * 0.2);
+      
+      line(0, 0, cos(angle) * len, sin(angle) * len);
+    }
+    noStroke();
+    pop();
+    
+    pop(); // End main body
   }
   
   drawNecromancerShape() {
