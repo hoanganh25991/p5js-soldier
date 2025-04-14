@@ -26,14 +26,18 @@ import { initializeCamera, updateCamera, updateCameraOnResize } from './managers
 import { updateAndShowEntities } from './managers/entityManager.js';
 import { checkGameEndConditions, resetGame } from './managers/gameManager.js';
 import { updateGameEnvironment } from './managers/environmentManager.js';
+import soundManager from './managers/soundManager.js';
 
 // p5.js preload function - called before setup
 function preload() {
   // Load assets
   gameState.gameFont = loadFont('fonts/opensans-light.ttf');
-  gameState.shootSound = loadSound('sounds/single-shot.mp3');
-  gameState.cloneSound = loadSound('sounds/woosh.mp3');
-  gameState.spawnSound = loadSound('sounds/woosh.mp3'); // Reuse woosh sound for character spawn
+  
+  // Load all sounds through the sound manager
+  soundManager.loadSounds();
+  
+  // Store sound manager in game state for easy access
+  gameState.soundManager = soundManager;
 }
 
 // p5.js setup function - called once at start
@@ -51,9 +55,7 @@ function setup() {
   
   // Set global sound volume (0.5 = 50% of original volume)
   gameState.masterVolume = 0.5;
-  if (gameState.shootSound) gameState.shootSound.setVolume(gameState.masterVolume);
-  if (gameState.cloneSound) gameState.cloneSound.setVolume(gameState.masterVolume);
-  if (gameState.spawnSound) gameState.spawnSound.setVolume(gameState.masterVolume);
+  soundManager.setMasterVolume(gameState.masterVolume);
   
   // Create UI elements
   gameState.ui.statusBoard = createStatusBoard();

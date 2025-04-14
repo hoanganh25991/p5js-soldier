@@ -86,10 +86,8 @@ export function createPauseMenu() {
     const newVolume = volumeSlider.value() / 100;
     gameState.masterVolume = newVolume;
     
-    // Update all sound volumes
-    if (gameState.shootSound) gameState.shootSound.setVolume(newVolume);
-    if (gameState.cloneSound) gameState.cloneSound.setVolume(newVolume);
-    if (gameState.spawnSound) gameState.spawnSound.setVolume(newVolume);
+    // Update all sound volumes through the sound manager
+    gameState.soundManager.setMasterVolume(newVolume);
     
     // Update volume display
     volumeValue.html(`${Math.round(newVolume * 100)}%`);
@@ -137,10 +135,8 @@ export function createPauseMenu() {
     // Toggle mute state
     gameState.isMuted = !gameState.isMuted;
     
-    // Update all sound volumes
-    if (gameState.shootSound) gameState.shootSound.setVolume(gameState.masterVolume);
-    if (gameState.cloneSound) gameState.cloneSound.setVolume(gameState.masterVolume);
-    if (gameState.spawnSound) gameState.spawnSound.setVolume(gameState.masterVolume);
+    // Update all sound volumes through the sound manager
+    gameState.soundManager.setMasterVolume(gameState.masterVolume);
     
     // Update slider
     volumeSlider.value(gameState.masterVolume * 100);

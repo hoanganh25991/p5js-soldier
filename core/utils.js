@@ -59,20 +59,20 @@ export function autoShoot(source, targetCount = 1, fireRate = CONFIG.FIRE_RATE, 
     // Create bullet
     gameState.bullets.push(new Bullet(gunX, gunY, gunZ, angle, target, source, gameState));
     
-    // Play shoot sound with reduced volume for main soldier
+    // Play shoot sound with optimized handling based on entity type
     if (source.constructor.name === 'Player') {
-      // Save current volume
-      const currentVolume = gameState.shootSound.getVolume();
-      // Set to lower volume (0.2 = 20% of original volume)
-      gameState.shootSound.setVolume(0.2);
-      gameState.shootSound.play();
-      // Reset to original volume after playing
-      setTimeout(() => {
-        gameState.shootSound.setVolume(currentVolume);
-      }, 100);
+      // For player, use lower volume but higher priority
+      gameState.soundManager.playWithTempVolume('shoot', 0.2, {
+        priority: gameState.soundManager.PRIORITY.HIGH,
+        sourceType: 'player'
+      });
     } else {
-      // For other entities (clones, turrets), play at normal volume
-      gameState.shootSound.play();
+      // For other entities (clones, turrets), use normal volume with batching
+      gameState.soundManager.play('shoot', {
+        allowBatching: true,
+        priority: gameState.soundManager.PRIORITY.MEDIUM,
+        sourceType: source.constructor.name
+      });
     }
   }
 }
