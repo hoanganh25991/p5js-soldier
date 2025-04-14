@@ -4,6 +4,7 @@ import CONFIG from '../config.js';
 import { Airstrike } from './airstrike.js';
 import { Turret } from './turret.js';
 import { Wave } from './wave.js';
+import { checkBulletBossCollisions } from '../managers/bossManager.js';
 
 export class Bullet {
   constructor(x, y, z, angle, target, source = null, gameState) {
@@ -59,7 +60,16 @@ export class Bullet {
     this.y += this.vy;
     this.z += this.vz;
 
-    // Check collision with enemies
+    // Check collision with bosses first (priority targets)
+    if (this.gameState.bosses && this.gameState.bosses.length > 0) {
+      // Use the boss manager to check collisions
+      const hitBoss = checkBulletBossCollisions(this, this.gameState);
+      if (hitBoss) {
+        return true; // Bullet hit a boss
+      }
+    }
+    
+    // Check collision with regular enemies
     if (this.gameState.enemyController) {
       const enemies = this.gameState.enemyController.getEnemies();
       for (let i = enemies.length - 1; i >= 0; i--) {

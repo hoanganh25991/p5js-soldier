@@ -60,9 +60,9 @@ export function calculateDynamicCameraParams(screenWidth, screenHeight) {
  */
 export function initializeCamera(gameState) {
   // Add camera-specific properties to gameState
-  gameState.cameraRotationX = -0.65; // Even steeper angle for better ground visibility
+  gameState.cameraRotationX = -0.3; // Much less steep angle for a more horizontal view
   gameState.cameraRotationY = 0;
-  gameState.baseCameraDistance = 450; // Significantly increased base distance for wider view
+  gameState.baseCameraDistance = 500; // Further increased base distance for wider view
   gameState.zoomLevel = 3.5; // Increased zoom level to see more enemies on the ground
   
   // Store the dynamic camera parameters
@@ -88,8 +88,8 @@ export function updateCamera(gameState) {
     let deltaY = (mouseY - gameState.lastMouseY) * 0.01;
 
     gameState.cameraRotationY += deltaX;
-    // Constrain to a steeper minimum angle to ensure better ground visibility
-    gameState.cameraRotationX = constrain(gameState.cameraRotationX + deltaY, -PI / 2, -0.45);
+    // Allow for a much less steep angle for a more horizontal view
+    gameState.cameraRotationX = constrain(gameState.cameraRotationX + deltaY, -PI / 2, -0.15);
 
     gameState.lastMouseX = mouseX;
     gameState.lastMouseY = mouseY;
@@ -107,18 +107,18 @@ export function updateCamera(gameState) {
                         calculateDynamicCameraParams(windowWidth, windowHeight);
   
   // Position camera behind player using dynamic values with increased height
-  // Added additional depth offset (200 instead of CONFIG.CAMERA.DEPTH_OFFSET) to position camera further back
+  // Added additional depth offset to position camera further back
   gameState.camera.setPosition(
     camX + CONFIG.CAMERA.HORIZONTAL_OFFSET, // Apply horizontal offset from config
-    gameState.player.y - dynamicParams.verticalOffset, // Dynamic camera height
-    camZ + 200 // Increased depth offset to position camera further back
+    gameState.player.y - dynamicParams.verticalOffset * 0.8, // Reduced height for more horizontal view
+    camZ + 250 // Further increased depth offset to position camera further back
   );
 
   // Look at point in front of player with better ground visibility using dynamic values
   // Adjust the look-at point to focus more on the ground area in front of the player
   gameState.camera.lookAt(
     CONFIG.CAMERA.LOOK_AT.X, // Horizontal look target from config
-    gameState.player.y + dynamicParams.lookAtYOffset, // Dynamic vertical look target
-    CONFIG.CAMERA.LOOK_AT.Z - 200 // Significantly increased forward look distance to see more ground
+    gameState.player.y + dynamicParams.lookAtYOffset * 2.5, // Significantly raised look-at point for more horizontal view
+    CONFIG.CAMERA.LOOK_AT.Z - 100 // Adjusted forward look distance for better perspective
   );
 }

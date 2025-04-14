@@ -14,6 +14,9 @@ export class HealthBar {
       alwaysGreen: false,       // If true, always use green color regardless of health percentage
       useEntityWidth: true,     // If true, use the entity's width for the health bar width
       widthMultiplier: 1.2,     // Multiplier for the entity's width if useEntityWidth is true
+      showPercentage: false,    // If true, show health percentage text
+      showName: false,          // If true, show entity name
+      name: "",                 // Entity name to display
       ...options                // Override defaults with provided options
     };
     
@@ -84,6 +87,52 @@ export class HealthBar {
       
       noStroke();
       box(barWidth * healthPercent, this.options.height, this.options.depth + 1); // Slightly in front of background
+      pop();
+    }
+    
+    // Draw name and percentage if enabled
+    if (this.options.showName || this.options.showPercentage) {
+      push();
+      
+      // Position text above health bar
+      translate(0, barY - 15, 0);
+      
+      // Use HTML overlay for text to ensure readability
+      // We'll use p5.js's text rendering for 3D space
+      textAlign(CENTER, CENTER);
+      textSize(12);
+      
+      // Draw name if enabled
+      if (this.options.showName && this.options.name) {
+        fill(255);
+        stroke(0);
+        strokeWeight(2);
+        text(this.options.name, 0, 0);
+        
+        // If also showing percentage, move down for next line
+        if (this.options.showPercentage) {
+          translate(0, -15, 0);
+        }
+      }
+      
+      // Draw percentage if enabled
+      if (this.options.showPercentage) {
+        const percentText = Math.floor(healthPercent * 100) + "%";
+        
+        // Color based on health percentage
+        if (healthPercent > 0.6) {
+          fill(0, 255, 0);
+        } else if (healthPercent > 0.3) {
+          fill(255, 255, 0);
+        } else {
+          fill(255, 0, 0);
+        }
+        
+        stroke(0);
+        strokeWeight(2);
+        text(percentText, 0, 0);
+      }
+      
       pop();
     }
   }

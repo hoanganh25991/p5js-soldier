@@ -37,6 +37,7 @@ const gameState = {
   tower: null,
   bullets: [],
   enemies: [],
+  bosses: [], // Array for boss enemies
   clones: [],
   turrets: [],
   airstrikes: [],
@@ -47,6 +48,10 @@ const gameState = {
   gasLighters: [],
   fireSkills: [],
   powerUps: [], // New array for power-ups
+  
+  // Boss tracking
+  bossSpawnTimer: CONFIG.BOSS.SPAWN_INTERVAL, // Timer for boss spawning
+  activeBossCount: 0, // Track number of active bosses
   
   // Game stats
   enemiesKilled: 0,
@@ -131,9 +136,14 @@ function resetGameState() {
     'gas-lighter': 0
   };
   
+  // Reset boss tracking
+  gameState.bossSpawnTimer = CONFIG.BOSS.SPAWN_INTERVAL;
+  gameState.activeBossCount = 0;
+  
   // Clear game objects
   gameState.bullets = [];
   gameState.enemies = [];
+  gameState.bosses = [];
   gameState.clones = [];
   gameState.turrets = [];
   gameState.airstrikes = [];

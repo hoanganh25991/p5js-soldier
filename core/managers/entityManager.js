@@ -2,6 +2,7 @@
 // Handles updating and rendering all game entities
 
 import { spawnRandomPowerUp } from '../entities/powerUp.js';
+import { updateBossSpawning, updateBosses, drawBosses, checkBulletBossCollisions } from './bossManager.js';
 
 /**
  * Update and show all game entities
@@ -14,6 +15,11 @@ export function updateAndShowEntities(gameState) {
   // Update and render enemies using the controller
   gameState.enemyController.update();
   gameState.enemyController.render();
+  
+  // Update and render bosses
+  updateBossSpawning(gameState);
+  updateBosses(gameState);
+  drawBosses(gameState);
 
   // Update and show bullets
   updateBullets(gameState);

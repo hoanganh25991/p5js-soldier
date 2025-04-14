@@ -47,6 +47,33 @@ export function createStatusBoard() {
   killsDiv.child(killsSpan);
   statusBoard.child(killsDiv);
   
+  // Create boss information display (hidden by default)
+  const bossDiv = createElement('div');
+  bossDiv.id('boss-info');
+  bossDiv.style('display', 'none'); // Hidden by default
+  bossDiv.style('margin-top', '10px');
+  bossDiv.style('padding', '5px');
+  bossDiv.style('background', 'rgba(255, 0, 0, 0.3)');
+  bossDiv.style('border', '1px solid red');
+  bossDiv.style('border-radius', '3px');
+  
+  // Boss name
+  const bossNameDiv = createElement('div', 'Boss: ');
+  const bossNameSpan = createElement('span', '');
+  bossNameSpan.id('boss-name');
+  bossNameDiv.child(bossNameSpan);
+  bossDiv.child(bossNameDiv);
+  
+  // Boss health
+  const bossHealthDiv = createElement('div', 'Health: ');
+  const bossHealthSpan = createElement('span', '');
+  bossHealthSpan.id('boss-health');
+  bossHealthDiv.child(bossHealthSpan);
+  bossDiv.child(bossHealthDiv);
+  
+  // Add boss div to status board
+  statusBoard.child(bossDiv);
+  
   // Create skills header
   const skillsHeader = createElement('div', 'Skills (Cooldown):');
   statusBoard.child(skillsHeader);
@@ -102,6 +129,35 @@ export function updateStatusBoard() {
   // Get kills from enemy controller
   if (gameState.enemyController) {
     select('#kills').html(gameState.enemyController.getEnemiesKilled());
+  }
+  
+  // Update boss information if there's an active boss
+  const bossInfoDiv = select('#boss-info');
+  if (gameState.bosses && gameState.bosses.length > 0) {
+    // Show boss info
+    bossInfoDiv.style('display', 'block');
+    
+    // Get the first boss (we'll only show info for one boss even if there are multiple)
+    const boss = gameState.bosses[0];
+    
+    // Update boss name
+    select('#boss-name').html(boss.name || 'Unknown');
+    
+    // Update boss health
+    const healthPercent = Math.floor((boss.health / boss.maxHealth) * 100);
+    select('#boss-health').html(`${Math.ceil(boss.health)} / ${Math.ceil(boss.maxHealth)} (${healthPercent}%)`);
+    
+    // Color the health text based on percentage
+    if (healthPercent > 60) {
+      select('#boss-health').style('color', '#00ff00'); // Green
+    } else if (healthPercent > 30) {
+      select('#boss-health').style('color', '#ffff00'); // Yellow
+    } else {
+      select('#boss-health').style('color', '#ff0000'); // Red
+    }
+  } else {
+    // Hide boss info if no boss is active
+    bossInfoDiv.style('display', 'none');
   }
   
   // Update cooldowns using the new skill system
