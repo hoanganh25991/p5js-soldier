@@ -26,8 +26,8 @@ export function resetGame(gameState) {
   gameState.player = new Player(gameState);
   gameState.tower = new Tower(gameState);
   
-  // Initialize enemy controller
-  gameState.enemyController = new EnemyController(gameState);
+  // Initialize enemy manager
+  gameState.enemyController = new EnemyManager(gameState);
   gameState.enemyController.initialize();
   
   // Initialize progression system
