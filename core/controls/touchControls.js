@@ -24,6 +24,12 @@ export function createVirtualTouchKeys() {
   virtualTouchKeys.style('flex-direction', 'column');
   virtualTouchKeys.style('gap', '10px');
   virtualTouchKeys.style('z-index', '100');
+  // Prevent text selection and double-tap zoom
+  virtualTouchKeys.style('user-select', 'none');
+  virtualTouchKeys.style('-webkit-user-select', 'none');
+  virtualTouchKeys.style('-moz-user-select', 'none');
+  virtualTouchKeys.style('-ms-user-select', 'none');
+  virtualTouchKeys.style('touch-action', 'manipulation');
 
   // Get all skills and their keys
   const skillEntries = Object.entries(SKILLS).map(([skillName, skillData]) => {
@@ -72,7 +78,30 @@ export function createVirtualTouchKeys() {
       keyButton.style('user-select', 'none');
       keyButton.style('touch-action', 'manipulation');
       
-      // Add touch/click event
+      // Prevent default touch behavior to avoid double-tap zoom
+      const buttonElement = keyButton.elt;
+      buttonElement.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        // Simulate key press by calling the same handler used for keyboard
+        window.gameState && handleKeyPressed(window.gameState, skill.key);
+        
+        // Visual feedback
+        keyButton.style('background', 'rgba(255, 255, 255, 0.7)');
+        keyButton.style('color', 'black');
+        
+        // Reset button style after a short delay
+        setTimeout(() => {
+          keyButton.style('background', 'rgba(0, 0, 0, 0.7)');
+          keyButton.style('color', 'white');
+        }, 100);
+      }, { passive: false });
+      
+      // Also prevent default on touchend to be thorough
+      buttonElement.addEventListener('touchend', function(e) {
+        e.preventDefault();
+      }, { passive: false });
+      
+      // Keep the mouse event for desktop testing
       keyButton.mousePressed(() => {
         // Simulate key press by calling the same handler used for keyboard
         window.gameState && handleKeyPressed(window.gameState, skill.key);
@@ -157,4 +186,51 @@ export function setupTouchControls(gameState) {
     gameState.ui = gameState.ui || {};
     gameState.ui.touchKeys = touchKeys;
   }
+  
+  // Add global touch handlers to prevent unwanted zooming and text selection
+  setupGlobalTouchHandlers();
+}
+
+/**
+ * Set up global touch handlers to prevent unwanted behaviors on mobile
+ */
+function setupGlobalTouchHandlers() {
+  // Get the canvas element
+  const canvas = document.querySelector('canvas');
+  if (canvas) {
+    // Prevent default touch actions on canvas
+    canvas.addEventListener('touchstart', function(e) {
+      // Allow default for game mechanics that need it
+      // but prevent double-tap zoom
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    canvas.addEventListener('touchend', function(e) {
+      // Prevent text selection and other unwanted behaviors
+      if (e.touches.length === 0) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  }
+  
+  // Prevent double-tap zoom on document
+  document.addEventListener('touchstart', function(e) {
+    // Only prevent default if it's not on an interactive element
+    const target = e.target;
+    if (target.tagName !== 'BUTTON' && 
+        target.tagName !== 'INPUT' && 
+        target.tagName !== 'SELECT' && 
+        target.tagName !== 'TEXTAREA') {
+      // Use a timer to detect double taps
+      const now = Date.now();
+      const timeSince = now - (this.lastTouch || 0);
+      if (timeSince < 300) {
+        // Double tap detected
+        e.preventDefault();
+      }
+      this.lastTouch = now;
+    }
+  }, { passive: false });
 }
