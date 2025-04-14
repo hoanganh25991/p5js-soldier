@@ -21,3 +21,11 @@ Game Character
 --------------------------------------------
 - [] add sound when throw GBA
 - [] add sound when character deployed
+
+
+
+review "core/controls" do we have any duplicate
+
+remove complexity
+
+refactor for readable

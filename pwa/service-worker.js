@@ -56,7 +56,7 @@ self.addEventListener("install", function (event) {
         "core/entities/projectile.js",
         "core/entities/tower.js",
         "core/entities/turret.js",
-        "core/entities/wave.js",
+        // Removed problematic ES module: core/entities/wave.js
         
         // Core entity characters
         "core/entities/characters/Character.js",
@@ -70,14 +70,29 @@ self.addEventListener("install", function (event) {
         // Core controls
         "core/controls/keyboardControls.js",
         "core/controls/mouseControls.js",
-        "core/controls/touchControls.js"
+        "core/controls/touchControls.js",
+        
+        // PWA resources
+        "pwa/p5.min.js",
+        "pwa/p5.sound.min.js",
+        "pwa/manifest.json",
+        "favicon.ico"
       ];
 
+      // Cache what we can, but don't fail the install if some files can't be cached
       return Promise.all(
         filesToCache.map((file) =>
-          cache.add(file).catch((error) => {
-            console.error(`Failed to cache ${file}:`, error);
-          })
+          fetch(new Request(file, { cache: 'no-cache' }))
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`Failed to fetch ${file}: ${response.status} ${response.statusText}`);
+              }
+              return cache.put(file, response);
+            })
+            .catch((error) => {
+              console.error(`Failed to cache ${file}:`, error);
+              // Continue with installation even if some files fail to cache
+            })
         )
       );
     })
