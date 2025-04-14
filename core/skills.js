@@ -1,99 +1,106 @@
-// Skills System Module
-// Defines skill enums, configurations, and key mappings
+/**
+ * Skills System Module
+ * 
+ * This module handles all skill-related functionality including:
+ * - Skill definitions and properties
+ * - Skill state management (cooldowns, durations, etc.)
+ * - Skill activation and deactivation
+ * - Key mapping for skills
+ * 
+ * It uses the modular configuration structure from config/skills.js
+ */
 
-import CONFIG from '../../config.js';
+import { SkillConfig } from '../../config.js';
+// Destructure the skill configuration for easier access
+const { SKILL_IDS, SKILL_KEYS, SKILLS: CONFIG_SKILLS } = SkillConfig;
 
-// Skill name enum - maps keys to skill names
-export const SKILL_NAMES = {
-  CLONE: 'clone',
-  TURRET: 'turret',
-  AIRSTRIKE: 'airstrike',
-  LASER: 'laser',
-  GBA: 'game-boy-advanced',
-  GAS_LIGHTER: 'gas-lighter'
-};
+/**
+ * SKILLS object
+ * 
+ * Contains all skill definitions with their properties and key mappings.
+ * This is created by combining the skill definitions from the config
+ * with the key mappings.
+ * 
+ * Structure:
+ * {
+ *   SKILL_ID: {
+ *     name: 'Skill Name',
+ *     description: 'Skill description',
+ *     cooldown: 60, // in frames
+ *     duration: 300, // in frames (if applicable)
+ *     key: 'a' // keyboard key to activate the skill
+ *     // other skill-specific properties
+ *   },
+ *   // other skills...
+ * }
+ */
+export const SKILLS = {};
 
-// Use key mapping from CONFIG
-export const SKILL_KEYS = {
-  [SKILL_NAMES.CLONE]: CONFIG.SKILL_KEYS.CLONE,
-  [SKILL_NAMES.TURRET]: CONFIG.SKILL_KEYS.TURRET,
-  [SKILL_NAMES.AIRSTRIKE]: CONFIG.SKILL_KEYS.AIRSTRIKE,
-  [SKILL_NAMES.LASER]: CONFIG.SKILL_KEYS.LASER,
-  [SKILL_NAMES.GBA]: CONFIG.SKILL_KEYS.GBA,
-  [SKILL_NAMES.GAS_LIGHTER]: CONFIG.SKILL_KEYS.GAS_LIGHTER
-};
+// Populate the SKILLS object with data from the config
+Object.keys(CONFIG_SKILLS).forEach(skillId => {
+  // Find the key for this skill by looking for the skill ID in SKILL_KEYS values
+  let keyName;
+  Object.entries(SKILL_KEYS).forEach(([key, id]) => {
+    if (id === skillId) {
+      keyName = key;
+    }
+  });
+  
+  // Add the skill to the SKILLS object with its key mapping
+  SKILLS[skillId] = {
+    ...CONFIG_SKILLS[skillId],
+    key: keyName
+  };
+});
 
-// Skill definitions with all properties
-export const SKILLS = {
-  [SKILL_NAMES.CLONE]: {
-    name: 'Clone',
-    description: 'Creates a clone that fights alongside you',
-    cooldown: CONFIG.CLONE.COOLDOWN,
-    duration: CONFIG.CLONE.DURATION,
-    key: SKILL_KEYS[SKILL_NAMES.CLONE],
-    maxCount: CONFIG.CLONE.MAX_CLONES
-  },
-  [SKILL_NAMES.TURRET]: {
-    name: 'Turret',
-    description: 'Deploys an auto-targeting turret',
-    cooldown: CONFIG.TURRET.COOLDOWN,
-    duration: CONFIG.TURRET.DURATION,
-    key: SKILL_KEYS[SKILL_NAMES.TURRET]
-  },
-  [SKILL_NAMES.AIRSTRIKE]: {
-    name: 'Airstrike',
-    description: 'Calls in an airstrike that bombs enemies',
-    cooldown: CONFIG.AIRSTRIKE.COOLDOWN,
-    key: SKILL_KEYS[SKILL_NAMES.AIRSTRIKE]
-  },
-  [SKILL_NAMES.LASER]: {
-    name: 'Laser',
-    description: 'Fires a powerful laser beam',
-    cooldown: CONFIG.LASER.COOLDOWN,
-    duration: CONFIG.LASER.DURATION,
-    key: SKILL_KEYS[SKILL_NAMES.LASER]
-  },
-  [SKILL_NAMES.GBA]: {
-    name: 'Game Boy Advanced',
-    description: 'Throws a GBA that summons random game characters',
-    cooldown: CONFIG.GBA.COOLDOWN,
-    duration: CONFIG.GBA.CHARACTER_DURATION,
-    key: SKILL_KEYS[SKILL_NAMES.GBA]
-  },
-  [SKILL_NAMES.GAS_LIGHTER]: {
-    name: 'Gas Lighter',
-    description: 'Throws a Gas Lighter that casts random fire skills',
-    cooldown: CONFIG.GAS_LIGHTER.COOLDOWN,
-    duration: CONFIG.GAS_LIGHTER.FIRE_SKILL_DURATION,
-    key: SKILL_KEYS[SKILL_NAMES.GAS_LIGHTER]
-  }
-};
-
-// Initialize skill state for the game
+/**
+ * Initialize skill state for the game
+ * 
+ * Creates a new skill state object with default values for all skills.
+ * This should be called once at the start of the game.
+ * 
+ * @returns {Object} The initialized skill state object
+ */
 export function initializeSkillState() {
   const skillState = {};
   
   // Initialize each skill with default state
   Object.keys(SKILLS).forEach(skillName => {
     skillState[skillName] = {
-      cooldownRemaining: 0,
-      active: false,
-      activeDuration: 0,
-      endTime: 0,
-      lastUsed: 0,
-      count: 0 // For skills that can have multiple instances
+      cooldownRemaining: 0, // Current cooldown remaining in frames
+      active: false,        // Whether the skill is currently active
+      activeDuration: 0,    // How long the skill has been active
+      endTime: 0,           // Frame count when the skill will end
+      lastUsed: 0,          // Frame count when the skill was last used
+      count: 0              // For skills that can have multiple instances
     };
   });
   
   return skillState;
 }
 
-// Check if a skill is available (not on cooldown)
+/**
+ * Check if a skill is available (not on cooldown)
+ * 
+ * @param {Object} skillState - The current skill state object
+ * @param {string} skillName - The ID of the skill to check
+ * @returns {boolean} True if the skill is available, false otherwise
+ */
 export function isSkillAvailable(skillState, skillName) {
   return skillState[skillName].cooldownRemaining <= 0;
 }
 
-// Activate a skill
+/**
+ * Activate a skill
+ * 
+ * Sets the skill on cooldown, marks it as active if it has a duration,
+ * and increments the count for skills that can have multiple instances.
+ * 
+ * @param {Object} skillState - The current skill state object
+ * @param {string} skillName - The ID of the skill to activate
+ * @param {number} frameCount - The current frame count
+ * @returns {Object} The updated skill state
+ */
 export function activateSkill(skillState, skillName, frameCount) {
   const skill = SKILLS[skillName];
   
@@ -109,15 +116,23 @@ export function activateSkill(skillState, skillName, frameCount) {
   }
   
   // For skills with count (like clones)
-  if (skillName === SKILL_NAMES.CLONE || skillName === SKILL_NAMES.TURRET || 
-      skillName === SKILL_NAMES.GBA || skillName === SKILL_NAMES.GAS_LIGHTER) {
+  if (skillName === SKILL_IDS.CLONE || skillName === SKILL_IDS.TURRET || 
+      skillName === SKILL_IDS.GBA || skillName === SKILL_IDS.GAS_LIGHTER) {
     skillState[skillName].count++;
   }
   
   return skillState;
 }
 
-// Update skill states (call this every frame)
+/**
+ * Update skill states (call this every frame)
+ * 
+ * Decrements cooldowns and checks if active skills should end.
+ * 
+ * @param {Object} skillState - The current skill state object
+ * @param {number} frameCount - The current frame count
+ * @returns {Object} The updated skill state
+ */
 export function updateSkillStates(skillState, frameCount) {
   Object.keys(skillState).forEach(skillName => {
     const state = skillState[skillName];
@@ -137,20 +152,24 @@ export function updateSkillStates(skillState, frameCount) {
   return skillState;
 }
 
-// Get remaining cooldown for UI display
+/**
+ * Get remaining cooldown for UI display
+ * 
+ * @param {Object} skillState - The current skill state object
+ * @param {string} skillName - The ID of the skill to check
+ * @returns {number} The remaining cooldown in frames
+ */
 export function getSkillCooldown(skillState, skillName) {
   return skillState[skillName].cooldownRemaining;
 }
 
-// Get skill by key press
+/**
+ * Get skill ID by key press
+ * 
+ * @param {string} key - The key that was pressed
+ * @returns {string|null} The ID of the skill mapped to the key, or null if no skill is mapped
+ */
 export function getSkillByKey(key) {
   const lowerKey = key.toLowerCase();
-  
-  for (const skillName in SKILL_KEYS) {
-    if (SKILL_KEYS[skillName] === lowerKey) {
-      return skillName;
-    }
-  }
-  
-  return null;
+  return SKILL_KEYS[lowerKey] || null;
 }
