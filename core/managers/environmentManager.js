@@ -24,8 +24,14 @@ export function updateGameEnvironment(gameState) {
   // Draw environment
   drawEnvironment();
   
-  // Show waves
-  gameState.waves.forEach(wave => wave.show());
+  // Show waves - check if wave exists and has a show method before calling it
+  if (gameState.waves && gameState.waves.length > 0) {
+    gameState.waves.forEach(wave => {
+      if (wave && typeof wave.show === 'function') {
+        wave.show();
+      }
+    });
+  }
   
   // Draw tower
   gameState.tower.show();

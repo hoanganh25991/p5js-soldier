@@ -3,10 +3,11 @@
 import CONFIG from '../config.js';
 
 export class Wave {
-  constructor(x, y, z, initialRadius = 0, color = [255, 255, 255, 200]) {
+  constructor(x, y, z, initialRadius = 0, color = [255, 255, 255, 200], gameState = null) {
     this.x = x;
     this.y = y || -50; // Default to ground level if not specified
     this.z = z;
+    this.gameState = gameState; // Store the game state
     
     // Visual properties
     this.color = color;
@@ -55,11 +56,16 @@ export class Wave {
     }
     
     // Apply damage to enemies if this is a damaging wave
-    if (this.damage > 0 && this.damageRadius > 0 && this.gameState && this.gameState.enemies) {
-      for (let enemy of this.gameState.enemies) {
-        const distance = dist(this.x, this.z, enemy.x, enemy.z);
-        if (distance <= this.damageRadius) {
-          enemy.takeDamage(this.damage);
+    if (this.damage > 0 && this.damageRadius > 0 && this.gameState) {
+      // Get enemies from the enemy controller if available
+      const enemies = this.gameState.enemyController ? this.gameState.enemyController.getEnemies() : [];
+      
+      for (let enemy of enemies) {
+        if (enemy && typeof enemy.x !== 'undefined' && typeof enemy.z !== 'undefined') {
+          const distance = dist(this.x, this.z, enemy.x, enemy.z);
+          if (distance <= this.damageRadius && typeof enemy.takeDamage === 'function') {
+            enemy.takeDamage(this.damage);
+          }
         }
       }
     }

@@ -94,7 +94,8 @@ export class Bullet {
     if (distance > CONFIG.WORLD_RADIUS || this.y > 50) {
       // Create wave effect if it's an airstrike bomb hitting the ground
       if (this.source instanceof Airstrike && this.y > 50) {
-        this.gameState.waves.push(new Wave(this.x, this.z, this.gameState));
+        // Correct parameters for Wave constructor: x, y, z, initialRadius, color, gameState
+        this.gameState.waves.push(new Wave(this.x, 50, this.z, 0, [255, 100, 50, 200], this.gameState));
       }
       return true; // Bullet out of range or hit ground
     }
