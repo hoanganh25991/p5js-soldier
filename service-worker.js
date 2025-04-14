@@ -115,15 +115,37 @@ self.addEventListener("fetch", function (event) {
     return;
   }
   
-  // Try to serve from cache first, then fall back to network
+  // Cache-first strategy with background update
   event.respondWith(
-    caches.match(event.request).then(function(response) {
-      // Return cached response if found
-      if (response) {
-        return response;
+    caches.match(event.request).then(function(cachedResponse) {
+      // Return cached response immediately if found
+      if (cachedResponse) {
+        // After returning cached response, fetch from network to update cache
+        const fetchPromise = fetch(event.request).then(function(networkResponse) {
+          // Don't update cache for non-successful responses
+          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+            return networkResponse;
+          }
+          
+          // Clone the response since it can only be consumed once
+          const responseToCache = networkResponse.clone();
+          
+          // Update the cache with the latest version
+          caches.open('static-cache').then(function(cache) {
+            cache.put(event.request, responseToCache);
+          });
+          
+          return networkResponse;
+        }).catch(function(error) {
+          // Silently fail on network errors - we already returned the cached version
+          console.log('Background fetch failed:', error);
+        });
+        
+        // Don't wait for the fetch to complete - return cached version immediately
+        return cachedResponse;
       }
       
-      // Otherwise fetch from network
+      // If no cache match, fetch from network
       return fetch(event.request).then(function(networkResponse) {
         // Don't cache non-successful responses
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
@@ -131,7 +153,7 @@ self.addEventListener("fetch", function (event) {
         }
         
         // Clone the response since it can only be consumed once
-        var responseToCache = networkResponse.clone();
+        const responseToCache = networkResponse.clone();
         
         // Add the new resource to cache for future requests
         caches.open('static-cache').then(function(cache) {
