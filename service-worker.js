@@ -114,48 +114,33 @@ self.addEventListener("fetch", function (event) {
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
-
-  // Handle module requests differently
-  if (event.request.url.endsWith('.js')) {
-    const requestURL = new URL(event.request.url);
-    const filePath = requestURL.pathname;
-    
-    // Check if this is likely an ES module (like wave.js)
-    if (filePath.includes('/entities/') || filePath.includes('/characters/')) {
-      // For ES modules, we'll use a network-first strategy
-      event.respondWith(
-        fetch(event.request)
-          .catch(function() {
-            return caches.match(event.request);
-          })
-      );
-      return;
-    }
-  }
-
-  // For all other requests, use cache-first strategy
+  
+  // Try to serve from cache first, then fall back to network
   event.respondWith(
-    caches.match(event.request)
-      .then(function(response) {
-        return response || fetch(event.request)
-          .then(function(fetchResponse) {
-            // Don't cache opaque responses (CORS issues)
-            if (fetchResponse.type === 'opaque') {
-              return fetchResponse;
-            }
-            
-            // Cache successful responses for future use
-            return caches.open('static-cache')
-              .then(function(cache) {
-                cache.put(event.request, fetchResponse.clone());
-                return fetchResponse;
-              });
-          });
-      })
-      .catch(function(error) {
-        console.error('Fetch error:', error);
-        // You could return a custom offline page here
-      })
+    caches.match(event.request).then(function(response) {
+      // Return cached response if found
+      if (response) {
+        return response;
+      }
+      
+      // Otherwise fetch from network
+      return fetch(event.request).then(function(networkResponse) {
+        // Don't cache non-successful responses
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+          return networkResponse;
+        }
+        
+        // Clone the response since it can only be consumed once
+        var responseToCache = networkResponse.clone();
+        
+        // Add the new resource to cache for future requests
+        caches.open('static-cache').then(function(cache) {
+          cache.put(event.request, responseToCache);
+        });
+        
+        return networkResponse;
+      });
+    })
   );
 });
 
@@ -166,7 +151,6 @@ self.addEventListener("message", function (event) {
 });
 
 // Skip waiting during installation to activate immediately
-// (removed duplicate install listener)
 self.skipWaiting();
 
 self.addEventListener("activate", (event) => {
