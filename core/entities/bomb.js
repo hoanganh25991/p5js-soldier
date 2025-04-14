@@ -318,6 +318,9 @@ export class Bomb {
     // Then apply tumbling rotation for falling effect
     rotateX(this.rotationX);
     
+    // Add a slight tilt to match the aircraft's orientation
+    rotateY(PI * 0.05 * sin(this.gameState.frameCount * 0.1));
+    
     // Main bomb body - elongated in the direction of travel
     fill(40, 40, 40);
     push();

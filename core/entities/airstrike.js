@@ -71,11 +71,21 @@ export class Airstrike {
       const perpX = -this.directionZ; // Perpendicular to direction
       const perpZ = this.directionX;  // Perpendicular to direction
       
+      // Calculate adjusted positions for the engines based on the new rotation angle
+      // Apply a rotation matrix to adjust the perpendicular vector
+      // For a rotation of PI*0.35 (63 degrees)
+      const cos63 = Math.cos(PI*0.35);
+      const sin63 = Math.sin(PI*0.35);
+      
+      // Rotate the perpendicular vector
+      const adjustedPerpX = perpX * cos63 - this.directionX * sin63;
+      const adjustedPerpZ = perpZ * cos63 - this.directionZ * sin63;
+      
       // Left engine exhaust - positioned to the left of the aircraft
       particleManager.createParticle(
-        this.x + perpX * 30, 
+        this.x + adjustedPerpX * 30, 
         this.y + 5, 
-        this.z + perpZ * 30,
+        this.z + adjustedPerpZ * 30,
         'SMOKE',
         {
           vx: exhaustDirX * this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
@@ -90,9 +100,9 @@ export class Airstrike {
       
       // Right engine exhaust - positioned to the right of the aircraft
       particleManager.createParticle(
-        this.x - perpX * 30, 
+        this.x - adjustedPerpX * 30, 
         this.y + 5, 
-        this.z - perpZ * 30,
+        this.z - adjustedPerpZ * 30,
         'SMOKE',
         {
           vx: exhaustDirX * this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
@@ -163,9 +173,10 @@ export class Airstrike {
     // Then apply banking effect
     rotateZ(this.wingTilt);
     
-    // Apply a 90-degree rotation to fix the orientation
+    // Apply a rotation to fix the orientation
     // This makes the aircraft fly with its nose pointing in the direction of travel
-    rotateY(PI/2);
+    // Fine-tuned to PI*0.35 (63 degrees) for optimal alignment
+    rotateY(PI*0.35);
     
     // Main body - fuselage
     fill(150, 150, 180);
