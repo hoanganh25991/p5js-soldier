@@ -1,0 +1,16 @@
+{
+    "name": "Bul Solider",
+    "short_name": "Solider",
+    "description": "A simple solider game made in p5.js",
+    "start_url": "index.html",
+    "display": "fullscreen",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+      {
+        "src": "pwa/logo.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }

@@ -13,6 +13,24 @@ export function createVirtualTouchKeys() {
   if (!isTouchDevice()) {
     return null;
   }
+  
+  // Add CSS for larger touch areas once
+  if (!document.getElementById('touch-area-style')) {
+    const touchAreaStyle = document.createElement('style');
+    touchAreaStyle.id = 'touch-area-style';
+    touchAreaStyle.textContent = `
+      .touch-area::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        right: -50%;
+        bottom: -50%;
+        z-index: 1;
+      }
+    `;
+    document.head.appendChild(touchAreaStyle);
+  }
 
   // Create main container for virtual touch keys
   const virtualTouchKeys = createElement('div');
@@ -114,13 +132,13 @@ export function createVirtualTouchKeys() {
       // Add the button to the wrapper
       buttonWrapper.child(keyButton);
       
-      // Handle touch events on the wrapper instead of the button
-      const wrapperElement = buttonWrapper.elt;
-      wrapperElement.addEventListener('touchstart', function(e) {
+      // Handle touch events directly on the button
+      const buttonElement = keyButton.elt;
+      buttonElement.addEventListener('touchstart', function(e) {
         e.preventDefault();
         
         // Check if the skill is on cooldown
-        if (buttonWrapper.attribute('data-disabled') === 'true') {
+        if (keyButton.attribute('disabled')) {
           return; // Don't process touch events when disabled
         }
         
@@ -139,14 +157,14 @@ export function createVirtualTouchKeys() {
       }, { passive: false });
       
       // Also prevent default on touchend to be thorough
-      wrapperElement.addEventListener('touchend', function(e) {
+      buttonElement.addEventListener('touchend', function(e) {
         e.preventDefault();
       }, { passive: false });
       
       // Keep the mouse event for desktop testing
-      buttonWrapper.mousePressed(() => {
+      keyButton.mousePressed(() => {
         // Check if the skill is on cooldown
-        if (buttonWrapper.attribute('data-disabled') === 'true') {
+        if (keyButton.attribute('disabled')) {
           return; // Don't process mouse events when disabled
         }
         
@@ -203,18 +221,6 @@ export function updateVirtualTouchKeys(gameState) {
         button.style('opacity', '1');
         button.removeAttribute('disabled');
         button.html(button.attribute('data-skill') ? SKILLS[button.attribute('data-skill')].key.toUpperCase() : '');
-      }
-      
-      // Also update the wrapper's touch behavior based on cooldown
-      const wrapper = button.parent();
-      if (wrapper && wrapper.elt && wrapper.elt.classList.contains('touch-key-wrapper')) {
-        if (cooldown > 0) {
-          // Disable touch events when on cooldown
-          wrapper.attribute('data-disabled', 'true');
-        } else {
-          // Enable touch events when available
-          wrapper.removeAttribute('data-disabled');
-        }
       }
     }
   });
@@ -319,12 +325,7 @@ function updateTouchControlsForOrientation(gameState) {
       row.style('gap', sizeConfig.gap);
     });
     
-    // Update all wrappers
-    selectAll('.touch-key-wrapper').forEach(wrapper => {
-      // Use the same dimensions as the button to avoid adding extra padding
-      wrapper.style('width', sizeConfig.width);
-      wrapper.style('height', sizeConfig.height);
-    });
+    // No need to update wrappers separately anymore
     
     // Update all buttons
     selectAll('.touch-key').forEach(button => {
