@@ -45,6 +45,7 @@ function preload() {
 // p5.js setup function - called once at start
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
+  pixelDensity(1); // Set pixel density to 1
   gameState.camera = createCamera();
   
   // Set target frame rate to 60 FPS

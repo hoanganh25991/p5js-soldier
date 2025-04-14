@@ -101,8 +101,15 @@ export function createVirtualTouchKeys() {
       keyButton.style('align-items', 'center');
       keyButton.style('justify-content', 'center');
       keyButton.style('user-select', 'none');
-      keyButton.style('position', 'absolute');
+      keyButton.style('position', 'relative');
       keyButton.style('touch-action', 'manipulation');
+      
+      // Add a pseudo-element for larger touch area without affecting layout
+      const buttonElement = keyButton.elt;
+      buttonElement.style.position = 'relative';
+      
+      // Add the touch-area class to the button
+      keyButton.class('touch-key touch-area');
       
       // Add the button to the wrapper
       buttonWrapper.child(keyButton);
@@ -314,12 +321,9 @@ function updateTouchControlsForOrientation(gameState) {
     
     // Update all wrappers
     selectAll('.touch-key-wrapper').forEach(wrapper => {
-      // Calculate larger touch area dimensions (50% larger than visible button)
-      const touchWidth = parseInt(sizeConfig.width) * 1.5 + 'px';
-      const touchHeight = parseInt(sizeConfig.height) * 1.5 + 'px';
-      
-      wrapper.style('width', touchWidth);
-      wrapper.style('height', touchHeight);
+      // Use the same dimensions as the button to avoid adding extra padding
+      wrapper.style('width', sizeConfig.width);
+      wrapper.style('height', sizeConfig.height);
     });
     
     // Update all buttons
