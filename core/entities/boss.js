@@ -4,6 +4,7 @@
 import CONFIG from '../config.js';
 import { Enemy } from './enemy.js';
 import { HealthBar } from './healthBar.js';
+import { Wave } from './wave.js';
 
 export class Boss extends Enemy {
   constructor(x, z, bossType, gameState) {
@@ -310,17 +311,11 @@ export class Boss extends Enemy {
         }
       }
       
-      // Create visual shockwave effect
-      this.gameState.waves.push({
-        x: this.x,
-        y: this.y,
-        z: this.z,
-        radius: 0,
-        maxRadius: radius,
-        color: color(255, 100, 0, 150),
-        life: CONFIG.BOSS.ATTACKS.GROUND_SLAM.EFFECT_DURATION,
-        type: 'shockwave'
-      });
+      // Create visual shockwave effect using the Wave class
+      const shockwave = new Wave(this.x, this.y, this.z, 0, [255, 100, 0, 150], this.gameState);
+      shockwave.maxRadius = radius;
+      shockwave.lifespan = CONFIG.BOSS.ATTACKS.GROUND_SLAM.EFFECT_DURATION;
+      this.gameState.waves.push(shockwave);
       
       // Reset scale
       this.targetScale = 1.0;
@@ -412,17 +407,11 @@ export class Boss extends Enemy {
         // Add to game state
         this.gameState.enemies.push(minion);
         
-        // Create summon effect
-        this.gameState.waves.push({
-          x: x,
-          y: 0,
-          z: z,
-          radius: 0,
-          maxRadius: 50,
-          color: color(100, 0, 100, 150),
-          life: 30,
-          type: 'summon'
-        });
+        // Create summon effect using the Wave class
+        const summonWave = new Wave(x, 0, z, 0, [100, 0, 100, 150], this.gameState);
+        summonWave.maxRadius = 50;
+        summonWave.lifespan = 30;
+        this.gameState.waves.push(summonWave);
       }
       
       // Reset scale

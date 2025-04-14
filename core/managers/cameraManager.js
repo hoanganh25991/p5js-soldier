@@ -80,7 +80,7 @@ export function initializeCamera(gameState) {
   gameState.cameraRotationX = -0.3 + gameState.dynamicCameraParams.cameraAngleAdjustment; // Adjust angle based on screen orientation
   gameState.cameraRotationY = 0;
   gameState.baseCameraDistance = 500; // Further increased base distance for wider view
-  gameState.zoomLevel = 3.5; // Increased zoom level to see more enemies on the ground
+  gameState.zoomLevel = 1.5; // More zoomed in by default (smaller value = more zoomed in)
   
   // Set field of view with dynamic adjustment based on screen orientation
   gameState.fieldOfView = (PI / 3) * gameState.dynamicCameraParams.fieldOfViewAdjustment; // Adjust FOV based on screen orientation

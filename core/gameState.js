@@ -27,7 +27,7 @@ const gameState = {
   skills: initializeSkillState(),
   
   // Camera control variables
-  zoomLevel: 1.0,
+  zoomLevel: 1.5, // More zoomed in by default (smaller value = more zoomed in)
   isDragging: false,
   lastMouseX: 0,
   lastMouseY: 0,
@@ -100,7 +100,7 @@ function resetGameState() {
   gameState.previousState = null;
   gameState.towerHeight = CONFIG.TOWER_HEIGHT;
   gameState.playerHealth = CONFIG.PLAYER_HEALTH;
-  gameState.zoomLevel = 1.0;
+  gameState.zoomLevel = 1.5; // More zoomed in by default (smaller value = more zoomed in)
   gameState.isDragging = false;
   gameState.enemiesKilled = 0;
   

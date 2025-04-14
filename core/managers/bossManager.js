@@ -3,6 +3,7 @@
 
 import CONFIG from '../config.js';
 import { Boss } from '../entities/boss.js';
+import { Wave } from '../entities/wave.js';
 
 // Update boss spawn timer and spawn bosses when needed
 export function updateBossSpawning(gameState) {
@@ -46,17 +47,11 @@ function spawnBoss(gameState) {
 
 // Create visual effects for boss spawn
 function createBossSpawnEffect(boss, gameState) {
-  // Create a shockwave effect
-  gameState.waves.push({
-    x: boss.x,
-    y: boss.y,
-    z: boss.z,
-    radius: 0,
-    maxRadius: 300,
-    color: color(255, 0, 0, 150),
-    life: 60,
-    type: 'bossSpawn'
-  });
+  // Create a shockwave effect using the Wave class
+  const shockwave = new Wave(boss.x, boss.y, boss.z, 0, [255, 0, 0, 150], gameState);
+  shockwave.maxRadius = 300;
+  shockwave.lifespan = 60;
+  gameState.waves.push(shockwave);
   
   // Create particles
   for (let i = 0; i < 30; i++) {
@@ -68,25 +63,14 @@ function createBossSpawnEffect(boss, gameState) {
     const y = boss.y + random(-50, 50);
     const z = boss.z + sin(angle) * distance;
     
-    // Create particle
-    const particle = {
-      x: x,
-      y: y,
-      z: z,
-      vx: cos(angle) * random(1, 3),
-      vy: random(-1, 1),
-      vz: sin(angle) * random(1, 3),
-      size: random(5, 15),
-      color: color(255, random(0, 100), 0, random(150, 255)),
-      life: random(30, 60),
-      decay: random(0.5, 1.0)
-    };
+    // Create particle using the Wave class
+    const particleColor = [255, random(0, 100), 0, random(150, 255)];
+    const particle = new Wave(x, y, z, random(5, 15), particleColor, gameState);
+    particle.lifespan = random(30, 60);
+    particle.growthRate = random(0.5, 1.0);
     
     // Add particle to game state
-    gameState.waves.push({
-      ...particle,
-      type: 'particle'
-    });
+    gameState.waves.push(particle);
   }
 }
 

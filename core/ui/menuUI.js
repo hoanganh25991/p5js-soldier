@@ -68,8 +68,8 @@ export function createMenuUI() {
     <p>↑ / ↓ Buttons - Rotate Camera Up/Down</p>
   `;
   
-  instructions.html(instructionsText);
-  menuContainer.child(instructions);
+  // instructions.html(instructionsText);
+  // menuContainer.child(instructions);
   
   return menuContainer;
 }
