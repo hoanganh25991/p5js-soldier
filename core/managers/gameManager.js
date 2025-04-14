@@ -5,7 +5,7 @@ import CONFIG from '../../config.js';
 import { resetGameState } from '../gameState.js';
 import { Player } from '../entities/player.js';
 import { Tower } from '../entities/tower.js';
-import { EnemyController } from '../controllers/enemyController.js';
+import { EnemyManager } from './enemyManager.js';
 import { initializeUpgrades, applyUpgrades, awardXP, incrementCombo } from '../progression.js';
 import { updateStatusBoard, showGameOverScreen } from '../ui/index.js';
 
