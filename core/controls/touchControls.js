@@ -63,6 +63,24 @@ export function createVirtualTouchKeys() {
     
     // Create buttons for this row
     rowSkills.forEach(skill => {
+      // Create a wrapper div with larger touch area
+      const buttonWrapper = createElement('div');
+      buttonWrapper.class('touch-key-wrapper');
+      
+      // Calculate larger touch area dimensions (50% larger than visible button)
+      const touchWidth = parseInt(sizeConfig.width) * 1.5 + 'px';
+      const touchHeight = parseInt(sizeConfig.height) * 1.5 + 'px';
+      
+      // Style the wrapper to have a larger touch area but be visually transparent
+      buttonWrapper.style('width', touchWidth);
+      buttonWrapper.style('height', touchHeight);
+      buttonWrapper.style('position', 'relative');
+      buttonWrapper.style('display', 'flex');
+      buttonWrapper.style('align-items', 'center');
+      buttonWrapper.style('justify-content', 'center');
+      buttonWrapper.style('touch-action', 'manipulation');
+      
+      // Create the visible button inside the wrapper
       const keyButton = createElement('button', skill.key);
       keyButton.class('touch-key');
       keyButton.attribute('data-skill', skill.skillName);
@@ -82,16 +100,26 @@ export function createVirtualTouchKeys() {
       keyButton.style('align-items', 'center');
       keyButton.style('justify-content', 'center');
       keyButton.style('user-select', 'none');
+      keyButton.style('position', 'absolute');
       keyButton.style('touch-action', 'manipulation');
       
-      // Prevent default touch behavior to avoid double-tap zoom
-      const buttonElement = keyButton.elt;
-      buttonElement.addEventListener('touchstart', function(e) {
+      // Add the button to the wrapper
+      buttonWrapper.child(keyButton);
+      
+      // Handle touch events on the wrapper instead of the button
+      const wrapperElement = buttonWrapper.elt;
+      wrapperElement.addEventListener('touchstart', function(e) {
         e.preventDefault();
+        
+        // Check if the skill is on cooldown
+        if (buttonWrapper.attribute('data-disabled') === 'true') {
+          return; // Don't process touch events when disabled
+        }
+        
         // Simulate key press by calling the same handler used for keyboard
         window.gameState && handleKeyPressed(window.gameState, skill.key);
         
-        // Visual feedback
+        // Visual feedback on the button
         keyButton.style('background', 'rgba(255, 255, 255, 0.7)');
         keyButton.style('color', 'black');
         
@@ -103,12 +131,17 @@ export function createVirtualTouchKeys() {
       }, { passive: false });
       
       // Also prevent default on touchend to be thorough
-      buttonElement.addEventListener('touchend', function(e) {
+      wrapperElement.addEventListener('touchend', function(e) {
         e.preventDefault();
       }, { passive: false });
       
       // Keep the mouse event for desktop testing
-      keyButton.mousePressed(() => {
+      buttonWrapper.mousePressed(() => {
+        // Check if the skill is on cooldown
+        if (buttonWrapper.attribute('data-disabled') === 'true') {
+          return; // Don't process mouse events when disabled
+        }
+        
         // Simulate key press by calling the same handler used for keyboard
         window.gameState && handleKeyPressed(window.gameState, skill.key);
         
@@ -123,7 +156,7 @@ export function createVirtualTouchKeys() {
         }, 100);
       });
       
-      row.child(keyButton);
+      row.child(buttonWrapper);
     });
     
     virtualTouchKeys.child(row);
@@ -162,6 +195,18 @@ export function updateVirtualTouchKeys(gameState) {
         button.style('opacity', '1');
         button.removeAttribute('disabled');
         button.html(button.attribute('data-skill') ? SKILLS[button.attribute('data-skill')].key.toUpperCase() : '');
+      }
+      
+      // Also update the wrapper's touch behavior based on cooldown
+      const wrapper = button.parent();
+      if (wrapper && wrapper.elt && wrapper.elt.classList.contains('touch-key-wrapper')) {
+        if (cooldown > 0) {
+          // Disable touch events when on cooldown
+          wrapper.attribute('data-disabled', 'true');
+        } else {
+          // Enable touch events when available
+          wrapper.removeAttribute('data-disabled');
+        }
       }
     }
   });
@@ -264,6 +309,16 @@ function updateTouchControlsForOrientation(gameState) {
     // Update all rows
     selectAll('.touch-key-row').forEach(row => {
       row.style('gap', sizeConfig.gap);
+    });
+    
+    // Update all wrappers
+    selectAll('.touch-key-wrapper').forEach(wrapper => {
+      // Calculate larger touch area dimensions (50% larger than visible button)
+      const touchWidth = parseInt(sizeConfig.width) * 1.5 + 'px';
+      const touchHeight = parseInt(sizeConfig.height) * 1.5 + 'px';
+      
+      wrapper.style('width', touchWidth);
+      wrapper.style('height', touchHeight);
     });
     
     // Update all buttons

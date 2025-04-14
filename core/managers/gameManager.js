@@ -7,7 +7,8 @@ import { Player } from '../entities/player.js';
 import { Tower } from '../entities/tower.js';
 import { EnemyManager } from './enemyManager.js';
 import { initializeUpgrades, applyUpgrades, awardXP, incrementCombo } from '../progression.js';
-import { updateStatusBoard, showGameOverScreen } from '../ui/index.js';
+import { updateStatusBoard } from '../ui/statusBoard.js';
+import { showGameOverScreen } from '../ui/gameOverScreen.js';
 
 /**
  * Reset game to initial state
