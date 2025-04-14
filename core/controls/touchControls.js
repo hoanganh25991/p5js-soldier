@@ -47,11 +47,12 @@ export function createVirtualTouchKeys() {
   virtualTouchKeys.attribute('data-orientation', isLandscape() ? 'landscape' : 'portrait');
 
   // Get all skills and their keys
-  const skillEntries = Object.entries(SKILLS).map(([skillName, skillData]) => {
+  const skillEntries = Object.entries(SKILLS).map(([skillName, skillData], index) => {
     return {
       key: skillData.key.toUpperCase(),
       name: skillData.name,
-      skillName
+      skillName,
+      index // Store the index for color generation
     };
   });
 
@@ -92,13 +93,16 @@ export function createVirtualTouchKeys() {
       keyButton.attribute('data-skill', skill.skillName);
       keyButton.attribute('title', skill.name);
       
+      // Get dynamic color based on skill index
+      const skillColor = generateSkillColor(skill.index);
+      
       // Style the button
       keyButton.style('width', sizeConfig.width);
       keyButton.style('height', sizeConfig.height);
       keyButton.style('border-radius', '50%');
-      keyButton.style('background', 'rgba(0, 0, 0, 0.7)');
+      keyButton.style('background', skillColor.bg);
       keyButton.style('color', 'white');
-      keyButton.style('border', '2px solid white');
+      keyButton.style('border', `2px solid ${skillColor.border}`);
       keyButton.style('font-size', sizeConfig.fontSize);
       keyButton.style('font-weight', 'bold');
       keyButton.style('cursor', 'pointer');
@@ -125,13 +129,18 @@ export function createVirtualTouchKeys() {
         // Activate skill directly using the common interface
         window.gameState && activateSkillByName(window.gameState, skill.skillName);
         
-        // Visual feedback
-        keyButton.style('background', 'rgba(255, 255, 255, 0.7)');
+        // Visual feedback - brighten the button using dynamic colors
+        const highlightColor = generateSkillColor(skill.index, true);
+        
+        keyButton.style('background', highlightColor.bg);
         keyButton.style('color', 'black');
         
         // Reset button style after a short delay
         setTimeout(() => {
-          keyButton.style('background', 'rgba(0, 0, 0, 0.7)');
+          // Get the original color back from the dynamic color generator
+          const originalColor = generateSkillColor(skill.index);
+          
+          keyButton.style('background', originalColor.bg);
           keyButton.style('color', 'white');
         }, 100);
       }, { passive: false });
@@ -147,12 +156,18 @@ export function createVirtualTouchKeys() {
         
         window.gameState && activateSkillByName(window.gameState, skill.skillName);
         
-        // Visual feedback
-        keyButton.style('background', 'rgba(255, 255, 255, 0.7)');
+        // Visual feedback - brighten the button using dynamic colors
+        const highlightColor = generateSkillColor(skill.index, true);
+        
+        keyButton.style('background', highlightColor.bg);
         keyButton.style('color', 'black');
         
+        // Reset button style after a short delay
         setTimeout(() => {
-          keyButton.style('background', 'rgba(0, 0, 0, 0.7)');
+          // Get the original color back from the dynamic color generator
+          const originalColor = generateSkillColor(skill.index);
+          
+          keyButton.style('background', originalColor.bg);
           keyButton.style('color', 'white');
         }, 100);
       });
@@ -213,6 +228,48 @@ function getButtonSizeForOrientation() {
     gap: '8px',
     rowGap: '8px'
   };
+}
+
+/**
+ * Generate a color for a skill based on its index
+ * @param {number} index - The index of the skill
+ * @param {boolean} isHighlight - Whether to generate a highlight color
+ * @returns {Object} Object containing background and border colors
+ */
+function generateSkillColor(index, isHighlight = false) {
+  // Define a set of vibrant colors that are visually distinct
+  const baseColors = [
+    { bg: [0, 100, 255], border: '#00a0ff' },     // Blue
+    { bg: [255, 100, 0], border: '#ff6400' },     // Orange
+    { bg: [255, 0, 0], border: '#ff0000' },       // Red
+    { bg: [255, 0, 255], border: '#ff00ff' },     // Magenta
+    { bg: [0, 255, 0], border: '#00ff00' },       // Green
+    { bg: [255, 255, 0], border: '#ffff00' },     // Yellow
+    { bg: [0, 255, 255], border: '#00ffff' },     // Cyan
+    { bg: [128, 0, 255], border: '#8000ff' },     // Purple
+    { bg: [255, 128, 0], border: '#ff8000' },     // Amber
+    { bg: [0, 128, 255], border: '#0080ff' },     // Sky Blue
+    { bg: [255, 0, 128], border: '#ff0080' },     // Pink
+    { bg: [128, 255, 0], border: '#80ff00' }      // Lime
+  ];
+  
+  // Get the color based on index, wrapping around if needed
+  const colorIndex = index % baseColors.length;
+  const color = baseColors[colorIndex];
+  
+  if (isHighlight) {
+    // Create a brighter version for highlight
+    return {
+      bg: `rgba(${color.bg[0] + 100}, ${color.bg[1] + 80}, ${color.bg[2] + 50}, 0.9)`,
+      border: color.border
+    };
+  } else {
+    // Return the normal color with transparency
+    return {
+      bg: `rgba(${color.bg[0]}, ${color.bg[1]}, ${color.bg[2]}, 0.7)`,
+      border: color.border
+    };
+  }
 }
 
 /**

@@ -5,17 +5,23 @@ import CONFIG from '../../config.js';
 import { Wave } from './wave.js';
 
 export class Bomb {
-  constructor(x, y, z, source, gameState) {
+  constructor(x, y, z, source, gameState, dirX, dirZ) {
     this.gameState = gameState;
     this.x = x;
     this.y = y;
     this.z = z;
     this.source = source;
     
-    // Physics properties
-    this.vx = source.speed * 0.5; // Keep some forward momentum from the plane
+    // Physics properties - use direction if provided, otherwise use source speed
+    if (dirX !== undefined && dirZ !== undefined) {
+      this.vx = source.speed * 0.5 * dirX; // Keep some forward momentum from the plane
+      this.vz = source.speed * 0.5 * dirZ; // Add sideways momentum based on plane direction
+    } else {
+      this.vx = source.speed * 0.5; // Default to moving right if no direction provided
+      this.vz = 0;
+    }
+    
     this.vy = 15; // Fall speed
-    this.vz = 0;
     this.rotationX = 0;
     this.rotationZ = 0;
     this.rotationSpeed = 0.02;
@@ -45,23 +51,36 @@ export class Bomb {
     this.y += this.vy;
     this.z += this.vz;
     
-    // Add rotation for realistic falling motion
+    // Calculate rotation based on velocity direction
+    // This makes the bomb point in the direction it's moving
+    if (this.vx !== 0 || this.vz !== 0) {
+      // Calculate angle based on horizontal velocity
+      const horizontalAngle = atan2(this.vz, this.vx);
+      
+      // Gradually rotate towards the target angle
+      const targetRotationZ = -horizontalAngle; // Negative because of coordinate system
+      
+      // Smoothly interpolate rotation
+      this.rotationZ = lerp(this.rotationZ, targetRotationZ, 0.1);
+    }
+    
+    // Add tumbling rotation for realistic falling motion
     this.rotationX += this.rotationSpeed;
-    this.rotationZ += this.rotationSpeed * 0.7;
     
     // Add trail particles using particle manager
     this.trailTimer++;
     if (this.particleManager && this.trailTimer >= this.trailInterval) {
       this.trailTimer = 0;
       
-      // Create smoke trail
+      // Create smoke trail that follows behind the bomb
       this.particleManager.createParticle(
         this.x, this.y, this.z,
         'SMOKE',
         {
+          // Particles move opposite to the bomb's direction but slower
           vx: -this.vx * 0.2 + (Math.random() - 0.5) * 0.5,
           vy: -this.vy * 0.2 + (Math.random() - 0.5) * 0.5,
-          vz: (Math.random() - 0.5) * 0.5,
+          vz: -this.vz * 0.2 + (Math.random() - 0.5) * 0.5,
           size: this.size / 8 + Math.random() * 2,
           color: [200, 200, 200],
           alpha: 150,

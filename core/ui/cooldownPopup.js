@@ -28,7 +28,7 @@ const FADE_TRANSITION_MS = 300;
  * @param {string} skillName - Name of the skill
  * @param {number} cooldown - Cooldown time in frames
  */
-export function showCooldownMessage(skillName, cooldown) {
+export function showMessage(skillName, cooldown) {
   const text = cooldown === 0 
     ? skillName 
     : `${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`;

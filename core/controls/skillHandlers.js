@@ -55,7 +55,39 @@ export function handleTurretSkill(gameState) {
  * @param {Object} gameState - The current game state
  */
 export function handleAirstrikeSkill(gameState) {
-  gameState.airstrikes.push(new Airstrike(gameState));
+  // Find enemies to target
+  const enemies = gameState.enemyController ? gameState.enemyController.getEnemies() : [];
+  
+  // If no enemies, use default behavior
+  if (enemies.length === 0) {
+    gameState.airstrikes.push(new Airstrike(gameState));
+    return;
+  }
+  
+  // Choose a random enemy to target
+  const targetEnemy = enemies[Math.floor(random(enemies.length))];
+  
+  // Calculate a random starting position on the edge of the screen
+  // We'll use a random angle and place the airstrike at the edge
+  const startAngle = random(TWO_PI);
+  const distanceFromCenter = 1000; // Far enough to be off-screen
+  
+  // Calculate start position
+  const startX = cos(startAngle) * distanceFromCenter;
+  const startZ = sin(startAngle) * distanceFromCenter;
+  
+  // Calculate direction vector towards the enemy
+  const directionX = targetEnemy.x - startX;
+  const directionZ = targetEnemy.z - startZ;
+  
+  // Normalize the direction vector
+  const length = sqrt(directionX * directionX + directionZ * directionZ);
+  const normalizedDirX = directionX / length;
+  const normalizedDirZ = directionZ / length;
+  
+  // Create the airstrike with the calculated parameters
+  const airstrike = new Airstrike(gameState, startX, startZ, normalizedDirX, normalizedDirZ);
+  gameState.airstrikes.push(airstrike);
 }
 
 /**

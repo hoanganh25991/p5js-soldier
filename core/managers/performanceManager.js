@@ -277,20 +277,27 @@ class PerformanceManager {
   
   // Check if an entity should be rendered based on distance
   shouldRender(x, z) {
-    // Simple distance-based culling
-    const distanceSquared = x * x + z * z;
-    return distanceSquared <= this.drawDistance * this.drawDistance;
+    // Temporarily disable distance-based culling to ensure all enemies are visible
+    return true;
+    
+    // Original distance-based culling (commented out for now)
+    // const distanceSquared = x * x + z * z;
+    // return distanceSquared <= this.drawDistance * this.drawDistance;
   }
   
   // Get the appropriate level of detail for an entity based on distance
   getEntityLOD(x, z) {
-    const distance = Math.sqrt(x * x + z * z);
-    const normalizedDistance = distance / this.drawDistance;
+    // Temporarily always return highest detail level (0) to ensure all enemies are visible
+    return 0;
     
-    // Return LOD level (0 = highest detail, 2 = lowest detail)
-    if (normalizedDistance < 0.3) return 0;
-    if (normalizedDistance < 0.7) return 1;
-    return 2;
+    // Original LOD calculation (commented out for now)
+    // const distance = Math.sqrt(x * x + z * z);
+    // const normalizedDistance = distance / this.drawDistance;
+    // 
+    // // Return LOD level (0 = highest detail, 2 = lowest detail)
+    // if (normalizedDistance < 0.3) return 0;
+    // if (normalizedDistance < 0.7) return 1;
+    // return 2;
   }
   
   // Display performance metrics (for debug)

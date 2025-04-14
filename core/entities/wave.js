@@ -5,7 +5,7 @@ import CONFIG from '../../config.js';
 export class Wave {
   constructor(x, y, z, initialRadius = 0, color = [255, 255, 255, 200], gameState = null) {
     this.x = x;
-    this.y = y || -50; // Default to ground level if not specified
+    this.y = y || 0; // Default to ground level (0) if not specified
     this.z = z;
     this.gameState = gameState; // Store the game state
     
@@ -35,7 +35,7 @@ export class Wave {
     ];
     
     // Store initial Y position for debugging
-    this.initialY = y || -50;
+    this.initialY = y || 0;
   }
 
   update() {
@@ -77,7 +77,7 @@ export class Wave {
   show() {
     // Never skip rendering for waves with height or rise speed
     // Only skip flat waves at ground level with no movement for optimization
-    if (this.y >= -51 && this.y <= -49 && this.riseSpeed <= 0 && this.height <= 5) {
+    if (this.y >= -1 && this.y <= 1 && this.riseSpeed <= 0 && this.height <= 5) {
       // Don't render flat waves at ground level with no rise
       // But always render waves with height or rise speed
       return;

@@ -70,7 +70,7 @@ export const LASER = {
 export const GBA = {
   COOLDOWN: 120,
   THROW_SPEED: 8, // Slower speed to make the throw more visible
-  THROW_DISTANCE: 150 * 5, // Maximum throw distance
+  THROW_DISTANCE: 150 * 10, // Maximum throw distance
   CHARACTER_DURATION: 200 * 60, // 20 seconds (increased from 10)
   CHARACTER_HEALTH: 300 * 10, // Increased from 150
   CHARACTER_TYPES: {
@@ -124,7 +124,7 @@ export const GBA = {
 export const GAS_LIGHTER = {
   COOLDOWN: 120,
   THROW_SPEED: 10, // Slightly faster than GBA
-  THROW_DISTANCE: 150 * 5, // Maximum throw distance
+  THROW_DISTANCE: 150 * 10, // Maximum throw distance
   FIRE_SKILL_DURATION: 60 * 2, // 2 minutes duration
   FIRE_SKILL_TYPES: {
     FIREBALL: {

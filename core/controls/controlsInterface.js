@@ -57,7 +57,7 @@ export function toggleMute(gameState) {
   gameState.soundManager.setMasterVolume(gameState.masterVolume);
   
   // Show message
-  window.showCooldownMessage(gameState.isMuted ? "Sound Muted" : "Sound Unmuted", 0);
+  window.showMessage(gameState.isMuted ? "Sound Muted" : "Sound Unmuted", 0);
   
   return true;
 }
@@ -110,8 +110,8 @@ export function activateSkillByName(gameState, skillName) {
     return true;
   } else {
     // Show cooldown message
-    const cooldown = gameState.skills[skillName].cooldownRemaining;
-    window.showCooldownMessage(SKILLS[skillName].name, cooldown);
+    // const cooldown = gameState.skills[skillName].cooldownRemaining;
+    // window.showMessage(SKILLS[skillName].name, cooldown);
     return false;
   }
 }

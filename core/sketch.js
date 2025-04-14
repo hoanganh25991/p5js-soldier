@@ -12,7 +12,7 @@ import { createStatusBoard, updateStatusBoard } from './ui/statusBoard.js';
 import { createMenuUI } from './ui/menuUI.js';
 import { createPauseMenu } from './ui/pauseMenu.js';
 import { createGameOverScreen, showGameOverScreen } from './ui/gameOverScreen.js';
-import { showCooldownMessage } from './ui/cooldownPopup.js';
+import { showMessage } from './ui/cooldownPopup.js';
 import { initializeUpgrades, applyUpgrades, awardXP, checkLevelUp, updateCombo, incrementCombo } from './progression.js';
 import { updateSkillStates } from './skills.js';
 
@@ -94,8 +94,8 @@ function setup() {
   // Make gameState available globally for the virtual keyboard
   window.gameState = gameState;
   
-  // Make showCooldownMessage available globally for other modules
-  window.showCooldownMessage = showCooldownMessage;
+  // Make showMessage available globally for other modules
+  window.showMessage = showMessage;
   
   // Initialize camera
   initializeCamera(gameState);

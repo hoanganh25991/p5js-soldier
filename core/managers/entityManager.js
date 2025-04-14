@@ -1,6 +1,7 @@
 // Entity Manager
 // Handles updating and rendering all game entities
 
+import CONFIG from '../../config.js';
 import { spawnRandomPowerUp } from '../entities/powerUp.js';
 import { updateBossSpawning, updateBosses, drawBosses, checkBulletBossCollisions } from './bossManager.js';
 import { Wave } from '../entities/wave.js';
@@ -82,12 +83,73 @@ function updatePowerUpSpawnTimer(gameState) {
  * @param {Object} gameState - The global game state
  */
 function updateBullets(gameState) {
-  for (let i = gameState.bullets.length - 1; i >= 0; i--) {
-    if (gameState.bullets[i].update()) { // Returns true if bullet should be removed
+  // Get performance manager
+  const performanceManager = gameState.performanceManager;
+  
+  // Check if we can use GPU batching
+  const useGPUBatching = gameState.gpuManager && 
+                         gameState.gpuManager.isInitialized && 
+                         CONFIG.PERFORMANCE && 
+                         CONFIG.PERFORMANCE.BATCH_RENDERING;
+  
+  // Group bullets by type for batch rendering
+  const bulletsByType = {};
+  
+  // Limit the number of bullets to process based on performance settings
+  const maxBulletsToProcess = performanceManager && performanceManager.isMobile ? 
+                             Math.min(100, gameState.bullets.length) : 
+                             gameState.bullets.length;
+  
+  // Process bullets from newest to oldest (most recent bullets are more important)
+  const startIndex = Math.max(0, gameState.bullets.length - maxBulletsToProcess);
+  
+  for (let i = gameState.bullets.length - 1; i >= startIndex; i--) {
+    const bullet = gameState.bullets[i];
+    
+    // Skip bullets that are too far away
+    if (performanceManager && !performanceManager.shouldRender(bullet.x, bullet.z)) {
+      // For distant bullets, just remove them
+      gameState.bullets.splice(i, 1);
+      continue;
+    }
+    
+    if (bullet.update()) { // Returns true if bullet should be removed
       gameState.bullets.splice(i, 1);
     } else {
-      gameState.bullets[i].show();
+      // Group bullets by type for batch rendering
+      const bulletType = bullet.type || 'default';
+      if (!bulletsByType[bulletType]) {
+        bulletsByType[bulletType] = [];
+      }
+      bulletsByType[bulletType].push(bullet);
     }
+  }
+  
+  // Render each bullet group
+  for (const type in bulletsByType) {
+    const bullets = bulletsByType[type];
+    
+    // Skip empty groups
+    if (bullets.length === 0) continue;
+    
+    // Try to use GPU batching for bullets if available
+    if (useGPUBatching && bullets.length > 10) {
+      // Attempt to batch render bullets
+      if (gameState.gpuManager.batchEntity(bullets, `bullets_${type}`)) {
+        continue; // Successfully batched, skip individual rendering
+      }
+    }
+    
+    // Fallback to individual rendering
+    for (const bullet of bullets) {
+      bullet.show();
+    }
+  }
+  
+  // If we have too many bullets, remove the oldest ones
+  if (gameState.bullets.length > 300) {
+    // Keep only the 300 most recent bullets
+    gameState.bullets = gameState.bullets.slice(-300);
   }
 }
 
@@ -173,7 +235,19 @@ function updateLasers(gameState) {
  * @param {Object} gameState - The global game state
  */
 function updateWaves(gameState) {
-  for (let i = gameState.waves.length - 1; i >= 0; i--) {
+  // Get performance manager and current frame
+  const performanceManager = gameState.performanceManager;
+  const currentFrame = gameState.frameCount;
+  
+  // Limit the number of waves to process based on performance settings
+  const maxWavesToProcess = performanceManager && performanceManager.isMobile ? 
+                           Math.min(50, gameState.waves.length) : 
+                           gameState.waves.length;
+  
+  // Process waves from newest to oldest (most recent waves are more important)
+  const startIndex = Math.max(0, gameState.waves.length - maxWavesToProcess);
+  
+  for (let i = gameState.waves.length - 1; i >= startIndex; i--) {
     // Check if the wave object has the required methods
     if (!gameState.waves[i]) {
       console.warn('Null or undefined wave object found at index', i);
@@ -212,17 +286,60 @@ function updateWaves(gameState) {
       continue;
     }
     
+    // Skip waves that are too far away
+    if (performanceManager && !performanceManager.shouldRender(obj.x, obj.z)) {
+      // For distant waves, just decrease lifespan without rendering
+      obj.lifespan -= 1;
+      if (obj.lifespan <= 0) {
+        gameState.waves.splice(i, 1);
+      }
+      continue;
+    }
+    
+    // Get distance-based LOD for this wave
+    let lod = 0;
+    if (performanceManager) {
+      lod = performanceManager.getEntityLOD(obj.x, obj.z);
+    }
+    
+    // Determine if we should update this wave on this frame
+    let shouldUpdate = true;
+    
+    // Apply staggered updates based on LOD and frame count
+    if (lod === 1 && currentFrame % 2 !== 0) {
+      shouldUpdate = false;
+    } else if (lod === 2 && currentFrame % 3 !== 0) {
+      shouldUpdate = false;
+    }
+    
     // Update the wave and remove if needed
     try {
-      if (gameState.waves[i].update()) {
-        gameState.waves.splice(i, 1);
+      if (shouldUpdate) {
+        if (obj.update()) {
+          gameState.waves.splice(i, 1);
+        } else {
+          // Apply LOD-based rendering
+          if (lod === 0 || (lod === 1 && currentFrame % 2 === 0) || (lod === 2 && currentFrame % 3 === 0)) {
+            obj.show();
+          }
+        }
       } else {
-        gameState.waves[i].show();
+        // For waves we're not updating this frame, just decrease lifespan
+        obj.lifespan -= 1;
+        if (obj.lifespan <= 0) {
+          gameState.waves.splice(i, 1);
+        }
       }
     } catch (error) {
       console.error('Error updating wave at index', i, error);
       gameState.waves.splice(i, 1);
     }
+  }
+  
+  // If we have too many waves, remove the oldest ones
+  if (gameState.waves.length > 200) {
+    // Keep only the 200 most recent waves
+    gameState.waves = gameState.waves.slice(-200);
   }
 }
 
@@ -277,11 +394,113 @@ function updateFireSkills(gameState) {
  * @param {Object} gameState - The global game state
  */
 function updateGameCharacters(gameState) {
+  // Get performance manager and current frame
+  const performanceManager = gameState.performanceManager;
+  const currentFrame = gameState.frameCount;
+  
+  // Group characters by LOD for batch rendering
+  const charactersByLOD = {
+    0: [], // High detail (close)
+    1: [], // Medium detail (medium distance)
+    2: []  // Low detail (far)
+  };
+  
   for (let i = gameState.gameCharacters.length - 1; i >= 0; i--) {
-    gameState.gameCharacters[i].update();
-    gameState.gameCharacters[i].show();
-    if (gameState.gameCharacters[i].health <= 0 || gameState.gameCharacters[i].lifespan <= 0) {
+    const character = gameState.gameCharacters[i];
+    
+    // Skip characters that are too far away
+    if (performanceManager && !performanceManager.shouldRender(character.x, character.z)) {
+      // For distant characters, just update lifespan without rendering
+      if (character.lifespan) {
+        character.lifespan--;
+      }
+      if (character.health <= 0 || (character.lifespan !== undefined && character.lifespan <= 0)) {
+        gameState.gameCharacters.splice(i, 1);
+      }
+      continue;
+    }
+    
+    // Get LOD level based on distance
+    let lod = 0;
+    if (performanceManager) {
+      lod = performanceManager.getEntityLOD(character.x, character.z);
+      
+      // Apply performance-based adjustments to LOD
+      if (CONFIG.PERFORMANCE) {
+        // On low quality settings, increase LOD level (reduce detail)
+        if (CONFIG.PERFORMANCE.QUALITY_LEVEL === 'low') {
+          lod = Math.min(2, lod + 1); // Increase LOD by 1, max at 2
+        }
+        
+        // On mobile devices, further reduce detail
+        if (performanceManager.isMobile) {
+          lod = Math.min(2, lod + 1); // Increase LOD by 1, max at 2
+        }
+      }
+    }
+    
+    // Determine if we should update this character on this frame
+    let shouldUpdate = true;
+    
+    // Apply staggered updates based on LOD and frame count
+    if (lod === 1 && currentFrame % 2 !== 0) {
+      shouldUpdate = false;
+    } else if (lod === 2 && currentFrame % 3 !== 0) {
+      shouldUpdate = false;
+    }
+    
+    // Update character if needed
+    if (shouldUpdate) {
+      character.update();
+    } else if (character.lifespan) {
+      // For characters we're not updating this frame, just decrease lifespan
+      character.lifespan--;
+    }
+    
+    // Check if character is dead
+    if (character.health <= 0 || (character.lifespan !== undefined && character.lifespan <= 0)) {
       gameState.gameCharacters.splice(i, 1);
+      continue;
+    }
+    
+    // Set LOD-specific properties
+    if (character.setLOD && typeof character.setLOD === 'function') {
+      character.setLOD(lod);
+    } else {
+      // Fallback if setLOD method doesn't exist
+      character.useSimpleRendering = lod === 2;
+      character.skipAnimations = lod >= 1;
+      character.skipEffects = lod >= 1;
+    }
+    
+    // Add to appropriate LOD group for rendering
+    charactersByLOD[lod].push(character);
+  }
+  
+  // Check if we can use GPU batching
+  const useGPUBatching = gameState.gpuManager && 
+                         gameState.gpuManager.isInitialized && 
+                         CONFIG.PERFORMANCE && 
+                         CONFIG.PERFORMANCE.BATCH_RENDERING;
+  
+  // Render each LOD group
+  for (const lod in charactersByLOD) {
+    const characters = charactersByLOD[lod];
+    
+    // Skip empty groups
+    if (characters.length === 0) continue;
+    
+    // Try to use GPU batching for low-detail characters if available
+    if (useGPUBatching && lod === '2' && characters.length > 5) {
+      // Attempt to batch render low-detail characters
+      if (gameState.gpuManager.batchEntity(characters, 'characters_low_detail')) {
+        continue; // Successfully batched, skip individual rendering
+      }
+    }
+    
+    // Render each character individually
+    for (const character of characters) {
+      character.show();
     }
   }
 }

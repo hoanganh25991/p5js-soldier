@@ -5,11 +5,21 @@ import { Bomb } from './bomb.js';
 import particleManager from '../managers/particleManager.js';
 
 export class Airstrike {
-  constructor(gameState) {
+  constructor(gameState, startX, startZ, dirX, dirZ) {
     this.gameState = gameState;
-    this.x = -CONFIG.ENEMY_RADIUS;
-    this.y = -700; // Even higher above towers
-    this.z = 0;
+    
+    // Position - use provided start position or default if not provided
+    this.x = startX !== undefined ? startX : -CONFIG.ENEMY_RADIUS;
+    this.y = -700; // Always high above the ground
+    this.z = startZ !== undefined ? startZ : 0;
+    
+    // Direction - use provided direction or default to moving right
+    this.directionX = dirX !== undefined ? dirX : 1;
+    this.directionZ = dirZ !== undefined ? dirZ : 0;
+    
+    // Calculate rotation based on direction
+    this.rotation = atan2(this.directionZ, this.directionX);
+    
     this.speed = CONFIG.AIRSTRIKE.SPEED;
     this.damage = CONFIG.AIRSTRIKE.DAMAGE;
     
@@ -33,7 +43,9 @@ export class Airstrike {
   }
 
   update() {
-    this.x += this.speed;
+    // Move in the direction vector
+    this.x += this.directionX * this.speed;
+    this.z += this.directionZ * this.speed;
     
     // Update animation properties
     this.propellerRotation += this.propellerSpeed;
@@ -50,16 +62,24 @@ export class Airstrike {
     if (this.trailTimer >= this.trailInterval) {
       this.trailTimer = 0;
       
+      // Calculate exhaust offset based on rotation
+      const exhaustOffsetX = -5 * cos(this.rotation);
+      const exhaustOffsetZ = -5 * sin(this.rotation);
+      
+      // Calculate perpendicular vector for engine positions
+      const perpX = -sin(this.rotation);
+      const perpZ = cos(this.rotation);
+      
       // Left engine exhaust
       particleManager.createParticle(
-        this.x - 5, 
+        this.x + exhaustOffsetX + perpX * 40, 
         this.y + 5, 
-        this.z - 40,
+        this.z + exhaustOffsetZ + perpZ * 40,
         'SMOKE',
         {
-          vx: -this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
+          vx: -this.directionX * this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
           vy: (Math.random() - 0.5) * 0.2,
-          vz: (Math.random() - 0.5) * 0.2,
+          vz: -this.directionZ * this.speed * 0.5 + (Math.random() - 0.5) * 0.2,
           size: 8 + Math.random() * 4,
           color: [200, 200, 200],
           alpha: 150,
@@ -69,14 +89,14 @@ export class Airstrike {
       
       // Right engine exhaust
       particleManager.createParticle(
-        this.x - 5, 
+        this.x + exhaustOffsetX - perpX * 40, 
         this.y + 5, 
-        this.z + 40,
+        this.z + exhaustOffsetZ - perpZ * 40,
         'SMOKE',
         {
-          vx: -this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
+          vx: -this.directionX * this.speed * 0.5 + (Math.random() - 0.5) * 0.5,
           vy: (Math.random() - 0.5) * 0.2,
-          vz: (Math.random() - 0.5) * 0.2,
+          vz: -this.directionZ * this.speed * 0.5 + (Math.random() - 0.5) * 0.2,
           size: 8 + Math.random() * 4,
           color: [200, 200, 200],
           alpha: 150,
@@ -91,7 +111,16 @@ export class Airstrike {
       this.bombBayOpen = true;
       
       // Create a specialized bomb entity
-      const bomb = new Bomb(this.x, this.y + 10, this.z, this, this.gameState);
+      // Pass the direction to the bomb so it knows which way to fall
+      const bomb = new Bomb(
+        this.x, 
+        this.y + 10, 
+        this.z, 
+        this, 
+        this.gameState, 
+        this.directionX, 
+        this.directionZ
+      );
       
       // Add to gameState bombs array (create if it doesn't exist)
       if (!this.gameState.bombs) {
@@ -102,6 +131,13 @@ export class Airstrike {
       // Play drop sound if available
       if (this.gameState.bombDropSound) {
         this.gameState.bombDropSound.play();
+      } else if (this.gameState.soundManager) {
+        // Try using the sound manager if available
+        this.gameState.soundManager.play('explosion', {
+          priority: this.gameState.soundManager.PRIORITY.HIGH,
+          sourceType: 'skill',
+          sourceId: 'airstrike'
+        });
       }
     }
     
@@ -119,6 +155,7 @@ export class Airstrike {
   show() {
     push();
     translate(this.x, this.y, this.z);
+    rotateY(this.rotation); // Rotate to face direction of travel
     rotateZ(this.wingTilt); // Apply subtle banking effect
     
     // Main body - fuselage

@@ -217,8 +217,28 @@ class CollisionManager {
 
   // Process collisions for all entities
   processCollisions(gameState) {
+    // Get performance manager
+    const performanceManager = gameState.performanceManager;
+    
     // Update settings
     this.updatePerformanceSettings();
+    
+    // Dynamically adjust check frequency based on performance
+    if (performanceManager) {
+      // On mobile devices, check less frequently
+      if (performanceManager.isMobile) {
+        this.checkFrequency = Math.max(2, this.checkFrequency);
+      }
+      
+      // If FPS is low, reduce collision check frequency
+      if (performanceManager.fps < performanceManager.targetFPS * 0.7) {
+        this.checkFrequency = Math.min(4, this.checkFrequency + 1);
+      } 
+      // If FPS is good, we can check more frequently
+      else if (performanceManager.fps > performanceManager.targetFPS * 0.9 && this.checkFrequency > 1) {
+        this.checkFrequency = Math.max(1, this.checkFrequency - 1);
+      }
+    }
 
     // Increment frame counter
     this.frameCounter++;
@@ -239,17 +259,38 @@ class CollisionManager {
     this.populateGrid(gameState);
 
     // Use performance-based culling to reduce collision checks
-    const drawDistance = CONFIG.PERFORMANCE.DRAW_DISTANCE || CONFIG.WORLD_RADIUS;
+    const drawDistance = performanceManager ? 
+                        performanceManager.drawDistance : 
+                        (CONFIG.PERFORMANCE && CONFIG.PERFORMANCE.DRAW_DISTANCE || CONFIG.WORLD_RADIUS);
     const cullDistanceSquared = drawDistance * drawDistance;
-
-    // Process collisions for each entity type
-    this.processBulletEnemyCollisions(gameState, cullDistanceSquared);
+    
+    // Process collisions in order of importance
+    // Always process player collisions first
     this.processPlayerEnemyCollisions(gameState);
-    this.processSkillEnemyCollisions(gameState, cullDistanceSquared);
+    
+    // Process bullet collisions (most important for gameplay)
+    this.processBulletEnemyCollisions(gameState, cullDistanceSquared);
+    
+    // Process power-ups (important for gameplay but less frequent)
     this.processPowerUpCollisions(gameState);
+    
+    // Process skill collisions last (can be most expensive)
+    // Skip skill collision checks on very low performance
+    const skipSkillCollisions = performanceManager && 
+                               performanceManager.isMobile && 
+                               performanceManager.fps < performanceManager.targetFPS * 0.6;
+    
+    if (!skipSkillCollisions) {
+      this.processSkillEnemyCollisions(gameState, cullDistanceSquared);
+    }
 
     // Store collision stats
     this.lastFrameCollisions = this.actualCollisions;
+    
+    // Update CONFIG with current check frequency
+    if (CONFIG.PERFORMANCE) {
+      CONFIG.PERFORMANCE.COLLISION_CHECK_FREQUENCY = this.checkFrequency;
+    }
   }
 
   // Populate the spatial grid with all entities
@@ -308,8 +349,28 @@ class CollisionManager {
     // Get player position for distance culling
     const playerX = gameState.player ? gameState.player.x : 0;
     const playerZ = gameState.player ? gameState.player.z : 0;
+    
+    // Get performance manager and current frame
+    const performanceManager = gameState.performanceManager;
+    const currentFrame = gameState.frameCount || 0;
+    
+    // Determine how many bullets to process based on performance
+    let maxBulletsToProcess = gameState.bullets.length;
+    
+    // On mobile or low performance, limit the number of bullets we process
+    if (performanceManager && performanceManager.isMobile) {
+      maxBulletsToProcess = Math.min(100, maxBulletsToProcess);
+    } else if (performanceManager && performanceManager.fps < performanceManager.targetFPS * 0.8) {
+      maxBulletsToProcess = Math.min(200, maxBulletsToProcess);
+    }
+    
+    // Process bullets from newest to oldest (most recent bullets are more important)
+    const startIndex = Math.max(0, gameState.bullets.length - maxBulletsToProcess);
+    
+    // Cache collision callback for better performance
+    const bulletEnemyCallback = this.collisionCallbacks['BULLET_ENEMY'];
 
-    for (let i = gameState.bullets.length - 1; i >= 0; i--) {
+    for (let i = gameState.bullets.length - 1; i >= startIndex; i--) {
       const bullet = gameState.bullets[i];
 
       // Skip if bullet is invalid
@@ -325,6 +386,20 @@ class CollisionManager {
           continue; // Skip this bullet, it's too far away
         }
       }
+      
+      // Apply staggered collision checks for distant bullets
+      if (performanceManager) {
+        const bulletDistSquared = bullet.x * bullet.x + bullet.z * bullet.z;
+        const normalizedDist = Math.sqrt(bulletDistSquared) / performanceManager.drawDistance;
+        
+        // Skip some collision checks for distant bullets
+        if (normalizedDist > 0.7 && currentFrame % 2 !== 0) {
+          continue; // Skip every other frame for distant bullets
+        }
+        if (normalizedDist > 0.9 && currentFrame % 3 !== 0) {
+          continue; // Skip 2 of 3 frames for very distant bullets
+        }
+      }
 
       // Get nearby enemies using spatial grid with optimized radius
       // Use bullet size + max enemy size as search radius for better precision
@@ -332,8 +407,13 @@ class CollisionManager {
       const nearbyEntities = this.getNearbyEntities(bullet.x, bullet.z, searchRadius);
 
       let hitSomething = false;
+      
+      // Limit the number of potential collisions to check
+      const maxEntitiesToCheck = Math.min(nearbyEntities.length, 20);
 
-      for (const entity of nearbyEntities) {
+      for (let j = 0; j < maxEntitiesToCheck; j++) {
+        const entity = nearbyEntities[j];
+        
         // Skip if not an enemy
         if (!entity.takeDamage || entity.collisionGroup !== this.collisionGroups.ENEMY) continue;
 
@@ -350,9 +430,8 @@ class CollisionManager {
           this.actualCollisions++;
 
           // Call collision callback if registered
-          const callbackKey = 'BULLET_ENEMY';
-          if (this.collisionCallbacks[callbackKey]) {
-            this.collisionCallbacks[callbackKey](bullet, entity, gameState);
+          if (bulletEnemyCallback) {
+            bulletEnemyCallback(bullet, entity, gameState);
           }
 
           break; // Bullet can only hit one enemy
@@ -369,11 +448,43 @@ class CollisionManager {
   // Process player-enemy collisions
   processPlayerEnemyCollisions(gameState) {
     if (!gameState.player || !gameState.enemies) return;
+    
+    // Get performance manager and current frame
+    const performanceManager = gameState.performanceManager;
+    const currentFrame = gameState.frameCount || 0;
+    
+    // Cache collision callback for better performance
+    const playerEnemyCallback = this.collisionCallbacks['PLAYER_ENEMY'];
+    
+    // Track when the player was last damaged to prevent damage spam
+    if (!gameState.player.lastDamageFrame) {
+      gameState.player.lastDamageFrame = 0;
+    }
+    
+    // Calculate damage cooldown based on performance
+    const damageCooldown = performanceManager && performanceManager.isMobile ? 15 : 10;
+    const canTakeDamage = (currentFrame - gameState.player.lastDamageFrame) >= damageCooldown;
+    
+    // If player can't take damage yet, we can skip collision checks
+    if (!canTakeDamage) {
+      return;
+    }
 
-    // Get nearby enemies using spatial grid
-    const nearbyEntities = this.getNearbyEntities(gameState.player.x, gameState.player.z, this.gridSize);
+    // Get nearby enemies using spatial grid with optimized search radius
+    // Use player size + max enemy size as search radius for better precision
+    const searchRadius = (gameState.player.width || 20) + 40; // 40 is a reasonable max enemy size
+    const nearbyEntities = this.getNearbyEntities(gameState.player.x, gameState.player.z, searchRadius);
+    
+    // Limit the number of potential collisions to check
+    const maxEntitiesToCheck = Math.min(nearbyEntities.length, 
+                                       performanceManager && performanceManager.isMobile ? 10 : 20);
+    
+    // Track if player was damaged this frame
+    let playerDamaged = false;
 
-    for (const entity of nearbyEntities) {
+    for (let i = 0; i < maxEntitiesToCheck && !playerDamaged; i++) {
+      const entity = nearbyEntities[i];
+      
       // Skip if not an enemy
       if (entity.collisionGroup !== this.collisionGroups.ENEMY) continue;
 
@@ -384,15 +495,19 @@ class CollisionManager {
         // Apply damage to player
         if (gameState.player.takeDamage) {
           gameState.player.takeDamage(CONFIG.ENEMY_DAMAGE_TO_PLAYER);
+          gameState.player.lastDamageFrame = currentFrame;
+          playerDamaged = true;
         }
 
         this.actualCollisions++;
 
         // Call collision callback if registered
-        const callbackKey = 'PLAYER_ENEMY';
-        if (this.collisionCallbacks[callbackKey]) {
-          this.collisionCallbacks[callbackKey](gameState.player, entity, gameState);
+        if (playerEnemyCallback) {
+          playerEnemyCallback(gameState.player, entity, gameState);
         }
+        
+        // No need to check more enemies once player is damaged
+        break;
       }
     }
   }
@@ -413,8 +528,25 @@ class CollisionManager {
     // Get player position for distance culling
     const playerX = gameState.player ? gameState.player.x : 0;
     const playerZ = gameState.player ? gameState.player.z : 0;
+    
+    // Get performance manager and current frame
+    const performanceManager = gameState.performanceManager;
+    const currentFrame = gameState.frameCount || 0;
+    
+    // Cache collision callback for better performance
+    const skillEnemyCallback = this.collisionCallbacks['SKILL_ENEMY'];
+    
+    // Determine how many skills to process based on performance
+    const maxSkillsToProcess = performanceManager && performanceManager.isMobile ? 
+                              Math.min(20, skills.length) : 
+                              skills.length;
+    
+    // Process only a subset of skills if there are too many
+    const skillsToProcess = skills.length > maxSkillsToProcess ? 
+                           skills.slice(0, maxSkillsToProcess) : 
+                           skills;
 
-    for (const skill of skills) {
+    for (const skill of skillsToProcess) {
       // Skip if skill is invalid or doesn't have a damage method
       if (!skill || typeof skill.x !== 'number' || !skill.damage) continue;
 
@@ -428,14 +560,40 @@ class CollisionManager {
           continue; // Skip this skill, it's too far away
         }
       }
+      
+      // Apply staggered collision checks for distant skills
+      if (performanceManager) {
+        const skillDistSquared = skill.x * skill.x + skill.z * skill.z;
+        const normalizedDist = Math.sqrt(skillDistSquared) / performanceManager.drawDistance;
+        
+        // Skip some collision checks for distant skills
+        if (normalizedDist > 0.7 && currentFrame % 2 !== 0) {
+          continue; // Skip every other frame for distant skills
+        }
+        if (normalizedDist > 0.9 && currentFrame % 3 !== 0) {
+          continue; // Skip 2 of 3 frames for very distant skills
+        }
+      }
 
       // Use skill radius if available, otherwise use a reasonable default
       const searchRadius = skill.radius || (skill.size ? skill.size * 2 : this.gridSize);
 
       // Get nearby enemies using spatial grid with optimized radius
       const nearbyEntities = this.getNearbyEntities(skill.x, skill.z, searchRadius);
+      
+      // Limit the number of potential collisions to check
+      const maxEntitiesToCheck = Math.min(nearbyEntities.length, 
+                                         performanceManager && performanceManager.isMobile ? 10 : 30);
+      
+      // Track how many enemies were damaged by this skill in this frame
+      // to prevent skills from damaging too many enemies at once
+      let enemiesDamaged = 0;
+      const maxEnemiesDamagedPerFrame = skill.maxTargets || 
+                                       (skill.isAreaEffect ? 10 : 3);
 
-      for (const entity of nearbyEntities) {
+      for (let i = 0; i < maxEntitiesToCheck && enemiesDamaged < maxEnemiesDamagedPerFrame; i++) {
+        const entity = nearbyEntities[i];
+        
         // Skip if not an enemy
         if (!entity.takeDamage || entity.collisionGroup !== this.collisionGroups.ENEMY) continue;
 
@@ -448,11 +606,16 @@ class CollisionManager {
           entity.takeDamage(damage);
 
           this.actualCollisions++;
+          enemiesDamaged++;
 
           // Call collision callback if registered
-          const callbackKey = 'SKILL_ENEMY';
-          if (this.collisionCallbacks[callbackKey]) {
-            this.collisionCallbacks[callbackKey](skill, entity, gameState);
+          if (skillEnemyCallback) {
+            skillEnemyCallback(skill, entity, gameState);
+          }
+          
+          // If this skill is not an area effect, break after first hit
+          if (!skill.isAreaEffect) {
+            break;
           }
         }
       }

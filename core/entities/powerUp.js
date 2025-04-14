@@ -124,8 +124,8 @@ export class PowerUp {
       this.velocityY = -5;
       
       // Show message that power-up is coming to player
-      if (window.showCooldownMessage) {
-        window.showCooldownMessage(`${this.type.charAt(0).toUpperCase() + this.type.slice(1)} power-up is flying to you!`, 0);
+      if (window.showMessage) {
+        window.showMessage(`${this.type.charAt(0).toUpperCase() + this.type.slice(1)} power-up is flying to you!`, 0);
       }
     }
     
@@ -320,21 +320,21 @@ export class PowerUp {
       case POWER_UP_TYPES.HEALTH:
         // Heal player
         this.gameState.playerHealth = min(this.gameState.playerHealth + 25, CONFIG.PLAYER_HEALTH);
-        showCooldownMessage("Health +25", 0);
+        showMessage("Health +25", 0);
         break;
         
       case POWER_UP_TYPES.DAMAGE_BOOST:
         // Increase damage for a limited time
         this.gameState.player.damageMultiplier = 2.0;
         this.gameState.player.damageBoostTimer = 600; // 10 seconds
-        showCooldownMessage("Damage Boost!", 0);
+        showMessage("Damage Boost!", 0);
         break;
         
       case POWER_UP_TYPES.SPEED_BOOST:
         // Increase movement speed for a limited time
         this.gameState.player.speedMultiplier = 2.0;
         this.gameState.player.speedBoostTimer = 600; // 10 seconds
-        showCooldownMessage("Speed Boost!", 0);
+        showMessage("Speed Boost!", 0);
         break;
         
       case POWER_UP_TYPES.COOLDOWN_RESET:
@@ -343,7 +343,7 @@ export class PowerUp {
           this.gameState.skills[skillName].cooldownRemaining = 0;
           this.gameState.skillCooldowns[skillName] = 0; // For legacy support
         });
-        showCooldownMessage("All Skills Ready!", 0);
+        showMessage("All Skills Ready!", 0);
         break;
         
       case POWER_UP_TYPES.SHIELD:
@@ -351,7 +351,7 @@ export class PowerUp {
         this.gameState.player.shieldActive = true;
         this.gameState.player.shieldHealth = 100;
         this.gameState.player.shieldTimer = 900; // 15 seconds
-        showCooldownMessage("Shield Activated!", 0);
+        showMessage("Shield Activated!", 0);
         break;
         
       case POWER_UP_TYPES.MULTI_SHOT:
@@ -359,7 +359,7 @@ export class PowerUp {
         this.gameState.player.multiShotActive = true;
         this.gameState.player.multiShotCount = 3; // Triple shot
         this.gameState.player.multiShotTimer = 600; // 10 seconds
-        showCooldownMessage("Multi-Shot Enabled!", 0);
+        showMessage("Multi-Shot Enabled!", 0);
         break;
         
       case POWER_UP_TYPES.XP_BOOST:
@@ -367,7 +367,7 @@ export class PowerUp {
         const xpGain = 500;
         this.gameState.xp += xpGain;
         this.checkLevelUp();
-        showCooldownMessage(`+${xpGain} XP!`, 0);
+        showMessage(`+${xpGain} XP!`, 0);
         break;
     }
   }
@@ -381,7 +381,7 @@ export class PowerUp {
       this.gameState.skillPoints++; // Award a skill point
       
       // Show level up message
-      showCooldownMessage(`Level Up! Now level ${this.gameState.level}`, 0);
+      showMessage(`Level Up! Now level ${this.gameState.level}`, 0);
       
       // Check for additional level ups
       if (this.gameState.xp >= this.gameState.xpToNextLevel) {
@@ -408,8 +408,8 @@ export function spawnRandomPowerUp(gameState) {
   const randomType = powerUpTypes[Math.floor(random(powerUpTypes.length))];
   
   // Show spawn message with more details
-  if (window.showCooldownMessage) {
-    window.showCooldownMessage(`${randomType.charAt(0).toUpperCase() + randomType.slice(1)} power-up spawned! It will fly to you in 5 seconds.`, 0);
+  if (window.showMessage) {
+    window.showMessage(`${randomType.charAt(0).toUpperCase() + randomType.slice(1)} power-up spawned! It will fly to you in 5 seconds.`, 0);
   }
   
   // Create and return the power-up
@@ -417,11 +417,11 @@ export function spawnRandomPowerUp(gameState) {
 }
 
 // Import this function from ui.js
-function showCooldownMessage(message, skillIndex) {
+function showMessage(message, skillIndex) {
   // This is a placeholder - the actual implementation is in ui.js
   // We'll need to make sure this function is properly imported or defined
-  if (window.showCooldownMessage) {
-    window.showCooldownMessage(message, skillIndex);
+  if (window.showMessage) {
+    window.showMessage(message, skillIndex);
   } else {
     console.log("UI Message:", message);
   }
