@@ -100,10 +100,52 @@ self.addEventListener("install", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
+  // Skip cross-origin requests
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  // Handle module requests differently
+  if (event.request.url.endsWith('.js')) {
+    const requestURL = new URL(event.request.url);
+    const filePath = requestURL.pathname;
+    
+    // Check if this is likely an ES module (like wave.js)
+    if (filePath.includes('/entities/') || filePath.includes('/characters/')) {
+      // For ES modules, we'll use a network-first strategy
+      event.respondWith(
+        fetch(event.request)
+          .catch(function() {
+            return caches.match(event.request);
+          })
+      );
+      return;
+    }
+  }
+
+  // For all other requests, use cache-first strategy
   event.respondWith(
-    caches.match(event.request).then(function (response) {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request)
+      .then(function(response) {
+        return response || fetch(event.request)
+          .then(function(fetchResponse) {
+            // Don't cache opaque responses (CORS issues)
+            if (fetchResponse.type === 'opaque') {
+              return fetchResponse;
+            }
+            
+            // Cache successful responses for future use
+            return caches.open('static-cache')
+              .then(function(cache) {
+                cache.put(event.request, fetchResponse.clone());
+                return fetchResponse;
+              });
+          });
+      })
+      .catch(function(error) {
+        console.error('Fetch error:', error);
+        // You could return a custom offline page here
+      })
   );
 });
 
@@ -113,18 +155,27 @@ self.addEventListener("message", function (event) {
   }
 });
 
-self.addEventListener("install", (event) => {
-  self.skipWaiting();
-});
+// Skip waiting during installation to activate immediately
+// (removed duplicate install listener)
+self.skipWaiting();
 
 self.addEventListener("activate", (event) => {
+  // Claim clients so the service worker starts controlling current pages
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          return caches.delete(cacheName);
-        })
-      );
-    })
+    Promise.all([
+      self.clients.claim(),
+      // Clear old caches if needed
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.filter(cacheName => {
+            // You can add logic here to determine which caches to delete
+            // For now, we'll keep the current cache
+            return cacheName !== 'static-cache';
+          }).map(cacheName => {
+            return caches.delete(cacheName);
+          })
+        );
+      })
+    ])
   );
 });
