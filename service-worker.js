@@ -6,6 +6,11 @@ self.addEventListener("install", function (event) {
         "index.html",
         "config.js",
         
+        // Config directory files
+        "config/enemies.js",
+        "config/skills.js",
+        "config/world.js",
+        
         // Core JavaScript files
         "core/environment.js",
         "core/gameState.js",
@@ -20,6 +25,7 @@ self.addEventListener("install", function (event) {
         "core/ui/menuUI.js",
         "core/ui/pauseMenu.js",
         "core/ui/statusBoard.js",
+        "core/ui/uiUtils.js",
         
         // Core managers
         "core/managers/bossManager.js",
@@ -54,7 +60,7 @@ self.addEventListener("install", function (event) {
         "core/entities/projectile.js",
         "core/entities/tower.js",
         "core/entities/turret.js",
-        // Removed problematic ES module: core/entities/wave.js
+        "core/entities/wave.js",
         
         // Core entity characters
         "core/entities/characters/Character.js",
@@ -66,15 +72,21 @@ self.addEventListener("install", function (event) {
         "core/entities/characters/index.js",
         
         // Core controls
+        "core/controls/controlsInterface.js",
         "core/controls/keyboardControls.js",
         "core/controls/mouseControls.js",
+        "core/controls/skillHandlers.js",
         "core/controls/touchControls.js",
         
         // PWA resources
         "pwa/p5.min.js",
         "pwa/p5.sound.min.js",
         "manifest.json",
-        "favicon.ico"
+        "favicon.ico",
+        
+        // Sound files
+        "sounds/single-shot.mp3",
+        "sounds/woosh.mp3"
       ];
 
       // Cache what we can, but don't fail the install if some files can't be cached

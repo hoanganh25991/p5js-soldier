@@ -1,11 +1,12 @@
 // Progression System Module
 // Handles leveling, XP, and skill upgrades
 
-import { SKILL_NAMES, SKILLS } from './skills.js';
+import { SKILLS } from './skills.js';
+import { SKILL_IDS } from '../config/skills.js';
 
 // Skill upgrade options
 export const SKILL_UPGRADES = {
-  [SKILL_NAMES.CLONE]: [
+  [SKILL_IDS.CLONE]: [
     {
       name: "Increased Duration",
       description: "Clones last 50% longer",
@@ -26,7 +27,7 @@ export const SKILL_UPGRADES = {
     }
   ],
   
-  [SKILL_NAMES.TURRET]: [
+  [SKILL_IDS.TURRET]: [
     {
       name: "Rapid Fire",
       description: "Turrets fire 20% faster per level",
@@ -47,7 +48,7 @@ export const SKILL_UPGRADES = {
     }
   ],
   
-  [SKILL_NAMES.AIRSTRIKE]: [
+  [SKILL_IDS.AIRSTRIKE]: [
     {
       name: "Carpet Bombing",
       description: "Airstrikes drop 50% more bombs per level",
@@ -68,7 +69,7 @@ export const SKILL_UPGRADES = {
     }
   ],
   
-  [SKILL_NAMES.LASER]: [
+  [SKILL_IDS.LASER]: [
     {
       name: "Increased Width",
       description: "Laser width increased by 30% per level",
@@ -89,7 +90,7 @@ export const SKILL_UPGRADES = {
     }
   ],
   
-  [SKILL_NAMES.GBA]: [
+  [SKILL_IDS.GBA]: [
     {
       name: "Character Health",
       description: "Summoned characters have 30% more health per level",
@@ -110,7 +111,7 @@ export const SKILL_UPGRADES = {
     }
   ],
   
-  [SKILL_NAMES.GAS_LIGHTER]: [
+  [SKILL_IDS.GAS_LIGHTER]: [
     {
       name: "Fire Damage",
       description: "Fire skills deal 30% more damage per level",
@@ -228,7 +229,7 @@ export function applyUpgrades(gameState) {
 function applySkillUpgrade(gameState, skillName, effect) {
   // Different effects for different skills
   switch(skillName) {
-    case SKILL_NAMES.CLONE:
+    case SKILL_IDS.CLONE:
       if (effect.durationMultiplier) {
         gameState.cloneDurationMultiplier = effect.durationMultiplier;
       }
@@ -240,7 +241,7 @@ function applySkillUpgrade(gameState, skillName, effect) {
       }
       break;
       
-    case SKILL_NAMES.TURRET:
+    case SKILL_IDS.TURRET:
       if (effect.fireRateMultiplier) {
         gameState.turretFireRateMultiplier = effect.fireRateMultiplier;
       }
@@ -252,7 +253,7 @@ function applySkillUpgrade(gameState, skillName, effect) {
       }
       break;
       
-    case SKILL_NAMES.AIRSTRIKE:
+    case SKILL_IDS.AIRSTRIKE:
       if (effect.bombCountMultiplier) {
         gameState.airstrikeBombCountMultiplier = effect.bombCountMultiplier;
       }
@@ -264,7 +265,7 @@ function applySkillUpgrade(gameState, skillName, effect) {
       }
       break;
       
-    case SKILL_NAMES.LASER:
+    case SKILL_IDS.LASER:
       if (effect.widthMultiplier) {
         gameState.laserWidthMultiplier = effect.widthMultiplier;
       }
@@ -276,7 +277,7 @@ function applySkillUpgrade(gameState, skillName, effect) {
       }
       break;
       
-    case SKILL_NAMES.GBA:
+    case SKILL_IDS.GBA:
       if (effect.healthMultiplier) {
         gameState.gbaHealthMultiplier = effect.healthMultiplier;
       }
@@ -288,7 +289,7 @@ function applySkillUpgrade(gameState, skillName, effect) {
       }
       break;
       
-    case SKILL_NAMES.GAS_LIGHTER:
+    case SKILL_IDS.GAS_LIGHTER:
       if (effect.damageMultiplier) {
         gameState.gasLighterDamageMultiplier = effect.damageMultiplier;
       }

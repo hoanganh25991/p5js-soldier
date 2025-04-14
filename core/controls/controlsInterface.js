@@ -1,7 +1,8 @@
 // Controls Interface Module
 // Provides a common interface for all input methods (keyboard, mouse, touch)
 
-import { SKILL_NAMES, SKILLS, isSkillAvailable, activateSkill, getSkillByKey } from '../skills.js';
+import { SKILLS, isSkillAvailable, activateSkill, getSkillByKey } from '../skills.js';
+import { SKILL_IDS } from '../../config/skills.js';
 import { handleCloneSkill, handleTurretSkill, handleAirstrikeSkill, handleLaserSkill, handleGBASkill, handleGasLighterSkill } from './skillHandlers.js';
 
 /**
@@ -81,27 +82,27 @@ export function activateSkillByName(gameState, skillName) {
     
     // Handle specific skill actions
     switch (skillName) {
-      case SKILL_NAMES.CLONE:
+      case SKILL_IDS.CLONE:
         handleCloneSkill(gameState);
         break;
         
-      case SKILL_NAMES.TURRET:
+      case SKILL_IDS.TURRET:
         handleTurretSkill(gameState);
         break;
         
-      case SKILL_NAMES.AIRSTRIKE:
+      case SKILL_IDS.AIRSTRIKE:
         handleAirstrikeSkill(gameState);
         break;
         
-      case SKILL_NAMES.LASER:
+      case SKILL_IDS.LASER:
         handleLaserSkill(gameState);
         break;
         
-      case SKILL_NAMES.GBA:
+      case SKILL_IDS.GBA:
         handleGBASkill(gameState);
         break;
         
-      case SKILL_NAMES.GAS_LIGHTER:
+      case SKILL_IDS.GAS_LIGHTER:
         handleGasLighterSkill(gameState);
         break;
     }

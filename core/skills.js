@@ -10,7 +10,7 @@
  * It uses the modular configuration structure from config/skills.js
  */
 
-import { SkillConfig } from '../../config.js';
+import { SkillConfig } from '../config.js';
 // Destructure the skill configuration for easier access
 const { SKILL_IDS, SKILL_KEYS, SKILLS: CONFIG_SKILLS } = SkillConfig;
 

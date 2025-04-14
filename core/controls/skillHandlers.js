@@ -7,7 +7,8 @@ import { Turret } from '../entities/turret.js';
 import { Airstrike } from '../entities/airstrike.js';
 import { Laser } from '../entities/laser.js';
 import { GameBoyAdvanced } from '../entities/gameBoyAdvanced.js';
-import { SKILL_NAMES, SKILLS } from '../skills.js';
+import { SKILLS } from '../skills.js';
+import { SKILL_IDS } from '../../config/skills.js';
 import CONFIG from '../../config.js';
 
 /**
@@ -30,7 +31,7 @@ export function handleCloneSkill(gameState) {
   });
   
   // Optional: Limit max number of clones to avoid overwhelming
-  const maxClones = SKILLS[SKILL_NAMES.CLONE].maxCount + (gameState.cloneMaxCountBonus || 0);
+  const maxClones = SKILLS[SKILL_IDS.CLONE].maxCount + (gameState.cloneMaxCountBonus || 0);
   if (gameState.clones.length > maxClones) {
     gameState.clones.shift(); // Remove oldest clone if too many
   }
