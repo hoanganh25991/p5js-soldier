@@ -92,10 +92,30 @@ export class Bullet {
     // Check if bullet is too far or hit ground
     let distance = dist(0, 0, this.x, this.z);
     if (distance > CONFIG.WORLD_RADIUS || this.y > 50) {
-      // Create wave effect if it's an airstrike bomb hitting the ground
+      // Handle airstrike bombs hitting the ground or exploding
       if (this.source instanceof Airstrike && this.y > 50) {
-        // Correct parameters for Wave constructor: x, y, z, initialRadius, color, gameState
+        // Create explosion wave effect
         this.gameState.waves.push(new Wave(this.x, 50, this.z, 0, [255, 100, 50, 200], this.gameState));
+        
+        // Apply area damage to enemies within blast radius if it's an airstrike bomb
+        if (this.isAirstrikeBomb && this.gameState.enemyController) {
+          const enemies = this.gameState.enemyController.getEnemies();
+          for (let i = enemies.length - 1; i >= 0; i--) {
+            let enemy = enemies[i];
+            // Calculate distance from explosion to enemy
+            let explosionDist = dist(this.x, this.z, enemy.x, enemy.z);
+            
+            // Check if enemy is within blast radius
+            if (explosionDist < this.blastRadius) {
+              // Calculate damage falloff based on distance (more damage closer to center)
+              let damageMultiplier = 1 - (explosionDist / this.blastRadius);
+              let explosionDamage = this.damage * damageMultiplier;
+              
+              // Apply damage to enemy
+              enemy.takeDamage(explosionDamage);
+            }
+          }
+        }
       }
       return true; // Bullet out of range or hit ground
     }
@@ -107,9 +127,39 @@ export class Bullet {
     push();
     noStroke();
     translate(this.x, this.y, this.z);
-    fill(...this.color);
-    rotateX(HALF_PI);
-    cylinder(this.size / 3, this.size);
+    
+    // Special rendering for airstrike bombs
+    if (this.isAirstrikeBomb) {
+      // Bomb body
+      fill(50, 50, 50);
+      push();
+      rotateX(HALF_PI);
+      ellipsoid(this.size / 6, this.size / 3, this.size / 6);
+      pop();
+      
+      // Bomb fins
+      fill(70, 70, 70);
+      push();
+      translate(0, this.size / 4, 0);
+      rotateX(HALF_PI);
+      cone(this.size / 8, this.size / 6);
+      pop();
+      
+      // Add blinking red light for dramatic effect
+      if (this.gameState.frameCount % 10 < 5) {
+        fill(255, 0, 0);
+        push();
+        translate(0, -this.size / 6, 0);
+        sphere(this.size / 15);
+        pop();
+      }
+    } else {
+      // Regular bullet rendering
+      fill(...this.color);
+      rotateX(HALF_PI);
+      cylinder(this.size / 3, this.size);
+    }
+    
     pop();
   }
 }

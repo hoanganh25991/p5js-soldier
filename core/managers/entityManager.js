@@ -25,6 +25,9 @@ export function updateAndShowEntities(gameState) {
   // Update and show bullets
   updateBullets(gameState);
 
+  // Update and show bombs
+  updateBombs(gameState);
+
   // Update and show clones
   updateClones(gameState);
 
@@ -129,6 +132,25 @@ function updateAirstrikes(gameState) {
     }
     gameState.airstrikes[i].update();
     gameState.airstrikes[i].show();
+  }
+}
+
+/**
+ * Update and show bombs
+ * @param {Object} gameState - The global game state
+ */
+function updateBombs(gameState) {
+  // Initialize bombs array if it doesn't exist
+  if (!gameState.bombs) {
+    gameState.bombs = [];
+  }
+  
+  for (let i = gameState.bombs.length - 1; i >= 0; i--) {
+    if (gameState.bombs[i].update()) { // Returns true if bomb should be removed
+      gameState.bombs.splice(i, 1);
+    } else {
+      gameState.bombs[i].show();
+    }
   }
 }
 

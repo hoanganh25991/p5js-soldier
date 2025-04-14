@@ -153,6 +153,7 @@ function resetGameState() {
   
   // Clear game objects
   gameState.bullets = [];
+  gameState.bombs = [];
   gameState.enemies = [];
   gameState.bosses = [];
   gameState.clones = [];

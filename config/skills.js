@@ -46,9 +46,16 @@ export const AIRSTRIKE = {
   COOLDOWN: 30,
   SPEED: 3,
   BOMB_RATE: 100,
-  BOMB_SIZE: 100,
-  DAMAGE: 500,
-  BLAST_RADIUS: 150,
+  BOMB_SIZE: 60,       // Size of the bomb model (3x bigger)
+  DAMAGE: 800,         // Increased base damage
+  BLAST_RADIUS: 250,   // Increased area of effect radius
+  DAMAGE_FALLOFF: 0.5, // Damage reduction at edge of blast (0.5 = 50% damage at edge)
+  EXPLOSION_PARTICLES: 40, // Increased number of particles in explosion
+  EXPLOSION_COLORS: [
+    [255, 100, 50],    // Orange-red
+    [255, 200, 50],    // Yellow-orange
+    [100, 100, 100]    // Smoke gray
+  ]
 };
 
 // Laser skill settings
