@@ -117,17 +117,36 @@ export function updateCamera(gameState) {
     perspective(gameState.fieldOfView, width / height, 0.1, 5000);
   }
 
-  // Update camera rotation when dragging
-  if (gameState.isDragging) {
-    let deltaX = (mouseX - gameState.lastMouseX) * 0.01;
-    let deltaY = (mouseY - gameState.lastMouseY) * 0.01;
-
-    gameState.cameraRotationY += deltaX;
-    // No constraints on camera rotation
-    gameState.cameraRotationX += deltaY;
-
-    gameState.lastMouseX = mouseX;
-    gameState.lastMouseY = mouseY;
+  // Initialize camera offset values if they don't exist
+  if (!gameState.cameraOffsetX) gameState.cameraOffsetX = 0;
+  if (!gameState.cameraOffsetZ) gameState.cameraOffsetZ = 0;
+  
+  // Handle 4-direction camera movement when dragging with CENTER mouse button
+  if (gameState.isDragging && gameState.cameraMovement) {
+    // Movement speed factor - adjust as needed
+    const moveSpeed = 5;
+    
+    // Apply camera movement based on direction flags
+    if (gameState.cameraMovement.left) {
+      // Move camera left (or scene right)
+      gameState.cameraOffsetX -= moveSpeed * cos(gameState.cameraRotationY);
+      gameState.cameraOffsetZ -= moveSpeed * sin(gameState.cameraRotationY);
+    }
+    if (gameState.cameraMovement.right) {
+      // Move camera right (or scene left)
+      gameState.cameraOffsetX += moveSpeed * cos(gameState.cameraRotationY);
+      gameState.cameraOffsetZ += moveSpeed * sin(gameState.cameraRotationY);
+    }
+    if (gameState.cameraMovement.up) {
+      // Move camera up (or scene down)
+      gameState.cameraOffsetX += moveSpeed * sin(gameState.cameraRotationY);
+      gameState.cameraOffsetZ -= moveSpeed * cos(gameState.cameraRotationY);
+    }
+    if (gameState.cameraMovement.down) {
+      // Move camera down (or scene up)
+      gameState.cameraOffsetX -= moveSpeed * sin(gameState.cameraRotationY);
+      gameState.cameraOffsetZ += moveSpeed * cos(gameState.cameraRotationY);
+    }
   }
 
   // Position camera behind player with increased distance
@@ -147,17 +166,29 @@ export function updateCamera(gameState) {
   
   // Position camera behind player using dynamic values with increased height
   // Added additional depth offset to position camera further back
+  // Apply camera offsets for 4-direction movement
   gameState.camera.setPosition(
-    camX + CONFIG.CAMERA.HORIZONTAL_OFFSET, // Apply horizontal offset from config
+    camX + CONFIG.CAMERA.HORIZONTAL_OFFSET + gameState.cameraOffsetX, // Apply horizontal offset from config + movement offset
     gameState.player.y - dynamicParams.verticalOffset * (isPortrait ? 0.7 : 0.8), // Adjust height based on orientation
-    camZ + (isPortrait ? 300 : 250) // Further back in portrait mode
+    camZ + (isPortrait ? 300 : 250) + gameState.cameraOffsetZ // Further back in portrait mode + movement offset
   );
 
+  // Calculate look-at point with offsets
+  const lookAtX = CONFIG.CAMERA.LOOK_AT.X + gameState.cameraOffsetX;
+  const lookAtZ = CONFIG.CAMERA.LOOK_AT.Z + gameState.cameraOffsetZ - (isPortrait ? 50 : 100);
+  
   // Look at point in front of player with better ground visibility using dynamic values
   // Adjust the look-at point to focus more on the ground area in front of the player
   gameState.camera.lookAt(
-    CONFIG.CAMERA.LOOK_AT.X, // Horizontal look target from config
+    lookAtX, // Horizontal look target from config with offset
     gameState.player.y + dynamicParams.lookAtYOffset * (isPortrait ? 3.5 : 2.5), // Higher look-at point in portrait mode
-    CONFIG.CAMERA.LOOK_AT.Z - (isPortrait ? 50 : 100) // Adjusted forward look distance based on orientation
+    lookAtZ // Adjusted forward look distance based on orientation with offset
   );
+  
+  // Store the current focus point for zooming
+  gameState.zoomFocusPoint = {
+    x: lookAtX,
+    y: gameState.player.y + dynamicParams.lookAtYOffset * (isPortrait ? 3.5 : 2.5),
+    z: lookAtZ
+  };
 }

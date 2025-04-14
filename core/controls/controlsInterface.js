@@ -134,19 +134,19 @@ export function activateSkillByKey(gameState, key) {
 }
 
 /**
- * Utility function to check if device supports touch
- * @returns {boolean} True if the device supports touch
- */
-export function isTouchDevice() {
-  return ('ontouchstart' in window) ||
-         (navigator.maxTouchPoints > 0) ||
-         (navigator.msMaxTouchPoints > 0);
-}
-
-/**
  * Utility function to check if device is in landscape orientation
  * @returns {boolean} True if the device is in landscape orientation
  */
 export function isLandscape() {
   return window.innerWidth > window.innerHeight;
+}
+
+/**
+ * Utility function to check if the device supports touch input
+ * @returns {boolean} True if the device supports touch input
+ */
+export function isTouchDevice() {
+  return (('ontouchstart' in window) ||
+     (navigator.maxTouchPoints > 0) ||
+     (navigator.msMaxTouchPoints > 0));
 }

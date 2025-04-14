@@ -2,18 +2,13 @@
 // Handles touch input and displays virtual keys for mobile devices
 
 import { SKILLS } from '../skills.js';
-import { activateSkillByName, isTouchDevice, isLandscape } from './controlsInterface.js';
+import { activateSkillByName, isLandscape } from './controlsInterface.js';
 
 /**
  * Create virtual touch keys for mobile devices
  * @returns {Object} The virtual touch keys DOM element
  */
 export function createVirtualTouchKeys() {
-  // Only create virtual keys on touch devices
-  if (!isTouchDevice()) {
-    return null;
-  }
-  
   // Add CSS for larger touch areas once
   if (!document.getElementById('touch-area-style')) {
     const touchAreaStyle = document.createElement('style');
@@ -225,8 +220,6 @@ function getButtonSizeForOrientation() {
  * @param {Object} gameState - The current game state
  */
 export function setupTouchControls(gameState) {
-  if (!isTouchDevice()) return;
-  
   // Create and add virtual touch keys to the DOM
   const touchKeys = createVirtualTouchKeys();
   if (touchKeys) {

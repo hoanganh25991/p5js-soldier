@@ -20,7 +20,6 @@ self.addEventListener("install", function (event) {
         "core/ui/menuUI.js",
         "core/ui/pauseMenu.js",
         "core/ui/statusBoard.js",
-        "core/ui/virtualKeyboard.js",
         "core/ui/zoomControls.js",
         
         // Core managers
