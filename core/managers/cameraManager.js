@@ -63,7 +63,7 @@ export function initializeCamera(gameState) {
   gameState.cameraRotationX = -0.65; // Even steeper angle for better ground visibility
   gameState.cameraRotationY = 0;
   gameState.baseCameraDistance = 450; // Significantly increased base distance for wider view
-  gameState.zoomLevel = 2.4; // Further increased zoom level for better battlefield overview
+  gameState.zoomLevel = 3.5; // Increased zoom level to see more enemies on the ground
   
   // Store the dynamic camera parameters
   gameState.dynamicCameraParams = calculateDynamicCameraParams(windowWidth, windowHeight);

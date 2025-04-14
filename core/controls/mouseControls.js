@@ -14,7 +14,7 @@ function handleMouseWheel(event, gameState) {
   
   // Zoom with mouse wheel - rolling forward (negative delta) decreases zoom level (zooms in)
   // rolling backward (positive delta) increases zoom level (zooms out)
-  gameState.zoomLevel = constrain(gameState.zoomLevel + (event.delta * 0.001), 0.2, 10.0);
+  gameState.zoomLevel = constrain(gameState.zoomLevel + (event.delta * 0.001), 0.2, 15.0);
   return false; // Prevent default scrolling
 }
 
