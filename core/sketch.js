@@ -12,7 +12,7 @@ import { initializeUpgrades, applyUpgrades, awardXP, checkLevelUp, updateCombo, 
 import { updateSkillStates } from './skills.js';
 
 // Import game managers
-import { initializeCamera, updateCamera } from './managers/cameraManager.js';
+import { initializeCamera, updateCamera, updateCameraOnResize } from './managers/cameraManager.js';
 import { updateAndShowEntities } from './managers/entityManager.js';
 import { checkGameEndConditions, resetGame } from './managers/gameManager.js';
 import { updateGameEnvironment } from './managers/environmentManager.js';
@@ -139,6 +139,11 @@ function draw() {
 // Event handlers
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+  
+  // Update camera parameters based on new screen dimensions
+  if (gameState && gameState.camera) {
+    updateCameraOnResize(gameState);
+  }
 }
 
 // Mouse control functions - these are global p5.js functions that delegate to our handlers
