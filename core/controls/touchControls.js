@@ -18,11 +18,11 @@ export function createVirtualTouchKeys() {
   const virtualTouchKeys = createElement('div');
   virtualTouchKeys.id('virtual-touch-keys');
   virtualTouchKeys.style('position', 'fixed');
-  virtualTouchKeys.style('right', '30px');
-  virtualTouchKeys.style('bottom', '30px');
+  virtualTouchKeys.style('right', '20px');
+  virtualTouchKeys.style('bottom', '20px');
   virtualTouchKeys.style('display', 'flex');
   virtualTouchKeys.style('flex-direction', 'column');
-  virtualTouchKeys.style('gap', '20px');
+  virtualTouchKeys.style('gap', '15px');
   virtualTouchKeys.style('z-index', '100');
   // Prevent text selection and double-tap zoom
   virtualTouchKeys.style('user-select', 'none');
@@ -30,6 +30,9 @@ export function createVirtualTouchKeys() {
   virtualTouchKeys.style('-moz-user-select', 'none');
   virtualTouchKeys.style('-ms-user-select', 'none');
   virtualTouchKeys.style('touch-action', 'manipulation');
+  
+  // Store orientation state
+  virtualTouchKeys.attribute('data-orientation', isLandscape() ? 'landscape' : 'portrait');
 
   // Get all skills and their keys
   const skillEntries = Object.entries(SKILLS).map(([skillName, skillData]) => {
@@ -40,8 +43,8 @@ export function createVirtualTouchKeys() {
     };
   });
 
-  // Create rows with 2 keys per row (reduced from 4 to accommodate larger buttons)
-  const keysPerRow = 2;
+  // Create rows with 4 keys per row
+  const keysPerRow = 4;
   const rows = Math.ceil(skillEntries.length / keysPerRow);
   
   for (let i = 0; i < rows; i++) {
@@ -49,7 +52,7 @@ export function createVirtualTouchKeys() {
     const row = createElement('div');
     row.class('touch-key-row');
     row.style('display', 'flex');
-    row.style('gap', '20px');
+    row.style('gap', '10px');
     row.style('justify-content', 'flex-end'); // Align to the right
     
     // Get skills for this row
@@ -62,14 +65,14 @@ export function createVirtualTouchKeys() {
       keyButton.attribute('data-skill', skill.skillName);
       keyButton.attribute('title', skill.name);
       
-      // Style the button - 3x larger for better touch targets
-      keyButton.style('width', '150px');
-      keyButton.style('height', '150px');
+      // Style the button - larger for better touch targets but suitable for landscape
+      keyButton.style('width', '80px');
+      keyButton.style('height', '80px');
       keyButton.style('border-radius', '50%');
       keyButton.style('background', 'rgba(0, 0, 0, 0.7)');
       keyButton.style('color', 'white');
-      keyButton.style('border', '3px solid white');
-      keyButton.style('font-size', '48px');
+      keyButton.style('border', '2px solid white');
+      keyButton.style('font-size', '28px');
       keyButton.style('font-weight', 'bold');
       keyButton.style('cursor', 'pointer');
       keyButton.style('display', 'flex');
@@ -170,6 +173,42 @@ function isTouchDevice() {
   // return (('ontouchstart' in window) ||
   //    (navigator.maxTouchPoints > 0) ||
   //    (navigator.msMaxTouchPoints > 0));
+}
+
+/**
+ * Check if the device is in landscape orientation
+ * @returns {boolean} True if the device is in landscape orientation
+ */
+function isLandscape() {
+  return window.innerWidth > window.innerHeight;
+}
+
+/**
+ * Get the appropriate button size based on orientation
+ * @returns {Object} Object containing width, height, fontSize, and gap values
+ */
+function getButtonSizeForOrientation() {
+  const isLandscapeMode = isLandscape();
+  
+  if (isLandscapeMode) {
+    // Landscape mode - smaller buttons (1/2 size)
+    return {
+      width: '40px',
+      height: '40px',
+      fontSize: '18px',
+      gap: '8px',
+      rowGap: '8px'
+    };
+  } else {
+    // Portrait mode - larger buttons (2x size)
+    return {
+      width: '100px',
+      height: '100px',
+      fontSize: '32px',
+      gap: '15px',
+      rowGap: '15px'
+    };
+  }
 }
 
 /**

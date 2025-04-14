@@ -1234,4 +1234,418 @@ export class Boss extends Enemy {
       }, i * 300); // Stagger explosions
     }
   }
+  
+  drawJuggernautShape() {
+    // Main body structure
+    push();
+    
+    // Draw heavily armored torso
+    fill(50, 50, 60); // Dark metal color
+    box(this.width * 1.1, this.height * 0.6, this.depth * 1.1);
+    
+    // Add armor plates to chest
+    push();
+    translate(0, -this.height * 0.1, this.depth * 0.55);
+    fill(70, 70, 80); // Lighter metal
+    
+    // Central chest plate
+    box(this.width * 0.6, this.height * 0.3, this.depth * 0.05);
+    
+    // Chest insignia
+    translate(0, 0, this.depth * 0.03);
+    fill(200, 0, 0); // Red insignia
+    
+    // Draw a star-like insignia
+    push();
+    rotateZ(PI/4);
+    box(this.width * 0.2, this.width * 0.05, this.depth * 0.02);
+    rotateZ(PI/2);
+    box(this.width * 0.2, this.width * 0.05, this.depth * 0.02);
+    pop();
+    
+    // Circle around insignia
+    noFill();
+    stroke(200, 0, 0);
+    strokeWeight(3);
+    circle(0, 0, this.width * 0.3);
+    noStroke();
+    pop();
+    
+    // Add armor plates to back
+    push();
+    translate(0, -this.height * 0.1, -this.depth * 0.55);
+    fill(70, 70, 80); // Lighter metal
+    box(this.width * 0.8, this.height * 0.4, this.depth * 0.05);
+    pop();
+    
+    // Draw waist and belt
+    push();
+    translate(0, this.height * 0.2, 0);
+    fill(40, 40, 50); // Darker metal
+    box(this.width * 0.9, this.height * 0.1, this.depth * 0.9);
+    
+    // Belt details
+    for (let i = 0; i < 8; i++) {
+      push();
+      const angle = i * TWO_PI / 8;
+      rotateY(angle);
+      translate(0, 0, this.depth * 0.45);
+      fill(70, 70, 80); // Lighter metal
+      box(this.width * 0.1, this.height * 0.08, this.depth * 0.05);
+      pop();
+    }
+    pop();
+    
+    // Draw massive armored legs
+    push();
+    translate(0, this.height * 0.4, 0);
+    
+    // Left leg
+    push();
+    translate(-this.width * 0.3, 0, 0);
+    fill(50, 50, 60); // Dark metal
+    box(this.width * 0.35, this.height * 0.4, this.depth * 0.35);
+    
+    // Knee armor
+    translate(0, this.height * 0.1, this.depth * 0.15);
+    fill(70, 70, 80); // Lighter metal
+    sphere(this.width * 0.15);
+    
+    // Leg spikes
+    push();
+    translate(0, 0, this.width * 0.1);
+    rotateX(-PI/4);
+    fill(90, 90, 100); // Bright metal
+    cone(this.width * 0.08, this.height * 0.2, 4); // Square spike
+    pop();
+    pop();
+    
+    // Right leg
+    push();
+    translate(this.width * 0.3, 0, 0);
+    fill(50, 50, 60); // Dark metal
+    box(this.width * 0.35, this.height * 0.4, this.depth * 0.35);
+    
+    // Knee armor
+    translate(0, this.height * 0.1, this.depth * 0.15);
+    fill(70, 70, 80); // Lighter metal
+    sphere(this.width * 0.15);
+    
+    // Leg spikes
+    push();
+    translate(0, 0, this.width * 0.1);
+    rotateX(-PI/4);
+    fill(90, 90, 100); // Bright metal
+    cone(this.width * 0.08, this.height * 0.2, 4); // Square spike
+    pop();
+    pop();
+    pop();
+    
+    // Draw massive shoulders with armor plates
+    push();
+    translate(0, -this.height * 0.25, 0);
+    fill(60, 60, 70); // Medium metal
+    box(this.width * 1.6, this.height * 0.2, this.depth * 0.9);
+    
+    // Left shoulder armor
+    push();
+    translate(-this.width * 0.7, -this.height * 0.05, 0);
+    
+    // Main shoulder plate
+    fill(70, 70, 80); // Lighter metal
+    rotateZ(-PI/8);
+    box(this.width * 0.4, this.height * 0.25, this.depth * 0.4);
+    
+    // Shoulder spikes - multiple spikes in a row
+    for (let i = -1; i <= 1; i++) {
+      push();
+      translate(i * this.width * 0.1, -this.height * 0.1, this.depth * 0.15);
+      rotateX(-PI/6);
+      fill(90, 90, 100); // Bright metal
+      cone(this.width * 0.08, this.height * 0.25, 4); // Square spike
+      pop();
+    }
+    pop();
+    
+    // Right shoulder armor
+    push();
+    translate(this.width * 0.7, -this.height * 0.05, 0);
+    
+    // Main shoulder plate
+    fill(70, 70, 80); // Lighter metal
+    rotateZ(PI/8);
+    box(this.width * 0.4, this.height * 0.25, this.depth * 0.4);
+    
+    // Shoulder spikes - multiple spikes in a row
+    for (let i = -1; i <= 1; i++) {
+      push();
+      translate(i * this.width * 0.1, -this.height * 0.1, this.depth * 0.15);
+      rotateX(-PI/6);
+      fill(90, 90, 100); // Bright metal
+      cone(this.width * 0.08, this.height * 0.25, 4); // Square spike
+      pop();
+    }
+    pop();
+    pop();
+    
+    // Draw massive arms
+    push();
+    // Left arm
+    push();
+    translate(-this.width * 0.8, 0, 0);
+    rotateZ(PI/12);
+    
+    // Upper arm
+    fill(60, 60, 70); // Medium metal
+    box(this.width * 0.3, this.height * 0.4, this.depth * 0.3);
+    
+    // Elbow joint
+    translate(0, this.height * 0.25, 0);
+    fill(70, 70, 80); // Lighter metal
+    sphere(this.width * 0.18);
+    
+    // Forearm - with weapon
+    translate(0, this.height * 0.25, 0);
+    rotateZ(-PI/6);
+    fill(60, 60, 70); // Medium metal
+    box(this.width * 0.35, this.height * 0.45, this.depth * 0.35);
+    
+    // Weapon - massive mace
+    translate(0, this.height * 0.3, 0);
+    
+    // Mace handle
+    push();
+    fill(40, 40, 50); // Dark metal
+    rotateX(PI/2);
+    cylinder(this.width * 0.08, this.height * 0.5);
+    
+    // Mace head
+    translate(0, -this.height * 0.25, 0);
+    fill(70, 70, 80); // Lighter metal
+    
+    // Central sphere
+    sphere(this.width * 0.25);
+    
+    // Spikes on mace
+    for (let i = 0; i < 8; i++) {
+      push();
+      const angle = i * TWO_PI / 8;
+      rotateZ(angle);
+      translate(this.width * 0.25, 0, 0);
+      rotateZ(-PI/2);
+      fill(90, 90, 100); // Bright metal
+      cone(this.width * 0.08, this.height * 0.2, 4); // Square spike
+      pop();
+    }
+    pop();
+    pop();
+    
+    // Right arm
+    push();
+    translate(this.width * 0.8, 0, 0);
+    rotateZ(-PI/12);
+    
+    // Upper arm
+    fill(60, 60, 70); // Medium metal
+    box(this.width * 0.3, this.height * 0.4, this.depth * 0.3);
+    
+    // Elbow joint
+    translate(0, this.height * 0.25, 0);
+    fill(70, 70, 80); // Lighter metal
+    sphere(this.width * 0.18);
+    
+    // Forearm - with shield
+    translate(0, this.height * 0.25, 0);
+    rotateZ(PI/6);
+    fill(60, 60, 70); // Medium metal
+    box(this.width * 0.35, this.height * 0.45, this.depth * 0.35);
+    
+    // Shield
+    translate(0, this.height * 0.1, this.depth * 0.3);
+    rotateX(PI/6);
+    
+    // Shield base
+    fill(50, 50, 60); // Dark metal
+    box(this.width * 0.7, this.height * 0.8, this.depth * 0.08);
+    
+    // Shield details
+    push();
+    translate(0, 0, this.depth * 0.04);
+    fill(70, 70, 80); // Lighter metal
+    
+    // Shield pattern
+    box(this.width * 0.5, this.height * 0.6, this.depth * 0.02);
+    
+    // Shield emblem
+    translate(0, 0, this.depth * 0.02);
+    fill(200, 0, 0); // Red emblem
+    
+    // Draw a cross emblem
+    box(this.width * 0.4, this.height * 0.1, this.depth * 0.02);
+    box(this.width * 0.1, this.height * 0.4, this.depth * 0.02);
+    pop();
+    
+    // Shield spikes around the edge
+    for (let i = 0; i < 12; i++) {
+      if (i % 3 !== 0) { // Skip some positions for variation
+        push();
+        const angle = i * TWO_PI / 12;
+        const radius = this.width * 0.35;
+        const x = cos(angle) * radius;
+        const y = sin(angle) * radius;
+        
+        translate(x, y, 0);
+        rotateZ(angle + PI/2);
+        rotateX(-PI/2);
+        
+        fill(90, 90, 100); // Bright metal
+        cone(this.width * 0.05, this.height * 0.1, 4); // Square spike
+        pop();
+      }
+    }
+    pop();
+    pop();
+    
+    // Draw neck
+    push();
+    translate(0, -this.height * 0.35, 0);
+    fill(50, 50, 60); // Dark metal
+    cylinder(this.width * 0.25, this.height * 0.1);
+    
+    // Neck armor plates
+    for (let i = 0; i < 4; i++) {
+      push();
+      const angle = i * TWO_PI / 4;
+      rotateY(angle);
+      translate(0, 0, this.width * 0.2);
+      fill(70, 70, 80); // Lighter metal
+      box(this.width * 0.15, this.height * 0.08, this.depth * 0.05);
+      pop();
+    }
+    pop();
+    
+    // Draw head
+    push();
+    translate(0, -this.height * 0.5, 0);
+    
+    // Helmet base
+    fill(60, 60, 70); // Medium metal
+    sphere(this.width * 0.35);
+    
+    // Face plate
+    push();
+    translate(0, 0, this.width * 0.25);
+    fill(70, 70, 80); // Lighter metal
+    box(this.width * 0.4, this.height * 0.3, this.depth * 0.2);
+    
+    // Eye slits
+    push();
+    translate(0, -this.width * 0.05, this.depth * 0.1);
+    fill(200, 0, 0, 150); // Glowing red
+    box(this.width * 0.3, this.width * 0.03, this.depth * 0.01);
+    pop();
+    
+    // Breathing vents
+    for (let i = -1; i <= 1; i += 2) {
+      push();
+      translate(i * this.width * 0.1, this.width * 0.1, this.depth * 0.1);
+      fill(40, 40, 50); // Dark metal
+      box(this.width * 0.05, this.width * 0.1, this.depth * 0.01);
+      pop();
+    }
+    pop();
+    
+    // Helmet crest
+    push();
+    translate(0, -this.width * 0.2, 0);
+    rotateX(-PI/6);
+    fill(200, 0, 0); // Red crest
+    box(this.width * 0.05, this.height * 0.3, this.depth * 0.05);
+    pop();
+    
+    // Helmet horns
+    // Left horn
+    push();
+    translate(-this.width * 0.25, -this.width * 0.1, 0);
+    rotateZ(-PI/6);
+    rotateX(-PI/6);
+    
+    // Horn segments
+    for (let i = 0; i < 3; i++) {
+      fill(90 - i*10, 90 - i*10, 100 - i*10); // Gradually darker
+      translate(0, -this.height * 0.1, 0);
+      rotateZ(-PI/16); // Slight curve
+      cylinder(this.width * (0.08 - i*0.02), this.height * 0.1);
+    }
+    
+    // Horn tip
+    translate(0, -this.height * 0.1, 0);
+    fill(60, 60, 70); // Medium metal
+    cone(this.width * 0.04, this.height * 0.15, 4); // Square tip
+    pop();
+    
+    // Right horn
+    push();
+    translate(this.width * 0.25, -this.width * 0.1, 0);
+    rotateZ(PI/6);
+    rotateX(-PI/6);
+    
+    // Horn segments
+    for (let i = 0; i < 3; i++) {
+      fill(90 - i*10, 90 - i*10, 100 - i*10); // Gradually darker
+      translate(0, -this.height * 0.1, 0);
+      rotateZ(PI/16); // Slight curve
+      cylinder(this.width * (0.08 - i*0.02), this.height * 0.1);
+    }
+    
+    // Horn tip
+    translate(0, -this.height * 0.1, 0);
+    fill(60, 60, 70); // Medium metal
+    cone(this.width * 0.04, this.height * 0.15, 4); // Square tip
+    pop();
+    pop();
+    
+    // Add energy effects around the Juggernaut
+    push();
+    // Energy field
+    noFill();
+    stroke(200, 0, 0, 100 + sin(frameCount * 0.1) * 50); // Pulsing red
+    strokeWeight(3);
+    
+    // Draw energy rings
+    for (let i = 0; i < 3; i++) {
+      push();
+      const pulseOffset = sin(frameCount * 0.05 + i) * 0.2;
+      const scale = 1.2 + i * 0.3 + pulseOffset;
+      
+      rotateX(frameCount * 0.01 + i);
+      rotateY(frameCount * 0.02 + i);
+      
+      ellipse(0, 0, this.width * scale, this.height * scale);
+      pop();
+    }
+    noStroke();
+    
+    // Add impact craters on the ground
+    translate(0, this.height * 0.5, 0);
+    rotateX(PI/2);
+    
+    // Crater
+    fill(70, 70, 70, 100);
+    ellipse(0, 0, this.width * 2, this.depth * 2);
+    
+    // Cracks
+    stroke(60, 60, 60, 150);
+    strokeWeight(2);
+    for (let i = 0; i < 8; i++) {
+      const angle = i * TWO_PI / 8;
+      const len = this.width * (1 + sin(frameCount * 0.05 + i) * 0.2);
+      
+      line(0, 0, cos(angle) * len, sin(angle) * len);
+    }
+    noStroke();
+    pop();
+    
+    pop(); // End main body
+  }
 }
