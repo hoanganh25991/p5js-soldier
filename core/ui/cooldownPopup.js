@@ -5,63 +5,44 @@ import { gameState } from '../gameState.js';
 
 // Show cooldown message in the popup
 export function showCooldownMessage(skillName, cooldown) {
-  const popup = select('#cooldown-popup');
+  const popupContainer = select('#cooldown-popup');
   
-  // If cooldown is 0, it's an informational message, not a cooldown
+  // Create a new message element
+  const messageElement = createElement('div');
+  messageElement.class('cooldown-message');
+  
+  // Style the message
+  messageElement.style('background', 'rgba(0, 0, 0, 0.6)');
+  messageElement.style('color', 'white');
+  messageElement.style('padding', '8px 15px');
+  messageElement.style('border-radius', '5px');
+  messageElement.style('font-family', 'Arial, sans-serif');
+  messageElement.style('font-size', '16px'); // Smaller font size
+  messageElement.style('font-weight', 'bold');
+  messageElement.style('text-align', 'center');
+  messageElement.style('box-shadow', '0 0 10px rgba(0, 0, 0, 0.5)');
+  messageElement.style('opacity', '0.8');
+  messageElement.style('transition', 'opacity 0.3s');
+  messageElement.style('margin-bottom', '5px');
+  
+  // Set the message content
   if (cooldown === 0) {
-    popup.html(`${skillName}`);
+    messageElement.html(`${skillName}`);
   } else {
-    popup.html(`${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`);
+    messageElement.html(`${skillName} on cooldown: ${Math.ceil(cooldown / 60)}s`);
   }
   
-  // Show the popup with semi-transparency
-  popup.style('opacity', '0.8');
+  // Add the message to the container
+  popupContainer.child(messageElement);
   
-  // Clear existing timer
-  if (gameState.popupTimer) clearTimeout(gameState.popupTimer);
-  
-  // Store current messages in an array if not exists
-  if (!gameState.messageQueue) {
-    gameState.messageQueue = [];
-  }
-  
-  // Add this message to the queue
-  gameState.messageQueue.push({
-    message: popup.html(),
-    timestamp: Date.now()
-  });
-  
-  // Only keep the last 3 messages
-  if (gameState.messageQueue.length > 3) {
-    gameState.messageQueue.shift();
-  }
-  
-  // Update the popup with all messages
-  let allMessages = '';
-  gameState.messageQueue.forEach(msg => {
-    allMessages += `<div>${msg.message}</div>`;
-  });
-  popup.html(allMessages);
-  
-  // Hide popup after 3 seconds
-  gameState.popupTimer = setTimeout(() => {
-    // Remove the oldest message
-    if (gameState.messageQueue.length > 0) {
-      gameState.messageQueue.shift();
-      
-      // If there are still messages, update the display
-      if (gameState.messageQueue.length > 0) {
-        let remainingMessages = '';
-        gameState.messageQueue.forEach(msg => {
-          remainingMessages += `<div>${msg.message}</div>`;
-        });
-        popup.html(remainingMessages);
-      } else {
-        // If no messages left, hide the popup
-        popup.style('opacity', '0');
-      }
-    } else {
-      popup.style('opacity', '0');
-    }
+  // Set a timer to remove this specific message
+  setTimeout(() => {
+    // Fade out
+    messageElement.style('opacity', '0');
+    
+    // Remove from DOM after fade completes
+    setTimeout(() => {
+      messageElement.remove();
+    }, 300); // Match the transition time
   }, 3000);
 }

@@ -69,27 +69,20 @@ export function createStatusBoard() {
     statusBoard.child(skillDiv);
   });
   
-  // Create cooldown popup
+  // Create cooldown popup container
   const cooldownPopup = createElement('div');
   cooldownPopup.id('cooldown-popup');
   cooldownPopup.style('position', 'fixed');
   cooldownPopup.style('top', '20px'); // Position at top
-  cooldownPopup.style('right', '20px'); // Position at right
-  cooldownPopup.style('transform', 'none'); // Remove the centering transform
-  cooldownPopup.style('background', 'rgba(0, 0, 0, 0.6)'); // More transparent background
-  cooldownPopup.style('color', 'white');
-  cooldownPopup.style('padding', '15px 30px');
-  cooldownPopup.style('border-radius', '5px');
-  cooldownPopup.style('font-family', 'Arial, sans-serif');
-  cooldownPopup.style('font-size', '24px');
-  cooldownPopup.style('font-weight', 'bold');
+  cooldownPopup.style('left', '50%'); // Center horizontally
+  cooldownPopup.style('transform', 'translateX(-50%)'); // Center horizontally
+  cooldownPopup.style('width', '33%'); // Width to 1/3 of screen
   cooldownPopup.style('pointer-events', 'none');
-  cooldownPopup.style('opacity', '0');
-  cooldownPopup.style('transition', 'opacity 0.3s');
   cooldownPopup.style('z-index', '200');
-  cooldownPopup.style('text-align', 'center'); // Center text
-  cooldownPopup.style('max-width', '33%'); // Limit width to 1/3 of screen
-  cooldownPopup.style('box-shadow', '0 0 10px rgba(0, 0, 0, 0.5)'); // Add subtle shadow
+  cooldownPopup.style('display', 'flex');
+  cooldownPopup.style('flex-direction', 'column');
+  cooldownPopup.style('align-items', 'center');
+  cooldownPopup.style('gap', '5px'); // Space between messages
   
   return {
     statusBoard,
