@@ -12,7 +12,7 @@ const CONFIG = {
     PLAYER_WIDTH: 20,
     PLAYER_HEIGHT: 40,
     PLAYER_DEPTH: 20,
-    FIRE_RATE: 30, // frames between shots
+    FIRE_RATE: 60, // frames between shots
 
     // Bullet settings
     BULLET: {
@@ -43,7 +43,6 @@ const CONFIG = {
 
     // Skill settings
     CLONE: {
-        // COOLDOWN: 60,
         COOLDOWN: 0,
         DURATION: 8 * 60,
         FIRE_RATE: 30, // Shoot as fast as player
@@ -52,7 +51,6 @@ const CONFIG = {
     },
 
     TURRET: {
-        // COOLDOWN: 5 * 60, // 5 seconds cooldown
         COOLDOWN: 30, // 5 seconds cooldown
         DURATION: 3 * 60, // 3 seconds duration
         FIRE_RATE: 15,  // Twice as fast as clone
@@ -63,7 +61,6 @@ const CONFIG = {
     },
 
     AIRSTRIKE: {
-        // COOLDOWN: 60,
         COOLDOWN: 30,
         SPEED: 3,
         BOMB_RATE: 100,
@@ -73,7 +70,6 @@ const CONFIG = {
     },
 
     LASER: {
-        // COOLDOWN: 60,
         COOLDOWN: 30,
         DURATION: 5 * 60,
         DAMAGE: 80,

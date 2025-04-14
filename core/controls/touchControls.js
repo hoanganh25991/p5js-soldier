@@ -166,9 +166,10 @@ export function updateVirtualTouchKeys(gameState) {
  * @returns {boolean} True if the device supports touch
  */
 function isTouchDevice() {
-  return (('ontouchstart' in window) ||
-     (navigator.maxTouchPoints > 0) ||
-     (navigator.msMaxTouchPoints > 0));
+  return true;
+  // return (('ontouchstart' in window) ||
+  //    (navigator.maxTouchPoints > 0) ||
+  //    (navigator.msMaxTouchPoints > 0));
 }
 
 /**

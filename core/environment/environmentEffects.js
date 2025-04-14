@@ -58,6 +58,9 @@ function changeWeather(gameState) {
   // Get all weather types
   const weatherTypes = Object.values(WEATHER_TYPES);
   
+  // Store previous weather for comparison
+  const previousWeather = gameState.weather;
+  
   // Higher chance of clear weather
   if (random() < 0.6) {
     gameState.weather = WEATHER_TYPES.CLEAR;
@@ -72,6 +75,19 @@ function changeWeather(gameState) {
     
     // Reset intensity for new weather
     gameState.weatherIntensity = 0.1;
+  }
+  
+  // Force fog update immediately if weather changed from or to fog
+  if (previousWeather === WEATHER_TYPES.FOG || gameState.weather === WEATHER_TYPES.FOG) {
+    gameState.fogUpdateTimer = 0;
+    
+    // Clear fog immediately if changing from fog to non-fog
+    if (previousWeather === WEATHER_TYPES.FOG && gameState.weather !== WEATHER_TYPES.FOG) {
+      gameState.fogDensity = 0;
+      if (gameState.lastFogUpdate) {
+        gameState.lastFogUpdate.opacity = 0;
+      }
+    }
   }
 }
 
@@ -117,8 +133,13 @@ function applyEnvironmentEffects(gameState) {
     gameState.rainParticles = [];
   }
   
-  // Fog effect
-  gameState.fogDensity = gameState.weather === WEATHER_TYPES.FOG ? gameState.weatherIntensity : 0;
+  // Fog effect - ensure it clears quickly when weather changes
+  if (gameState.weather === WEATHER_TYPES.FOG) {
+    gameState.fogDensity = gameState.weatherIntensity;
+  } else {
+    // Clear fog more quickly when weather is not fog
+    gameState.fogDensity = 0;
+  }
 }
 
 // Create rain particles
@@ -285,9 +306,6 @@ function drawLightning(gameState) {
 
 // Draw fog effect
 function drawFog(gameState) {
-  // Skip fog rendering if density is very low
-  if (gameState.fogDensity < 0.1) return;
-  
   // Initialize fog update timer if it doesn't exist
   if (gameState.fogUpdateTimer === undefined) {
     gameState.fogUpdateTimer = 0;
@@ -298,13 +316,30 @@ function drawFog(gameState) {
     };
   }
   
-  // Update fog only every 5 seconds (300 frames at 60fps)
-  if (gameState.fogUpdateTimer <= 0) {
+  // Force update fog immediately when weather changes from fog to non-fog
+  // or when fog density changes significantly
+  const shouldForceUpdate = 
+    (gameState.weather !== WEATHER_TYPES.FOG && gameState.lastFogUpdate.opacity > 0) || 
+    (Math.abs(gameState.fogDensity * 150 - gameState.lastFogUpdate.opacity) > 30);
+  
+  // Update fog only every 5 seconds (300 frames at 60fps) or when forced
+  if (gameState.fogUpdateTimer <= 0 || shouldForceUpdate) {
     // Reset timer
     gameState.fogUpdateTimer = 300;
     
-    // Update fog data
+    // Update fog data - ensure fog clears quickly when weather changes
     gameState.lastFogUpdate.opacity = gameState.fogDensity * 150;
+    
+    // If weather is not fog, reduce opacity more aggressively
+    if (gameState.weather !== WEATHER_TYPES.FOG && gameState.lastFogUpdate.opacity < 30) {
+      gameState.lastFogUpdate.opacity = 0; // Clear fog completely
+    }
+    
+    // Skip rendering if opacity is zero
+    if (gameState.lastFogUpdate.opacity < 0.1) {
+      return;
+    }
+    
     gameState.lastFogUpdate.playerZ = gameState.player.z;
     
     // Generate new fog planes
@@ -313,6 +348,11 @@ function drawFog(gameState) {
   } else {
     // Decrease timer
     gameState.fogUpdateTimer--;
+    
+    // Skip rendering if opacity is very low
+    if (gameState.lastFogUpdate.opacity < 0.1) {
+      return;
+    }
   }
   
   // Draw fog using the last updated values
