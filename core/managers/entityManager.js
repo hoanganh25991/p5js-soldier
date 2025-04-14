@@ -151,6 +151,14 @@ function updateLasers(gameState) {
  */
 function updateWaves(gameState) {
   for (let i = gameState.waves.length - 1; i >= 0; i--) {
+    // Check if the wave object has the required methods
+    if (!gameState.waves[i] || typeof gameState.waves[i].update !== 'function') {
+      console.warn('Invalid wave object found at index', i, gameState.waves[i]);
+      gameState.waves.splice(i, 1);
+      continue;
+    }
+    
+    // Update the wave and remove if needed
     if (gameState.waves[i].update()) {
       gameState.waves.splice(i, 1);
     } else {

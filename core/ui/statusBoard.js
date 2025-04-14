@@ -74,29 +74,29 @@ export function createStatusBoard() {
   // Add boss div to status board
   statusBoard.child(bossDiv);
   
-  // Create skills header
-  const skillsHeader = createElement('div', 'Skills (Cooldown):');
-  statusBoard.child(skillsHeader);
+  // TODO: Create skills header
+  // const skillsHeader = createElement('div', 'Skills (Cooldown):');
+  // statusBoard.child(skillsHeader);
   
-  // Create skill entries
-  const skills = [
-    { key: 'C', name: 'Clone', id: 'clone-cd' },
-    { key: 'T', name: 'Turret', id: 'turret-cd' },
-    { key: 'A', name: 'Airstrike', id: 'airstrike-cd' },
-    { key: 'L', name: 'Laser', id: 'laser-cd' },
-    { key: 'G', name: 'Game Boy Advanced', id: 'gba-cd' },
-    { key: 'F', name: 'Gas Lighter', id: 'gas-lighter-cd' }
-  ];
+  // // Create skill entries
+  // const skills = [
+  //   { key: 'C', name: 'Clone', id: 'clone-cd' },
+  //   { key: 'T', name: 'Turret', id: 'turret-cd' },
+  //   { key: 'A', name: 'Airstrike', id: 'airstrike-cd' },
+  //   { key: 'L', name: 'Laser', id: 'laser-cd' },
+  //   { key: 'G', name: 'Game Boy Advanced', id: 'gba-cd' },
+  //   { key: 'F', name: 'Gas Lighter', id: 'gas-lighter-cd' }
+  // ];
   
-  skills.forEach((skill, index) => {
-    const skillDiv = createElement('div', `${index + 1}: ${skill.name} (${skill.key}) - `);
-    const skillSpan = createElement('span', 'Ready');
-    skillSpan.id(skill.id);
-    skillDiv.child(skillSpan);
-    statusBoard.child(skillDiv);
-  });
+  // skills.forEach((skill, index) => {
+  //   const skillDiv = createElement('div', `${index + 1}: ${skill.name} (${skill.key}) - `);
+  //   const skillSpan = createElement('span', 'Ready');
+  //   skillSpan.id(skill.id);
+  //   skillDiv.child(skillSpan);
+  //   statusBoard.child(skillDiv);
+  // });
   
-  // Create cooldown popup container
+  // TODO: Create cooldown popup container
   const cooldownPopup = createElement('div');
   cooldownPopup.id('cooldown-popup');
   cooldownPopup.style('position', 'fixed');
