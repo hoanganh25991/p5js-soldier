@@ -22,7 +22,7 @@ export function createVirtualTouchKeys() {
   virtualTouchKeys.style('bottom', '20px');
   virtualTouchKeys.style('display', 'flex');
   virtualTouchKeys.style('flex-direction', 'column');
-  virtualTouchKeys.style('gap', '15px');
+  virtualTouchKeys.style('gap', getButtonSizeForOrientation().rowGap);
   virtualTouchKeys.style('z-index', '100');
   // Prevent text selection and double-tap zoom
   virtualTouchKeys.style('user-select', 'none');
@@ -47,12 +47,15 @@ export function createVirtualTouchKeys() {
   const keysPerRow = 4;
   const rows = Math.ceil(skillEntries.length / keysPerRow);
   
+  // Get size based on current orientation
+  const sizeConfig = getButtonSizeForOrientation();
+  
   for (let i = 0; i < rows; i++) {
     // Create a row container
     const row = createElement('div');
     row.class('touch-key-row');
     row.style('display', 'flex');
-    row.style('gap', '10px');
+    row.style('gap', sizeConfig.gap);
     row.style('justify-content', 'flex-end'); // Align to the right
     
     // Get skills for this row
@@ -65,14 +68,14 @@ export function createVirtualTouchKeys() {
       keyButton.attribute('data-skill', skill.skillName);
       keyButton.attribute('title', skill.name);
       
-      // Style the button - larger for better touch targets but suitable for landscape
-      keyButton.style('width', '80px');
-      keyButton.style('height', '80px');
+      // Style the button based on orientation
+      keyButton.style('width', sizeConfig.width);
+      keyButton.style('height', sizeConfig.height);
       keyButton.style('border-radius', '50%');
       keyButton.style('background', 'rgba(0, 0, 0, 0.7)');
       keyButton.style('color', 'white');
       keyButton.style('border', '2px solid white');
-      keyButton.style('font-size', '28px');
+      keyButton.style('font-size', sizeConfig.fontSize);
       keyButton.style('font-weight', 'bold');
       keyButton.style('cursor', 'pointer');
       keyButton.style('display', 'flex');
@@ -225,10 +228,51 @@ export function setupTouchControls(gameState) {
     // Store reference in game state for updates
     gameState.ui = gameState.ui || {};
     gameState.ui.touchKeys = touchKeys;
+    
+    // Add orientation change listener
+    window.addEventListener('resize', () => {
+      updateTouchControlsForOrientation(gameState);
+    });
   }
   
   // Add global touch handlers to prevent unwanted zooming and text selection
   setupGlobalTouchHandlers();
+}
+
+/**
+ * Update touch controls when orientation changes
+ * @param {Object} gameState - The current game state
+ */
+function updateTouchControlsForOrientation(gameState) {
+  if (!gameState || !gameState.ui || !gameState.ui.touchKeys) return;
+  
+  const touchKeys = gameState.ui.touchKeys;
+  const currentOrientation = touchKeys.attribute('data-orientation');
+  const newOrientation = isLandscape() ? 'landscape' : 'portrait';
+  
+  // Only update if orientation has changed
+  if (currentOrientation !== newOrientation) {
+    // Update orientation attribute
+    touchKeys.attribute('data-orientation', newOrientation);
+    
+    // Get new size configuration
+    const sizeConfig = getButtonSizeForOrientation();
+    
+    // Update container gap
+    touchKeys.style('gap', sizeConfig.rowGap);
+    
+    // Update all rows
+    selectAll('.touch-key-row').forEach(row => {
+      row.style('gap', sizeConfig.gap);
+    });
+    
+    // Update all buttons
+    selectAll('.touch-key').forEach(button => {
+      button.style('width', sizeConfig.width);
+      button.style('height', sizeConfig.height);
+      button.style('font-size', sizeConfig.fontSize);
+    });
+  }
 }
 
 /**

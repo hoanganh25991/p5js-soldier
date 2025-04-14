@@ -1,4 +1,24 @@
 const CONFIG = {
+  // Debug settings
+  DEBUG_MODE: false, // Set to true to show performance metrics
+  
+  // Performance settings
+  PERFORMANCE: {
+    QUALITY_LEVEL: 'auto', // 'low', 'medium', 'high', 'ultra', 'auto'
+    PARTICLE_LIMIT: 200,
+    PARTICLE_SCALE: 1.0,
+    DRAW_DISTANCE: 1500, // Same as WORLD_RADIUS by default
+    ENTITY_LIMIT: 30, // Maximum number of entities to render
+    DETAIL_LEVEL: 1.0, // Scale for geometric detail
+    TEXTURE_QUALITY: 1.0, // Scale for texture quality
+    SHADOWS_ENABLED: false, // Shadows are expensive, disabled by default
+    POST_PROCESSING: false, // Post-processing effects
+    COLLISION_CHECK_FREQUENCY: 1, // Check collisions every N frames
+    USE_GPU_ACCELERATION: true,
+    BATCH_RENDERING: true,
+    USE_INSTANCING: true
+  },
+  
   // World settings
   WORLD_RADIUS: 1500,
   MAX_ENEMIES: 30, // Reduced from 50 to improve performance

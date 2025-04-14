@@ -28,6 +28,12 @@ import { checkGameEndConditions, resetGame } from './managers/gameManager.js';
 import { updateGameEnvironment } from './managers/environmentManager.js';
 import soundManager from './managers/soundManager.js';
 
+// Import performance optimization managers
+import performanceManager from './managers/performanceManager.js';
+import gpuManager from './managers/gpuManager.js';
+import particleManager from './managers/particleManager.js';
+import collisionManager from './managers/collisionManager.js';
+
 // p5.js preload function - called before setup
 function preload() {
   // Load assets
@@ -56,6 +62,17 @@ function setup() {
   // Set global sound volume (0.5 = 50% of original volume)
   gameState.masterVolume = 0.5;
   soundManager.setMasterVolume(gameState.masterVolume);
+  
+  // Initialize performance optimization managers
+  performanceManager.updateSettings();
+  gpuManager.initialize(drawingContext);
+  particleManager.updateSettings();
+  
+  // Store managers in gameState for easy access
+  gameState.performanceManager = performanceManager;
+  gameState.gpuManager = gpuManager;
+  gameState.particleManager = particleManager;
+  gameState.collisionManager = collisionManager;
   
   // Create UI elements
   gameState.ui.statusBoard = createStatusBoard();
@@ -88,6 +105,10 @@ function draw() {
     textFont(gameState.gameFont);
   }
   
+  // Begin frame for performance tracking
+  performanceManager.update();
+  gpuManager.beginFrame();
+  
   // Handle different game states
   switch (gameState.currentState) {
     case 'menu':
@@ -111,8 +132,20 @@ function draw() {
       // Update combo system
       updateCombo(gameState);
       
+      // Clear collision grid for new frame
+      collisionManager.clearGrid();
+      
+      // Update particle system
+      particleManager.update();
+      
       // Update and show all game entities
       updateAndShowEntities(gameState);
+      
+      // Process collisions
+      collisionManager.processCollisions(gameState);
+      
+      // Render particles
+      particleManager.render();
       
       // Update skill states
       updateSkillStates(gameState.skills, gameState.frameCount);
@@ -131,6 +164,13 @@ function draw() {
       
       // Check win/lose conditions
       checkGameEndConditions(gameState);
+      
+      // Display performance stats in debug mode
+      if (CONFIG.DEBUG_MODE) {
+        performanceManager.displayMetrics(10, 20);
+        gpuManager.displayStats(10, 100);
+        collisionManager.displayStats(10, 160);
+      }
       break;
       
     case 'paused':
@@ -148,6 +188,9 @@ function draw() {
       // Just keep the last frame visible with level up overlay
       break;
   }
+  
+  // End frame for performance tracking
+  gpuManager.endFrame();
 }
 
 // Event handlers
