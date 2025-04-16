@@ -367,33 +367,52 @@ export class Turret {
       
       pop();
       
-      // Draw health bar if grounded and health is less than max
-      if (this.health < this.maxHealth) {
+      // Always draw health bar when grounded
+      if (this.grounded) {
         push();
         // Position the health bar above the turret
-        translate(0, -this.height - 10, 0);
-        // Make the health bar face the camera
-        rotateY(-this.gameState.cameraRotationY);
+        translate(0, -this.height - 15, 0);
         
-        // Health bar background
-        noStroke();
-        fill(50, 50, 50, 180);
-        rect(-15, -2, 30, 4);
+        // Make the health bar face the camera
+        // Use camera.rotationY if available, otherwise fall back to cameraRotationY
+        const cameraY = this.gameState.camera ? 
+                        (this.gameState.camera.rotationY || this.gameState.cameraRotationY || 0) : 
+                        (this.gameState.cameraRotationY || 0);
+        rotateY(-cameraY);
+        
+        // Health bar outline for better visibility
+        stroke(0);
+        strokeWeight(1);
+        fill(50, 50, 50, 200);
+        rect(-20, -3, 40, 6);
         
         // Health bar fill
         const healthPercentage = this.health / this.maxHealth;
-        const healthBarWidth = 30 * healthPercentage;
+        const healthBarWidth = 38 * healthPercentage;
         
         // Choose color based on health percentage
+        noStroke();
         if (healthPercentage > 0.6) {
-          fill(0, 255, 0, 200); // Green for high health
+          fill(0, 255, 0, 230); // Green for high health
         } else if (healthPercentage > 0.3) {
-          fill(255, 255, 0, 200); // Yellow for medium health
+          fill(255, 255, 0, 230); // Yellow for medium health
         } else {
-          fill(255, 0, 0, 200); // Red for low health
+          fill(255, 0, 0, 230); // Red for low health
         }
         
-        rect(-15, -2, healthBarWidth, 4);
+        rect(-19, -2, healthBarWidth, 4);
+        
+        // Add health text for better visibility
+        fill(255);
+        textSize(10);
+        textAlign(CENTER, BOTTOM);
+        text(Math.ceil(this.health) + "/" + this.maxHealth, 0, -6);
+        
+        // Add "TURRET" label above health bar
+        fill(120, 120, 255);
+        textSize(8);
+        textAlign(CENTER, BOTTOM);
+        text("TURRET", 0, -14);
         pop();
       }
     }

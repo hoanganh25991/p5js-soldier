@@ -173,9 +173,17 @@ function updateClones(gameState) {
  */
 function updateTurrets(gameState) {
   for (let i = gameState.turrets.length - 1; i >= 0; i--) {
-    gameState.turrets[i].update();
-    gameState.turrets[i].show();
-    if (gameState.turrets[i].lifespan <= 0) {
+    const turret = gameState.turrets[i];
+    
+    // Update the turret
+    turret.update();
+    
+    // Show the turret (if not destroyed)
+    turret.show();
+    
+    // Remove turret if lifespan is over or it's destroyed and has been that way for a while
+    // This delay allows the destruction effect to be visible before removing
+    if (turret.lifespan <= 0 || (turret.isDestroyed && turret.lifespan <= -60)) {
       gameState.turrets.splice(i, 1);
     }
   }
