@@ -57,11 +57,11 @@ export function handleTurretSkill(gameState) {
   // Create the turret object with throw properties
   const turret = new Turret(
     gameState.player.x,
-    gameState.player.y - 20, // Start slightly above player
+    gameState.player.y - 50, // Start higher above player for better visibility
     gameState.player.z,
     throwAngle,
-    CONFIG.TURRET.THROW_SPEED * random(0.8, 1.5), // Random speed variation
-    throwDistance,
+    CONFIG.TURRET.THROW_SPEED * random(0.8, 1.2), // Slightly less speed variation
+    throwDistance * 0.5, // Reduce throw distance to keep it more visible
     gameState
   );
   

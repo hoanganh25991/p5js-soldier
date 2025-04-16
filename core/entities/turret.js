@@ -9,9 +9,9 @@ export class Turret {
     this.x = x;
     this.y = y;
     this.z = z;
-    this.width = 25;
-    this.height = 35;
-    this.depth = 25;
+    this.width = 30; // Slightly wider
+    this.height = 40; // Slightly taller
+    this.depth = 30; // Slightly deeper
     this.lifespan = CONFIG.TURRET.DURATION;
     this.rotation = 0;
     this.damage = CONFIG.TURRET.DAMAGE;
@@ -24,10 +24,10 @@ export class Turret {
     this.distanceTraveled = 0;
     
     // Physics for throwing
-    this.velocityY = -10; // Initial upward velocity
-    this.gravity = 0.4;   // Gravity for falling
+    this.velocityY = -15; // Increased initial upward velocity for better visibility
+    this.gravity = 0.3;   // Reduced gravity for slower fall and more hang time
     this.grounded = false;
-    this.groundLevel = -50; // Fixed ground level
+    this.groundLevel = 0; // Fixed ground level - set to 0 to be more visible
     
     // Rotation for throwing animation
     this.rotationX = 0;
@@ -78,11 +78,17 @@ export class Turret {
       if (this.y >= this.groundLevel) {
         this.y = this.groundLevel; // Set to ground level
         this.grounded = true;
+        
+        // Create a landing effect
+        this.createLandingEffect();
       }
       
       // Check if turret has traveled its maximum distance
       if (this.distanceTraveled >= this.distance) {
         this.grounded = true;
+        
+        // Create a landing effect
+        this.createLandingEffect();
       }
     } else {
       // Normal turret behavior when grounded
@@ -93,7 +99,66 @@ export class Turret {
 
   updateHeight() {
     if (this.grounded) {
-      updateHeight(this, this.gameState);
+      // When thrown on the ground, we want to keep it at ground level
+      // rather than adjusting based on tower height
+      if (this.speed > 0) {
+        // For thrown turrets, keep at ground level
+        this.y = this.groundLevel;
+      } else {
+        // For turrets placed directly on the tower, use the standard height calculation
+        updateHeight(this, this.gameState);
+      }
+    }
+  }
+  
+  createLandingEffect() {
+    // Only create the effect if we have the Wave class available
+    if (this.gameState.waves) {
+      // Import Wave class if needed
+      import('../entities/wave.js').then(module => {
+        const Wave = module.Wave;
+        
+        // Create a landing wave effect
+        const landingWave = new Wave(
+          this.x,
+          this.y,
+          this.z,
+          50, // Initial radius
+          [100, 100, 255, 180] // Blue for turret
+        );
+        landingWave.growthRate = 5;
+        landingWave.maxRadius = 100;
+        this.gameState.waves.push(landingWave);
+        
+        // Add some smaller particles around the landing spot
+        for (let i = 0; i < 8; i++) {
+          const particleAngle = random(TWO_PI);
+          const particleRadius = random(20, 60);
+          const particleX = this.x + cos(particleAngle) * particleRadius;
+          const particleZ = this.z + sin(particleAngle) * particleRadius;
+          
+          const particleWave = new Wave(
+            particleX,
+            this.y,
+            particleZ,
+            random(10, 20), // Small radius
+            [120, 120, 255, random(150, 200)]
+          );
+          particleWave.growthRate = random(2, 4);
+          particleWave.maxRadius = random(30, 50);
+          particleWave.lifespan = random(15, 30);
+          this.gameState.waves.push(particleWave);
+        }
+        
+        // Play landing sound if available
+        if (this.gameState.soundManager) {
+          this.gameState.soundManager.play('impact', {
+            priority: this.gameState.soundManager.PRIORITY.MEDIUM,
+            sourceType: 'skill',
+            sourceId: 'turret-land'
+          });
+        }
+      });
     }
   }
 
@@ -107,8 +172,10 @@ export class Turret {
       rotateY(this.direction);
       rotateX(this.rotationX);
       
-      // Draw the turret body without legs when in the air
-      fill(100, 100, 255, map(this.lifespan, 0, CONFIG.TURRET.DURATION, 0, 255));
+      // Draw the turret body without legs when in the air - brighter color for visibility
+      stroke(0);
+      strokeWeight(2);
+      fill(120, 120, 255, map(this.lifespan, 0, CONFIG.TURRET.DURATION, 0, 255));
       box(this.width, this.height / 2, this.depth);
       
       // Upper part (gun mount)
@@ -172,7 +239,7 @@ export class Turret {
       
       // Base - slightly above ground due to legs
       translate(0, -this.legLength / 2, 0);
-      fill(100, 100, 255, map(this.lifespan, 0, CONFIG.TURRET.DURATION, 0, 255));
+      fill(120, 120, 255, map(this.lifespan, 0, CONFIG.TURRET.DURATION, 0, 255));
       box(this.width, this.height / 2, this.depth);
       
       // Upper part (gun mount)
