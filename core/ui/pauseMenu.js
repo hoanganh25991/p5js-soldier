@@ -72,7 +72,7 @@ export function createPauseMenu() {
     'Restart Game', 
     styles.buttonColors.secondary, 
     () => {
-      resetGame();
+      resetGame(gameState);
       gameState.currentState = 'playing';
       pauseMenu.style('display', 'none');
       loop();

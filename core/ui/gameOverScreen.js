@@ -44,7 +44,7 @@ export function createGameOverScreen() {
     'Play Again', 
     styles.buttonColors.primary, 
     () => {
-      resetGame();
+      resetGame(gameState);
       gameState.currentState = 'playing';
       gameOverScreen.style('display', 'none');
       loop();
@@ -57,7 +57,7 @@ export function createGameOverScreen() {
     'Main Menu', 
     styles.buttonColors.secondary, 
     () => {
-      resetGame();
+      resetGame(gameState);
       gameState.currentState = 'menu';
       gameOverScreen.style('display', 'none');
       document.getElementById('menu-container').style.display = 'flex';
