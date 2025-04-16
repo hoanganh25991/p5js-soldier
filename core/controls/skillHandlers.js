@@ -42,12 +42,79 @@ export function handleCloneSkill(gameState) {
  * @param {Object} gameState - The current game state
  */
 export function handleTurretSkill(gameState) {
-  // Create turret at random position around the player
-  let turretAngle = random(TWO_PI);
-  let turretRadius = 40;
-  let turretX = gameState.player.x + cos(turretAngle) * turretRadius;
-  let turretZ = gameState.player.z + sin(turretAngle) * turretRadius;
-  gameState.turrets.push(new Turret(turretX, gameState.player.y, turretZ, gameState));
+  // Throw a turret in the direction the player is facing
+  const playerAngle = gameState.player.rotation;
+  
+  // Calculate a random throw distance within the configured range
+  const minDistance = CONFIG.TURRET.THROW_DISTANCE * 0.5; // Minimum 50% of max distance
+  const maxDistance = CONFIG.TURRET.THROW_DISTANCE;
+  const throwDistance = random(minDistance, maxDistance);
+  
+  // Calculate a random angle deviation to make throws less predictable
+  const angleDeviation = random(-PI/6, PI/6); // +/- 30 degrees
+  const throwAngle = playerAngle + angleDeviation;
+  
+  // Create the turret object with throw properties
+  const turret = new Turret(
+    gameState.player.x,
+    gameState.player.y - 20, // Start slightly above player
+    gameState.player.z,
+    throwAngle,
+    CONFIG.TURRET.THROW_SPEED * random(0.8, 1.5), // Random speed variation
+    throwDistance,
+    gameState
+  );
+  
+  // Add to game state
+  gameState.turrets.push(turret);
+  
+  // Create throw effect
+  if (gameState.waves) {
+    // Create a small wave at the throw position
+    const throwWave = new Wave(
+      gameState.player.x, 
+      gameState.player.y - 20, // Start slightly above player
+      gameState.player.z, 
+      50, // Small initial radius
+      [100, 100, 255, 150] // Blue for turret
+    );
+    throwWave.growthRate = 5;
+    throwWave.maxRadius = 100;
+    gameState.waves.push(throwWave);
+    
+    // Add a trail effect behind the turret
+    for (let i = 0; i < 5; i++) {
+      const trailDelay = i * 3; // Frames of delay
+      
+      // Schedule a delayed trail particle
+      setTimeout(() => {
+        if (gameState.waves) {
+          const trailX = gameState.player.x + cos(throwAngle) * (i * 20);
+          const trailY = gameState.player.y - 20 - i * 2; // Arc upward
+          const trailZ = gameState.player.z + sin(throwAngle) * (i * 20);
+          
+          const trailWave = new Wave(
+            trailX,
+            trailY,
+            trailZ,
+            20, // Small radius
+            [100, 100, 255, 100 - i * 15] // Fading blue
+          );
+          trailWave.growthRate = 3;
+          trailWave.maxRadius = 40;
+          trailWave.lifespan = 15;
+          gameState.waves.push(trailWave);
+        }
+      }, trailDelay * 16); // 16ms per frame
+    }
+  }
+  
+  // Play throw sound using sound manager
+  gameState.soundManager.play('spawn', {
+    priority: gameState.soundManager.PRIORITY.MEDIUM,
+    sourceType: 'skill',
+    sourceId: 'turret'
+  });
 }
 
 /**

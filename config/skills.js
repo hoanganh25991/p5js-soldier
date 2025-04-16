@@ -39,6 +39,8 @@ export const TURRET = {
   BULLET_SIZE: 5,
   MAX_TARGETS: 5, // Shoot 5 enemies at once
   BULLET_SPEED: 30, // 1.5x normal bullet speed
+  THROW_SPEED: 8, // Speed when thrown
+  THROW_DISTANCE: 150 * 10, // Maximum throw distance
 };
 
 // Airstrike skill settings
