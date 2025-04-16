@@ -187,11 +187,20 @@ function updateTurrets(gameState) {
  */
 function updateAirstrikes(gameState) {
   for (let i = gameState.airstrikes.length - 1; i >= 0; i--) {
-    // Remove airstrike when it flies off screen
-    if (gameState.airstrikes[i].x > width + 50) {
+    // Calculate distance from center of the world
+    const airstrike = gameState.airstrikes[i];
+    const distanceFromCenter = dist(0, 0, airstrike.x, airstrike.z);
+    
+    // Remove airstrike when it flies beyond the world radius or screen boundaries
+    if (distanceFromCenter > CONFIG.WORLD_RADIUS + 200 || 
+        airstrike.x > width + 200 || 
+        airstrike.x < -width - 200 || 
+        airstrike.z > height + 200 || 
+        airstrike.z < -height - 200) {
       gameState.airstrikes.splice(i, 1);
       continue; // Skip to next iteration after removing
     }
+    
     gameState.airstrikes[i].update();
     gameState.airstrikes[i].show();
   }

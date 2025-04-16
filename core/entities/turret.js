@@ -2,6 +2,7 @@
 
 import CONFIG from '../../config.js';
 import { findNearestEnemies, showAimLine, autoShoot, updateHeight } from '../utils.js';
+import { Wave } from './wave.js';
 
 export class Turret {
   constructor(x, y, z, direction, speed, distance, gameState) {
@@ -22,6 +23,7 @@ export class Turret {
     this.speed = speed || 0;
     this.distance = distance || 0;
     this.distanceTraveled = 0;
+    this.landingEffectCreated = false; // Flag to track if landing effect has been created
     
     // Physics for throwing
     this.velocityY = -15; // Increased initial upward velocity for better visibility
@@ -79,16 +81,22 @@ export class Turret {
         this.y = this.groundLevel; // Set to ground level
         this.grounded = true;
         
-        // Create a landing effect
-        this.createLandingEffect();
+        // Create landing effect if not already created
+        if (!this.landingEffectCreated) {
+          this.createLandingEffectNow();
+          this.landingEffectCreated = true;
+        }
       }
       
       // Check if turret has traveled its maximum distance
       if (this.distanceTraveled >= this.distance) {
         this.grounded = true;
         
-        // Create a landing effect
-        this.createLandingEffect();
+        // Create landing effect if not already created
+        if (!this.landingEffectCreated) {
+          this.createLandingEffectNow();
+          this.landingEffectCreated = true;
+        }
       }
     } else {
       // Normal turret behavior when grounded
@@ -111,14 +119,11 @@ export class Turret {
     }
   }
   
-  createLandingEffect() {
-    // Only create the effect if we have the Wave class available
+  createLandingEffectNow() {
+    // Only create the effect if we have the waves array available
     if (this.gameState.waves) {
-      // Import Wave class if needed
-      import('../entities/wave.js').then(module => {
-        const Wave = module.Wave;
-        
-        // Create a landing wave effect
+      try {
+        // Create a landing wave effect using the imported Wave class
         const landingWave = new Wave(
           this.x,
           this.y,
@@ -158,7 +163,17 @@ export class Turret {
             sourceId: 'turret-land'
           });
         }
-      });
+      } catch (error) {
+        console.error("Error creating landing effect:", error);
+        // Fallback to a simpler effect if there's an error
+        if (this.gameState.soundManager) {
+          this.gameState.soundManager.play('impact', {
+            priority: this.gameState.soundManager.PRIORITY.MEDIUM,
+            sourceType: 'skill',
+            sourceId: 'turret-land'
+          });
+        }
+      }
     }
   }
 
