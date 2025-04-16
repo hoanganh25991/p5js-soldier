@@ -32,10 +32,11 @@ export const CLONE = {
 
 // Turret skill settings
 export const TURRET = {
-  COOLDOWN: 5 * 60, // 5 seconds cooldown
-  DURATION: 3 * 60, // 3 seconds duration
+  COOLDOWN: 0 * 60, // 5 seconds cooldown
+  DURATION: 30 * 60, // 3 seconds duration
   FIRE_RATE: 15, // Twice as fast as clone
   DAMAGE: 15,
+  HEALTH: 300, // Health for the turret
   BULLET_SIZE: 5,
   MAX_TARGETS: 5, // Shoot 5 enemies at once
   BULLET_SPEED: 30, // 1.5x normal bullet speed

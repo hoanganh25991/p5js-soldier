@@ -18,10 +18,19 @@ export function resetGame(gameState) {
   // Reset game state
   resetGameState();
   
+  // Initialize camera properties if they don't exist
+  if (gameState.camera === null || gameState.camera === undefined) {
+    gameState.camera = {};
+  }
+  
   // Reset camera
-  gameState.cameraRotationX = -0.4;
-  gameState.cameraRotationY = 0;
+  gameState.camera.rotationX = -0.4;
+  gameState.camera.rotationY = 0;
   gameState.zoomLevel = 2.0;
+  
+  // For backward compatibility
+  gameState.cameraRotationX = gameState.camera.rotationX;
+  gameState.cameraRotationY = gameState.camera.rotationY;
   
   // Initialize player and tower
   gameState.player = new Player(gameState);

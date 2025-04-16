@@ -99,37 +99,93 @@ export class Enemy {
   update() {
     // Find the closest character to target
     const closestCharacter = this.findNearestCharacter();
+    // Find the closest turret to target
+    const closestTurret = this.findNearestTurret();
     
-    // If there's a character to target, move towards it
+    // Determine the closest target (character, turret, or tower)
+    let targetType = null;
+    let targetX = 0;
+    let targetZ = 0;
+    let targetDistance = Infinity;
+    
+    // Check if there's a character to target
     if (closestCharacter) {
-      // Calculate movement towards the closest character
-      let angle = atan2(closestCharacter.z - this.z, closestCharacter.x - this.x);
-      this.x += cos(angle) * this.speed;
-      this.z += sin(angle) * this.speed;
-      this.rotation = angle + HALF_PI; // Make enemy face the character
-      
-      // Check if enemy has reached the character
-      if (dist(this.x, this.z, closestCharacter.x, closestCharacter.z) < 50) {
-        // Attack the character
-        if (closestCharacter.takeDamage) {
-          closestCharacter.takeDamage(CONFIG.ENEMY_DAMAGE_TO_CHARACTER * this.damageMultiplier);
-        }
-      }
-    } else {
-      // If no characters, move towards the center (tower) as before
-      let angle = atan2(0 - this.z, 0 - this.x);
-      this.x += cos(angle) * this.speed;
-      this.z += sin(angle) * this.speed;
-      this.rotation = angle + HALF_PI; // Make enemy face the tower
-
-      // Check if enemy has reached the tower
-      if (dist(this.x, this.z, 0, 0) < 50) {
-        this.gameState.towerHeight = max(0, this.gameState.towerHeight - CONFIG.ENEMY_DAMAGE_TO_TOWER);
-        if (this.gameState.towerHeight === 0) {
-          this.gameState.playerHealth -= CONFIG.ENEMY_DAMAGE_TO_PLAYER;
-        }
+      const characterDistance = dist(this.x, this.z, closestCharacter.x, closestCharacter.z);
+      if (characterDistance < targetDistance) {
+        targetType = 'character';
+        targetX = closestCharacter.x;
+        targetZ = closestCharacter.z;
+        targetDistance = characterDistance;
       }
     }
+    
+    // Check if there's a turret to target
+    if (closestTurret && !closestTurret.isDestroyed) {
+      const turretDistance = dist(this.x, this.z, closestTurret.x, closestTurret.z);
+      if (turretDistance < targetDistance) {
+        targetType = 'turret';
+        targetX = closestTurret.x;
+        targetZ = closestTurret.z;
+        targetDistance = turretDistance;
+      }
+    }
+    
+    // If no character or turret, target the tower
+    if (!targetType) {
+      targetType = 'tower';
+      targetX = 0;
+      targetZ = 0;
+      targetDistance = dist(this.x, this.z, 0, 0);
+    }
+    
+    // Move towards the target
+    let angle = atan2(targetZ - this.z, targetX - this.x);
+    this.x += cos(angle) * this.speed;
+    this.z += sin(angle) * this.speed;
+    this.rotation = angle + HALF_PI; // Make enemy face the target
+    
+    // Attack based on target type
+    if (targetType === 'character' && targetDistance < 50) {
+      // Attack the character
+      if (closestCharacter.takeDamage) {
+        closestCharacter.takeDamage(CONFIG.ENEMY_DAMAGE_TO_CHARACTER * this.damageMultiplier);
+      }
+    } else if (targetType === 'turret' && targetDistance < 50) {
+      // Attack the turret
+      if (closestTurret.takeDamage) {
+        closestTurret.takeDamage(CONFIG.ENEMY_DAMAGE_TO_CHARACTER * this.damageMultiplier);
+      }
+    } else if (targetType === 'tower' && targetDistance < 50) {
+      // Attack the tower
+      this.gameState.towerHeight = max(0, this.gameState.towerHeight - CONFIG.ENEMY_DAMAGE_TO_TOWER);
+      if (this.gameState.towerHeight === 0) {
+        this.gameState.playerHealth -= CONFIG.ENEMY_DAMAGE_TO_PLAYER;
+      }
+    }
+  }
+  
+  findNearestTurret() {
+    // Get all turrets from the game state
+    const turrets = this.gameState.turrets || [];
+    
+    if (turrets.length === 0) return null;
+    
+    // Find the closest turret that is not destroyed
+    let closestTurret = null;
+    let closestDistance = Infinity;
+    
+    for (const turret of turrets) {
+      // Skip destroyed turrets
+      if (turret.isDestroyed) continue;
+      
+      const distance = dist(this.x, this.z, turret.x, turret.z);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestTurret = turret;
+      }
+    }
+    
+    return closestTurret;
   }
   
   findNearestCharacter() {

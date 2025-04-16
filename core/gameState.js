@@ -91,7 +91,13 @@ const gameState = {
   cloneSound: null,
   
   // Camera
-  camera: null,
+  camera: {
+    rotationX: -0.4,
+    rotationY: 0
+  },
+  // For backward compatibility
+  cameraRotationX: -0.4,
+  cameraRotationY: 0,
   
   // Add a message to the cooldown popup
   addCooldownMessage: function(message) {
@@ -112,6 +118,15 @@ function resetGameState() {
   gameState.zoomLevel = 1.5; // More zoomed in by default (smaller value = more zoomed in)
   gameState.isDragging = false;
   gameState.enemiesKilled = 0;
+  
+  // Reset camera properties
+  if (gameState.camera === null || gameState.camera === undefined) {
+    gameState.camera = {};
+  }
+  gameState.camera.rotationX = -0.4;
+  gameState.camera.rotationY = 0;
+  gameState.cameraRotationX = -0.4;
+  gameState.cameraRotationY = 0;
   
   // Reset progression
   gameState.score = 0;

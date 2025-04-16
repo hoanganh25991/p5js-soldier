@@ -18,6 +18,11 @@ export class Turret {
     this.damage = CONFIG.TURRET.DAMAGE;
     this.legLength = 20;
     
+    // Health properties
+    this.health = CONFIG.TURRET.HEALTH;
+    this.maxHealth = CONFIG.TURRET.HEALTH;
+    this.isDestroyed = false;
+    
     // Throwing properties
     this.direction = direction || 0;
     this.speed = speed || 0;
@@ -41,6 +46,69 @@ export class Turret {
       this.updateHeight(); // Initialize height for stationary turret
     }
   }
+  
+  takeDamage(amount) {
+    if (this.isDestroyed) return;
+    
+    this.health -= amount;
+    
+    // Check if turret is destroyed
+    if (this.health <= 0) {
+      this.health = 0;
+      this.isDestroyed = true;
+      this.createDestructionEffect();
+    }
+  }
+  
+  createDestructionEffect() {
+    // Only create the effect if we have the waves array available
+    if (this.gameState.waves) {
+      try {
+        // Create an explosion wave effect
+        const explosionWave = new Wave(
+          this.x,
+          this.y,
+          this.z,
+          60, // Initial radius
+          [255, 100, 50, 200] // Orange-red for explosion
+        );
+        explosionWave.growthRate = 8;
+        explosionWave.maxRadius = 150;
+        this.gameState.waves.push(explosionWave);
+        
+        // Add some explosion particles
+        for (let i = 0; i < 12; i++) {
+          const particleAngle = random(TWO_PI);
+          const particleRadius = random(30, 80);
+          const particleX = this.x + cos(particleAngle) * particleRadius;
+          const particleZ = this.z + sin(particleAngle) * particleRadius;
+          
+          const particleWave = new Wave(
+            particleX,
+            this.y,
+            particleZ,
+            random(15, 30), // Small radius
+            [255, random(50, 150), 0, random(150, 200)]
+          );
+          particleWave.growthRate = random(3, 6);
+          particleWave.maxRadius = random(40, 70);
+          particleWave.lifespan = random(20, 40);
+          this.gameState.waves.push(particleWave);
+        }
+        
+        // Play explosion sound if available
+        if (this.gameState.soundManager) {
+          this.gameState.soundManager.play('explosion', {
+            priority: this.gameState.soundManager.PRIORITY.HIGH,
+            sourceType: 'skill',
+            sourceId: 'turret-destroyed'
+          });
+        }
+      } catch (error) {
+        console.error("Error creating destruction effect:", error);
+      }
+    }
+  }
 
   findNearestEnemies(count = 1) {
     return findNearestEnemies(this, count, this.gameState);
@@ -59,6 +127,11 @@ export class Turret {
 
   update() {
     this.lifespan--;
+    
+    // If turret is destroyed, don't process any further
+    if (this.isDestroyed) {
+      return;
+    }
     
     // If not grounded yet, handle throwing physics
     if (!this.grounded) {
@@ -102,6 +175,11 @@ export class Turret {
       // Normal turret behavior when grounded
       this.updateHeight();
       this.autoShoot();
+    }
+    
+    // Check if lifespan has expired
+    if (this.lifespan <= 0) {
+      this.isDestroyed = true;
     }
   }
 
@@ -178,6 +256,11 @@ export class Turret {
   }
 
   show() {
+    // If destroyed, don't render anything
+    if (this.isDestroyed) {
+      return;
+    }
+    
     push();
     translate(this.x, this.y, this.z);
     
@@ -283,6 +366,36 @@ export class Turret {
       pop();
       
       pop();
+      
+      // Draw health bar if grounded and health is less than max
+      if (this.health < this.maxHealth) {
+        push();
+        // Position the health bar above the turret
+        translate(0, -this.height - 10, 0);
+        // Make the health bar face the camera
+        rotateY(-this.gameState.cameraRotationY);
+        
+        // Health bar background
+        noStroke();
+        fill(50, 50, 50, 180);
+        rect(-15, -2, 30, 4);
+        
+        // Health bar fill
+        const healthPercentage = this.health / this.maxHealth;
+        const healthBarWidth = 30 * healthPercentage;
+        
+        // Choose color based on health percentage
+        if (healthPercentage > 0.6) {
+          fill(0, 255, 0, 200); // Green for high health
+        } else if (healthPercentage > 0.3) {
+          fill(255, 255, 0, 200); // Yellow for medium health
+        } else {
+          fill(255, 0, 0, 200); // Red for low health
+        }
+        
+        rect(-15, -2, healthBarWidth, 4);
+        pop();
+      }
     }
     
     pop();
