@@ -32,7 +32,7 @@ export const CLONE = {
 
 // Turret skill settings
 export const TURRET = {
-  COOLDOWN: 0 * 60, // 5 seconds cooldown
+  COOLDOWN: 5 * 60, // 5 seconds cooldown
   DURATION: 5 * 60, // 3 seconds duration
   FIRE_RATE: 15, // Twice as fast as clone
   DAMAGE: 15,
@@ -71,7 +71,7 @@ export const LASER = {
 
 // Game Boy Advanced skill settings
 export const GBA = {
-  COOLDOWN: 120,
+  COOLDOWN: 0 * 60,
   THROW_SPEED: 8, // Slower speed to make the throw more visible
   THROW_DISTANCE: 150 * 10, // Maximum throw distance
   CHARACTER_DURATION: 200 * 60, // 20 seconds (increased from 10)
